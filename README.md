@@ -4,7 +4,7 @@ Repository containing material for running Blast.jl and reproducing all results 
 
 To run it, clone this repository, open a Julia REPL, and run:
 - using Pkg
-- Pkg.activate(.)
+- Pkg.activate(".")
 - Pkg.instantiate()
 - Pkg.resolve()
 
