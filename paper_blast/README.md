@@ -1,5 +1,6 @@
 # Blast.jl: beyond Limber Angular power Spectra Toolkit
 
+This folder was taken from [here](https://github.com/sofiachiarenza/blast_paper).
 Repository containing material for running Blast.jl and reproducing all results from the paper (https://arxiv.org/abs/2410.03632).
 
 To run it, clone this repository, open a Julia REPL, and run:
