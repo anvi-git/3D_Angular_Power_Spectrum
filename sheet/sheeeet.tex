@@ -1,0 +1,974 @@
+\section{sheeeet}
+\subsection{Angular Power Spectra: General Theory}
+%-----------------------------------------------------
+A generic scalar observable $\tilde{A}(\hat{n})$ on the sky is related to its 3D
+counterpart through a projection kernel $W_i(z)$:
+\begin{equation}
+    \tilde{A}(\hat{n}) = \int dz\, W_i(z)\, A(\chi(z)\hat{n};\, z),
+    \label{eq:projection}
+\end{equation}
+where $\chi(z)$ is the comoving distance.
+
+\noindent\textbf{Detailed Explanation of Eq. \eqref{eq:projection} (Sky Projection):}\\
+This is the fundamental equation connecting 3D cosmology to 2D observations:
+\begin{itemize}
+    \item $\tilde{A}(\hat{n})$ is the \emph{observed quantity} on the sky as a function of sky direction $\hat{n}$ (a unit vector pointing to a location on the celestial sphere).
+    \item $A(\chi(z)\hat{n}; z)$ is the full 3D field (e.g., matter density contrast $\delta(\mathbf{r})$, galaxy number density, etc.) evaluated at comoving position $\mathbf{r} = \chi(z) \hat{n}$ and redshift $z$.
+    \item $W_i(z)$ is the \emph{projection/selection kernel}: it specifies how strongly matter at redshift $z$ contributes to the observed quantity.
+    \item The integral $\int dz\, W_i(z) [\cdot]$ projects all 3D information at different redshifts down to a single 2D observed field on the sky.
+\end{itemize}
+
+The 3D field in Fourier space is:
+\begin{equation}
+    A(\chi(z)\hat{n};\,z) = \int \frac{d^3k}{(2\pi)^3}\, A(\mathbf{k},z)\,
+    e^{i\mathbf{k}\cdot\hat{n}\,\chi(z)}.
+\end{equation}
+
+The Rayleigh / plane-wave expansion is:
+\begin{equation}
+    e^{i\mathbf{k}\cdot\hat{n}\,r} = 4\pi \sum_{\ell,m} i^\ell\,
+    j_\ell(kr)\,Y^*_{\ell m}(\hat{k})\,Y_{\ell m}(\hat{n}),
+\end{equation}
+where $j_\ell(x)$ are the spherical Bessel functions.
+
+Inserting the plane-wave expansion gives the spherical-harmonic coefficients:
+\begin{equation}
+    A_{\ell,m} = 4\pi i^\ell \int dz\, W_i(z)
+    \int \frac{d^3k}{(2\pi)^3}\, A(\mathbf{k},z)\,
+    j_\ell(k\chi(z))\, Y^*_{\ell m}(\hat{k}).
+\end{equation}
+
+The angular cross-power spectrum between two projected fields $\tilde{A}$ and
+$\tilde{B}$ is (using orthonormality of spherical harmonics):
+\begin{equation}
+    C^{AB}(\ell) = \langle A_{\ell m} B^*_{\ell m}\rangle =
+    \frac{2}{\pi}
+    \int dz\, W_i(z) \int dz'\, W_j(z')
+    \int dk\, k^2\, P^{AB}(k,z,z')\,
+    j_\ell(k\chi(z))\,j_\ell(k\chi(z')).
+    \label{eq:Cl_general}
+\end{equation}
+
+Changing variables from $z$ to $\chi(z)$ and including probe-specific
+$k$-dependent prefactors, the general expression becomes:
+\begin{equation}
+    C^{AB}_{ij}(\ell) = \mathcal{N}(\ell)
+    \int_0^\infty d\chi_1\, W^A_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^B_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{AB}(k,\chi_1,\chi_2)\,
+    \frac{j_\ell(k\chi_1)}{(k\chi_1)^\alpha}
+    \frac{j_\ell(k\chi_2)}{(k\chi_2)^\beta},
+    \label{eq:Cl_full}
+\end{equation}
+where the exponents $\alpha$ and $\beta$ take the value $0$ for clustering and
+$2$ for lensing.
+
+%-------------------------------------------------------------------
+\subsection{The Limber Approximation}
+%-------------------------------------------------------------------
+
+\subsubsection{Standard Limber}
+
+The spherical Bessel function is approximated around its principal peak at
+$k\chi \approx \ell + 1/2$:
+\begin{equation}
+    j_\ell(x) \approx \sqrt{\frac{\pi}{2\ell+1}}\,\delta_D\!\left(\ell+\tfrac{1}{2}-x\right).
+    \label{eq:limber_jl}
+\end{equation}
+
+An equivalent derivation uses the orthogonality relation:
+\begin{equation}
+    \int_0^\infty dk\, k^2\, j_\ell(k\chi_1)\,j_\ell(k\chi_2)
+    = \frac{\pi}{2}\,\frac{\delta_D(\chi_1-\chi_2)}{\chi_1\chi_2}.
+\end{equation}
+
+Applying the Limber approximation to Eq.~\eqref{eq:Cl_full} reduces the 3D
+integral to a 1D one:
+\begin{equation}
+    C^{AB}_{ij}(\ell) \approx
+    \int_0^\infty \frac{d\chi}{\chi^2}\,
+    K^A_i(\chi)\,K^B_j(\chi)\,P^{AB}\!\left(k_\ell, z\right),
+    \label{eq:limber}
+\end{equation}
+with the on-shell wavenumber:
+\begin{equation}
+    k_\ell \equiv \frac{\ell + 1/2}{\chi}.
+\end{equation}
+
+\subsubsection{Extended Limber Approximation}
+
+Defining $\nu \equiv kr = \ell + 1/2$ and $\tilde{K}(\chi) \equiv K(\chi)/\sqrt{\chi}$,
+the first-order correction is:
+\begin{equation}
+    C^{AB}_{ij}(\ell) = \mathcal{N}(\ell)
+    \int \frac{d\chi}{\chi^2}\,K_i(\chi)\,K_j(\chi)\,
+    P^{AB}\!\left(k = \frac{\nu}{\chi}\right)
+    \left\{1 + \frac{1}{\nu^2}\left[
+        \frac{\chi^2}{2}\!\left(
+            \frac{\tilde{K}''_i(\chi)}{\tilde{K}_i(\chi)}
+            +\frac{\tilde{K}''_j(\chi)}{\tilde{K}_j(\chi)}
+        \right)
+        +\frac{\chi^3}{6}\!\left(
+            \frac{\tilde{K}'''_i(\chi)}{\tilde{K}_i(\chi)}
+            +\frac{\tilde{K}'''_j(\chi)}{\tilde{K}_j(\chi)}
+        \right)
+    \right]\right\}.
+    \label{eq:extended_limber}
+\end{equation}
+This corrects the standard Limber error from $\mathcal{O}(\ell^{-2})$ to
+$\mathcal{O}(\ell^{-4})$.
+
+%-------------------------------------------------------------------
+\subsection{The \texttt{Blast.jl} Algorithm}
+%-------------------------------------------------------------------
+
+\subsubsection{Probe-specific Angular Power Spectra}
+
+\paragraph{Galaxy clustering ($gg$):}
+\begin{equation}
+    C^{gg}_{ij}(\ell) = \frac{2}{\pi}
+    \int_0^\infty d\chi_1\, W^g_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^g_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{AB}(k,\chi_1,\chi_2)\,
+    j_\ell(k\chi_1)\,j_\ell(k\chi_2).
+    \label{eq:Cl_gg}
+\end{equation}
+
+The galaxy clustering kernel is:
+\begin{equation}
+    W^g_i(\chi) = H(z)\,n_i(z)\,b_g(z),
+\end{equation}
+where $H(z)$ is the expansion rate, $n_i(z)$ the redshift distribution in
+tomographic bin $i$, and $b_g(z)$ the linear galaxy bias.
+
+\paragraph{Weak lensing shear ($ss$):}
+\begin{equation}
+    C^{ss}_{ij}(\ell) = \frac{2(ℓ+2)!}{\pi(\ell-2)!}
+    \int_0^\infty d\chi_1\, W^s_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^s_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{AB}(k,\chi_1,\chi_2)\,
+    \frac{j_\ell(k\chi_1)}{(k\chi_1)^2}\,
+    \frac{j_\ell(k\chi_2)}{(k\chi_2)^2}.
+    \label{eq:Cl_ss}
+\end{equation}
+
+The lensing kernel is:
+\begin{equation}
+    W^s_i(\chi) = \frac{3H_0^2\Omega_m}{2a}\,\chi
+    \int_z^\infty dz'\,n_i(z')\,\frac{\chi(z')-\chi}{\chi(z')}.
+    \label{eq:lensing_kernel}
+\end{equation}
+
+\paragraph{Galaxy–shear cross-correlation ($gs$):}
+\begin{equation}
+    C^{gs}_{ij}(\ell) = \frac{2}{\pi}\sqrt{\frac{(\ell+2)!}{(\ell-2)!}}
+    \int_0^\infty d\chi_1\, W^g_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^s_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{AB}(k,\chi_1,\chi_2)\,
+    \frac{j_\ell(k\chi_1)}{(k\chi_1)^2}\,j_\ell(k\chi_2).
+    \label{eq:Cl_gs}
+\end{equation}
+
+\subsubsection{Chebyshev Polynomial Decomposition}
+
+The Chebyshev polynomials are defined by:
+\begin{equation}
+    T_n(\cos\varphi) = \cos(n\varphi),
+\end{equation}
+or equivalently by the recurrence:
+\begin{equation}
+    T_0(x)=1, \quad T_1(x)=x, \quad T_{n+1}(x) = 2x\,T_n(x) - T_{n-1}(x).
+\end{equation}
+
+A continuous function has a unique Chebyshev series representation on $[-1,1]$:
+\begin{equation}
+    f(x) = \sum_{n=0}^\infty a_n\,T_n(x),
+\end{equation}
+with coefficients:
+\begin{equation}
+    a_n = \frac{2}{\pi}\int_{-1}^{1}\frac{f(x)\,T_n(x)}{\sqrt{1-x^2}}\,dx.
+\end{equation}
+
+In practice the series is truncated:
+\begin{equation}
+    \tilde{f}(x) = \sum_{n=0}^{N-1} a_n\,T_n(x).
+\end{equation}
+
+Alternatively, $f$ is approximated by interpolation at the $N$ Chebyshev points:
+\begin{equation}
+    t_n = \cos\!\left(\frac{2n+1}{2N}\pi\right), \quad n=0,\ldots,N-1,
+\end{equation}
+giving:
+\begin{equation}
+    \hat{f}(x) = \sum_{n=0}^{N-1} c_n\,T_n(x).
+    \label{eq:cheb_interp}
+\end{equation}
+
+The interpolation coefficients $c_n$ are related to the series coefficients
+$a_n$ via aliasing:
+\begin{equation}
+    c_n = a_n + (a_{n+2k} + a_{n+4k} + \cdots)
+    + (a_{-n+2k} + a_{-n+4k} + \cdots), \quad 1\le n\le k-1.
+\end{equation}
+
+The coefficients $c_n$ can be evaluated efficiently via a Discrete Fourier
+Transform:
+\begin{equation}
+    c_n = \sum_{j=0}^{N-1} f(x_j)\,e^{2i\pi jn/N}.
+\end{equation}
+
+The matter power spectrum is decomposed on this basis over
+$[k_{\min}, k_{\max}]$:
+\begin{equation}
+    P(k,\chi_1,\chi_2;\,\theta) \approx
+    \sum_{n=0}^{n_{\max}} c_n(\chi_1,\chi_2;\,\theta)\,T_n(k).
+    \label{eq:Pk_cheb}
+\end{equation}
+
+\subsubsection{Projected Matter Density and Precomputed Integrals}
+
+Substituting Eq.~\eqref{eq:Pk_cheb} into the $k$-integral defines the
+\emph{projected matter density}:
+\begin{equation}
+    w^{AB}_\ell(\chi_1,\chi_2;\,\theta) \equiv
+    \sum_{n=0}^{n_{\max}} c_n(\chi_1,\chi_2;\,\theta)\,
+    \tilde{T}^{AB}_{n;\ell}(\chi_1,\chi_2),
+    \label{eq:w_ell}
+\end{equation}
+where the cosmology-independent precomputed integrals are:
+\begin{equation}
+    \tilde{T}^{AB}_{n;\ell}(\chi_1,\chi_2) \equiv
+    \int_{k_{\min}}^{k_{\max}} dk\, f^{AB}(k)\,T_n(k)\,
+    j_\ell(k\chi_1)\,j_\ell(k\chi_2),
+    \label{eq:T_tilde}
+\end{equation}
+with the probe-dependent $k$-weight:
+\begin{equation}
+    f^{AB}(k) =
+    \begin{cases}
+        k^2  & AB = gg\text{ (clustering)}, \\
+        k^{-2} & AB = ss\text{ (lensing)}, \\
+        1    & AB = gs\text{ (cross-correlation)}.
+    \end{cases}
+    \label{eq:f_AB}
+\end{equation}
+
+\subsubsection{Change of Variables: $(\chi_1,\chi_2) \to (\chi,R)$}
+
+The integral can be symmetrised as:
+\begin{align}
+    C^{AB}_{ij}(\ell) &=
+    \int_0^\infty d\chi_1\, K^A_i(\chi_1)
+    \int_0^{\chi_1} d\chi_2\, K^B_j(\chi_2)\, w^{AB}(\chi_1,\chi_2) \notag\\
+    &\quad +
+    \int_0^\infty d\chi_2\, K^B_j(\chi_2)
+    \int_0^{\chi_2} d\chi_1\, K^A_i(\chi_1)\, w^{AB}(\chi_2,\chi_1).
+    \label{eq:sym}
+\end{align}
+
+Introducing $R \equiv \chi_2/\chi_1 \in (0,1]$ in the first integral and
+$R \equiv \chi_1/\chi_2$ in the second, Eq.~\eqref{eq:sym} becomes:
+\begin{equation}
+    \boxed{C^{AB}_{ij}(\ell) =
+    \int_0^\infty d\chi
+    \int_0^1 dR\;\chi\,
+    \Bigl[K^A_i(\chi)\,K^B_j(R\chi) + K^B_j(\chi)\,K^A_i(R\chi)\Bigr]\,
+    w^{AB}_\ell(\chi,R\chi),}
+    \label{eq:Cl_chiR}
+\end{equation}
+where the modified kernels are:
+\begin{equation}
+    \mathcal{K}^A_i(\chi) =
+    \begin{cases}
+        K^A_i(\chi)       & \text{clustering},\\
+        K^A_i(\chi)/\chi^2 & \text{lensing}.
+    \end{cases}
+    \label{eq:kernel_mod}
+\end{equation}
+
+\subsubsection{Non-linear Power Spectrum Treatment}
+
+The non-linear matter power spectrum is split into linear and non-linear
+contributions:
+\begin{equation}
+    P_\delta(k,\chi_1,\chi_2) = P_{\rm lin}(k,\chi_1,\chi_2)
+    + \bigl[P_\delta - P_{\rm lin}\bigr](k,\chi_1,\chi_2).
+    \label{eq:Pk_split}
+\end{equation}
+
+The total angular power spectrum is then assembled as:
+\begin{equation}
+    C^{\rm tot}(\ell) = C^{\rm lin}(\ell)
+    + C^{\rm limb}_\delta(\ell) - C^{\rm limb}_{\rm lin}(\ell),
+    \label{eq:Cl_total}
+\end{equation}
+where the non-linear contribution is computed using the Limber approximation.
+
+%-------------------------------------------------------------------
+\subsection{Cosmological Kernels}
+%-------------------------------------------------------------------
+
+\subsubsection{Galaxy Clustering Kernel}
+\begin{equation}
+    W_g(\chi) = \frac{H(z)}{c}\,n(z),
+\end{equation}
+where $n(z)$ is normalised such that $\int n(z)\,dz = 1$.
+
+\subsubsection{Weak Lensing Shear Kernel}
+\begin{equation}
+    W_\gamma(\chi) = \frac{3}{2}\frac{H_0^2}{c^2}\,\Omega_m\,
+    \frac{\chi}{a(\chi)}
+    \int_{z(\chi)}^\infty dz'\,n(z')\,\frac{\chi(z')-\chi}{\chi(z')}.
+\end{equation}
+
+\subsubsection{CMB Lensing Kernel}
+\begin{equation}
+    W_\kappa(\chi) = \frac{3}{2}\frac{H_0^2}{c^2}\,\Omega_m\,
+    \frac{\chi}{a(\chi)}\,\frac{\chi^* - \chi}{\chi^*},
+\end{equation}
+where $\chi^* = \chi(z_{\rm CMB} = 1100)$ is the comoving distance to the
+last-scattering surface.
+
+%-------------------------------------------------------------------
+\subsection{Background Cosmology}
+%-------------------------------------------------------------------
+
+\subsubsection{Adimensional Hubble Factor}
+
+For a flat $w_0 w_a$CDM cosmology:
+\begin{equation}
+    E(z) = \sqrt{
+        \Omega_m(1+z)^3
+        + \Omega_r(1+z)^4
+        + \Omega_{\rm de}(1+z)^{3(1+w_0+w_a)}\exp\!\left(-3w_a\frac{z}{1+z}\right)
+        + \Omega_k(1+z)^2
+    }.
+    \label{eq:Ez}
+\end{equation}
+
+\subsubsection{Hubble Parameter}
+\begin{equation}
+    H(z) = H_0\,E(z).
+\end{equation}
+
+\subsubsection{Comoving Distance}
+\begin{equation}
+    \chi(z) = \frac{c}{H_0}\int_0^z \frac{dz'}{E(z')}.
+\end{equation}
+
+%-------------------------------------------------------------------
+\subsection{Accuracy Metric and Noise Model}
+%-------------------------------------------------------------------
+
+\subsubsection{Challenge Accuracy Metric}
+
+The accuracy is quantified by the $\Delta\chi^2$ metric:
+\begin{equation}
+    \Delta\chi^2 \equiv \sum_b N_b\,
+    \mathrm{Tr}\!\left[
+        \left(\Sigma^{AB}_{ij}(\ell_b)\right)^{-1}
+        \Delta C^{AB}_{ij}(\ell_b)
+    \right]^2,
+    \label{eq:delta_chi2}
+\end{equation}
+where $\Delta C^{AB}_{ij}(\ell_b)$ is the difference between benchmark and
+method predictions, and $N_b$ is the effective number of modes per bandpower:
+\begin{equation}
+    N_b = \frac{f_{\rm sky}}{2}\sum_{\ell \in b}(2\ell+1).
+    \label{eq:Nb}
+\end{equation}
+
+\subsubsection{Covariance Matrix}
+
+The matrix $\Sigma^{AB}_{ij}(\ell_b)$ encodes the Gaussian covariance and
+instrumental noise:
+\begin{equation}
+    \Sigma^{AB}_{ij}(\ell_b) = \sqrt{\frac{2}{(2\ell_b+1)\,\Delta\ell_b\,f_{\rm sky}}}
+    \left[C^{AB}_{ij}(\ell_b) + N^{AB}_{ij}(\ell_b)\right],
+    \label{eq:Sigma}
+\end{equation}
+with shot noise and shape noise:
+\begin{align}
+    N^{CC}_{ij} &= \frac{1}{\bar{n}_\ell}\,\delta_{ij}, \\
+    N^{LL}_{ij} &= \frac{\sigma_\epsilon^2}{\bar{n}_s}\,\delta_{ij}, \\
+    N^{CL}_{ij} &= 0,
+\end{align}
+and the fiducial LSST-Y10 values:
+\begin{equation}
+    n_\ell = 40\;\mathrm{gal\,arcmin^{-2}}, \quad
+    n_s = 27\;\mathrm{gal\,arcmin^{-2}}, \quad
+    \sigma_\epsilon = 0.28, \quad
+    f_{\rm sky} = 0.4.
+\end{equation}
+
+\subsubsection{Mean Absolute Error Ratio (MAER)}
+
+The per-multipole accuracy is quantified by:
+\begin{equation}
+    \mathrm{MAER}^{AB}_{ij}(\ell) =
+    \frac{|C^{AB}_{ij}(\ell) - C^{AB}_{ij,\rm bench}(\ell)|}{\sigma^{AB}_{ij}(\ell)},
+    \label{eq:MAER}
+\end{equation}
+where the Knox cosmic-variance uncertainty is:
+\begin{equation}
+    \sigma^{AB}_{ij}(\ell) =
+    \sqrt{\frac{C^{AA}_{ii}(\ell)\,C^{BB}_{jj}(\ell)
+    + \bigl(C^{AB}_{ij}(\ell)\bigr)^2}{f_{\rm sky}(2\ell+1)}}.
+    \label{eq:Knox}
+\end{equation}
+
+%-------------------------------------------------------------------
+\subsection{$\ell$-dependent Prefactors}
+%-------------------------------------------------------------------
+
+The factorials appearing in the spin-2 lensing prefactors are:
+\begin{equation}
+    \frac{(\ell+2)!}{(\ell-2)!} = (\ell-1)\,\ell\,(\ell+1)\,(\ell+2).
+\end{equation}
+
+The full set of $\ell$-prefactors $\mathcal{N}(\ell)$ for each probe
+combination is:
+\begin{align}
+    \mathcal{N}^{gg}(\ell) &= \frac{2}{\pi}, \\
+    \mathcal{N}^{gs}(\ell) &= \frac{2}{\pi}\sqrt{(\ell-1)\,\ell\,(\ell+1)\,(\ell+2)}, \\
+    \mathcal{N}^{ss}(\ell) &= \frac{2}{\pi}\,(\ell-1)\,\ell\,(\ell+1)\,(\ell+2).
+\end{align}
+
+%-------------------------------------------------------------------
+\subsection{Number of Modes}
+%-------------------------------------------------------------------
+
+For a full-sky survey, the effective number of modes per $\ell$-bin is:
+\begin{equation}
+    N_{\rm modes}(\ell_i) = \frac{1}{2}\left[\ell_{i+1}^2 - \ell_i^2\right].
+\end{equation}
+
+%-------------------------------------------------------------------
+\subsection{Numerical Integration}
+%-------------------------------------------------------------------
+
+\subsubsection{Simpson Quadrature (for $\chi$)}
+
+The integral over comoving distance $\chi$ is performed with the composite
+Simpson rule using $n_\chi$ evenly-spaced points:
+\begin{equation}
+    \int_a^b f(\chi)\,d\chi \approx \Delta\chi \sum_{k=0}^{n_\chi - 1} w_k\,f(\chi_k),
+    \quad \Delta\chi = \frac{b-a}{n_\chi - 1},
+\end{equation}
+with Simpson weights $w_k \in \{1/3, 4/3, 1/3, \ldots\}$.
+
+\subsubsection{Clenshaw-Curtis Quadrature (for $k$ and $R$)}
+
+The integrals over $k$ (in the precomputation step) and over $R$ (in the
+outer integration) are performed with the Clenshaw-Curtis rule. Integration
+nodes are the $N$ Chebyshev points rescaled to $[k_{\min}, k_{\max}]$:
+\begin{equation}
+    k_j = \frac{k_{\max}-k_{\min}}{2}\,t_j + \frac{k_{\min}+k_{\max}}{2},
+    \quad t_j = \cos\!\left(\frac{2j+1}{2N}\pi\right),
+\end{equation}
+and the weights are scaled accordingly:
+\begin{equation}
+    w_j \to \frac{k_{\max}-k_{\min}}{2}\,w_j.
+\end{equation}
+
+For the $R$-integration, $N_R = 97$ Chebyshev points are placed on $[-1,1]$
+and only the strictly positive half ($N_R^+ = 48$ points in $(0,1]$) is
+retained.
+
+\subsubsection{Full $C_\ell$ Integration}
+
+Combining all elements, the final integral in Eq.~\eqref{eq:Cl_chiR} is
+evaluated numerically as:
+\begin{equation}
+    C^{AB}_{ij}(\ell) \approx
+    \mathcal{N}(\ell)\,\Delta\chi
+    \sum_{n=1}^{n_\chi} \sum_{m=1}^{n_R}
+    \chi_n\,\tilde{K}^{AB}_{ij}(\chi_n, R_m)\,
+    w^{AB}_\ell(\chi_n, R_m)\,
+    w^\chi_n\,w^R_m,
+    \label{eq:Cl_numerical}
+\end{equation}
+where $w^\chi_n$ are Simpson weights and $w^R_m$ are Clenshaw-Curtis weights.
+
+\end{document}{Angular Power Spectra: General Theory}
+%-------------------------------------------------------------------
+
+A generic scalar observable $\tilde{A}(\hat{n})$ on the sky is related to its 3D
+counterpart through a projection kernel $W_i(z)$:
+\begin{equation}
+    \tilde{A}(\hat{n}) = \int dz\, W_i(z)\, A(\chi(z)\hat{n};\, z),
+    \label{eq:projection}
+\end{equation}
+where $\chi(z)$ is the comoving distance.
+
+The 3D field in Fourier space is:
+\begin{equation}
+    A(\chi(z)\hat{n};\,z) = \int \frac{d^3k}{(2\pi)^3}\, A(\mathbf{k},z)\,
+    e^{i\mathbf{k}\cdot\hat{n}\,\chi(z)}.
+\end{equation}
+
+The Rayleigh / plane-wave expansion is:
+\begin{equation}
+    e^{i\mathbf{k}\cdot\hat{n}\,r} = 4\pi \sum_{\ell,m} i^\ell\,
+    j_\ell(kr)\,Y^*_{\ell m}(\hat{k})\,Y_{\ell m}(\hat{n}),
+\end{equation}
+where $j_\ell(x)$ are the spherical Bessel functions.
+
+Inserting the plane-wave expansion gives the spherical-harmonic coefficients:
+\begin{equation}
+    A_{\ell,m} = 4\pi i^\ell \int dz\, W_i(z)
+    \int \frac{d^3k}{(2\pi)^3}\, A(\mathbf{k},z)\,
+    j_\ell(k\chi(z))\, Y^*_{\ell m}(\hat{k}).
+\end{equation}
+
+The angular cross-power spectrum between two projected fields $\tilde{A}$ and
+$\tilde{B}$ is (using orthonormality of spherical harmonics):
+\begin{equation}
+    C^{AB}(\ell) = \langle A_{\ell m} B^*_{\ell m}\rangle =
+    \frac{2}{\pi}
+    \int dz\, W_i(z) \int dz'\, W_j(z')
+    \int dk\, k^2\, P^{AB}(k,z,z')\,
+    j_\ell(k\chi(z))\,j_\ell(k\chi(z')).
+    \label{eq:Cl_general}
+\end{equation}
+
+Changing variables from $z$ to $\chi(z)$ and including probe-specific
+$k$-dependent prefactors, the general expression becomes:
+\begin{equation}
+    C^{AB}_{ij}(\ell) = \mathcal{N}(\ell)
+    \int_0^\infty d\chi_1\, W^A_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^B_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{AB}(k,\chi_1,\chi_2)\,
+    \frac{j_\ell(k\chi_1)}{(k\chi_1)^\alpha}
+    \frac{j_\ell(k\chi_2)}{(k\chi_2)^\beta},
+    \label{eq:Cl_full}
+\end{equation}
+where the exponents $\alpha$ and $\beta$ take the value $0$ for clustering and
+$2$ for lensing.
+
+%-------------------------------------------------------------------
+\subsection{The Limber Approximation}
+%-------------------------------------------------------------------
+
+\subsubsection{Standard Limber}
+
+The spherical Bessel function is approximated around its principal peak at
+$k\chi \approx \ell + 1/2$:
+\begin{equation}
+    j_\ell(x) \approx \sqrt{\frac{\pi}{2\ell+1}}\,\delta_D\!\left(\ell+\tfrac{1}{2}-x\right).
+    \label{eq:limber_jl}
+\end{equation}
+
+An equivalent derivation uses the orthogonality relation:
+\begin{equation}
+    \int_0^\infty dk\, k^2\, j_\ell(k\chi_1)\,j_\ell(k\chi_2)
+    = \frac{\pi}{2}\,\frac{\delta_D(\chi_1-\chi_2)}{\chi_1\chi_2}.
+\end{equation}
+
+Applying the Limber approximation to Eq.~\eqref{eq:Cl_full} reduces the 3D
+integral to a 1D one:
+\begin{equation}
+    C^{AB}_{ij}(\ell) \approx
+    \int_0^\infty \frac{d\chi}{\chi^2}\,
+    K^A_i(\chi)\,K^B_j(\chi)\,P^{AB}\!\left(k_\ell, z\right),
+    \label{eq:limber}
+\end{equation}
+with the on-shell wavenumber:
+\begin{equation}
+    k_\ell \equiv \frac{\ell + 1/2}{\chi}.
+\end{equation}
+
+\subsubsection{Extended Limber Approximation}
+
+Defining $\nu \equiv kr = \ell + 1/2$ and $\tilde{K}(\chi) \equiv K(\chi)/\sqrt{\chi}$,
+the first-order correction is:
+\begin{equation}
+    C^{AB}_{ij}(\ell) = \mathcal{N}(\ell)
+    \int \frac{d\chi}{\chi^2}\,K_i(\chi)\,K_j(\chi)\,
+    P^{AB}\!\left(k = \frac{\nu}{\chi}\right)
+    \left\{1 + \frac{1}{\nu^2}\left[
+        \frac{\chi^2}{2}\!\left(
+            \frac{\tilde{K}''_i(\chi)}{\tilde{K}_i(\chi)}
+            +\frac{\tilde{K}''_j(\chi)}{\tilde{K}_j(\chi)}
+        \right)
+        +\frac{\chi^3}{6}\!\left(
+            \frac{\tilde{K}'''_i(\chi)}{\tilde{K}_i(\chi)}
+            +\frac{\tilde{K}'''_j(\chi)}{\tilde{K}_j(\chi)}
+        \right)
+    \right]\right\}.
+    \label{eq:extended_limber}
+\end{equation}
+This corrects the standard Limber error from $\mathcal{O}(\ell^{-2})$ to
+$\mathcal{O}(\ell^{-4})$.
+
+%-------------------------------------------------------------------
+\subsection{The \texttt{Blast.jl} Algorithm}
+%-------------------------------------------------------------------
+
+\subsubsection{Probe-specific Angular Power Spectra}
+
+\paragraph{Galaxy clustering ($gg$):}
+\begin{equation}
+    C^{gg}_{ij}(\ell) = \frac{2}{\pi}
+    \int_0^\infty d\chi_1\, W^g_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^g_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{AB}(k,\chi_1,\chi_2)\,
+    j_\ell(k\chi_1)\,j_\ell(k\chi_2).
+    \label{eq:Cl_gg}
+\end{equation}
+
+The galaxy clustering kernel is:
+\begin{equation}
+    W^g_i(\chi) = H(z)\,n_i(z)\,b_g(z),
+\end{equation}
+where $H(z)$ is the expansion rate, $n_i(z)$ the redshift distribution in
+tomographic bin $i$, and $b_g(z)$ the linear galaxy bias.
+
+\paragraph{Weak lensing shear ($ss$):}
+\begin{equation}
+    C^{ss}_{ij}(\ell) = \frac{2(ℓ+2)!}{\pi(\ell-2)!}
+    \int_0^\infty d\chi_1\, W^s_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^s_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{AB}(k,\chi_1,\chi_2)\,
+    \frac{j_\ell(k\chi_1)}{(k\chi_1)^2}\,
+    \frac{j_\ell(k\chi_2)}{(k\chi_2)^2}.
+    \label{eq:Cl_ss}
+\end{equation}
+
+The lensing kernel is:
+\begin{equation}
+    W^s_i(\chi) = \frac{3H_0^2\Omega_m}{2a}\,\chi
+    \int_z^\infty dz'\,n_i(z')\,\frac{\chi(z')-\chi}{\chi(z')}.
+    \label{eq:lensing_kernel}
+\end{equation}
+
+\paragraph{Galaxy–shear cross-correlation ($gs$):}
+\begin{equation}
+    C^{gs}_{ij}(\ell) = \frac{2}{\pi}\sqrt{\frac{(\ell+2)!}{(\ell-2)!}}
+    \int_0^\infty d\chi_1\, W^g_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^s_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{AB}(k,\chi_1,\chi_2)\,
+    \frac{j_\ell(k\chi_1)}{(k\chi_1)^2}\,j_\ell(k\chi_2).
+    \label{eq:Cl_gs}
+\end{equation}
+
+\subsubsection{Chebyshev Polynomial Decomposition}
+
+The Chebyshev polynomials are defined by:
+\begin{equation}
+    T_n(\cos\varphi) = \cos(n\varphi),
+\end{equation}
+or equivalently by the recurrence:
+\begin{equation}
+    T_0(x)=1, \quad T_1(x)=x, \quad T_{n+1}(x) = 2x\,T_n(x) - T_{n-1}(x).
+\end{equation}
+
+A continuous function has a unique Chebyshev series representation on $[-1,1]$:
+\begin{equation}
+    f(x) = \sum_{n=0}^\infty a_n\,T_n(x),
+\end{equation}
+with coefficients:
+\begin{equation}
+    a_n = \frac{2}{\pi}\int_{-1}^{1}\frac{f(x)\,T_n(x)}{\sqrt{1-x^2}}\,dx.
+\end{equation}
+
+In practice the series is truncated:
+\begin{equation}
+    \tilde{f}(x) = \sum_{n=0}^{N-1} a_n\,T_n(x).
+\end{equation}
+
+Alternatively, $f$ is approximated by interpolation at the $N$ Chebyshev points:
+\begin{equation}
+    t_n = \cos\!\left(\frac{2n+1}{2N}\pi\right), \quad n=0,\ldots,N-1,
+\end{equation}
+giving:
+\begin{equation}
+    \hat{f}(x) = \sum_{n=0}^{N-1} c_n\,T_n(x).
+    \label{eq:cheb_interp}
+\end{equation}
+
+The interpolation coefficients $c_n$ are related to the series coefficients
+$a_n$ via aliasing:
+\begin{equation}
+    c_n = a_n + (a_{n+2k} + a_{n+4k} + \cdots)
+    + (a_{-n+2k} + a_{-n+4k} + \cdots), \quad 1\le n\le k-1.
+\end{equation}
+
+The coefficients $c_n$ can be evaluated efficiently via a Discrete Fourier
+Transform:
+\begin{equation}
+    c_n = \sum_{j=0}^{N-1} f(x_j)\,e^{2i\pi jn/N}.
+\end{equation}
+
+The matter power spectrum is decomposed on this basis over
+$[k_{\min}, k_{\max}]$:
+\begin{equation}
+    P(k,\chi_1,\chi_2;\,\theta) \approx
+    \sum_{n=0}^{n_{\max}} c_n(\chi_1,\chi_2;\,\theta)\,T_n(k).
+    \label{eq:Pk_cheb}
+\end{equation}
+
+\subsubsection{Projected Matter Density and Precomputed Integrals}
+
+Substituting Eq.~\eqref{eq:Pk_cheb} into the $k$-integral defines the
+\emph{projected matter density}:
+\begin{equation}
+    w^{AB}_\ell(\chi_1,\chi_2;\,\theta) \equiv
+    \sum_{n=0}^{n_{\max}} c_n(\chi_1,\chi_2;\,\theta)\,
+    \tilde{T}^{AB}_{n;\ell}(\chi_1,\chi_2),
+    \label{eq:w_ell}
+\end{equation}
+where the cosmology-independent precomputed integrals are:
+\begin{equation}
+    \tilde{T}^{AB}_{n;\ell}(\chi_1,\chi_2) \equiv
+    \int_{k_{\min}}^{k_{\max}} dk\, f^{AB}(k)\,T_n(k)\,
+    j_\ell(k\chi_1)\,j_\ell(k\chi_2),
+    \label{eq:T_tilde}
+\end{equation}
+with the probe-dependent $k$-weight:
+\begin{equation}
+    f^{AB}(k) =
+    \begin{cases}
+        k^2  & AB = gg\text{ (clustering)}, \\
+        k^{-2} & AB = ss\text{ (lensing)}, \\
+        1    & AB = gs\text{ (cross-correlation)}.
+    \end{cases}
+    \label{eq:f_AB}
+\end{equation}
+
+\subsubsection{Change of Variables: $(\chi_1,\chi_2) \to (\chi,R)$}
+
+The integral can be symmetrised as:
+\begin{align}
+    C^{AB}_{ij}(\ell) &=
+    \int_0^\infty d\chi_1\, K^A_i(\chi_1)
+    \int_0^{\chi_1} d\chi_2\, K^B_j(\chi_2)\, w^{AB}(\chi_1,\chi_2) \notag\\
+    &\quad +
+    \int_0^\infty d\chi_2\, K^B_j(\chi_2)
+    \int_0^{\chi_2} d\chi_1\, K^A_i(\chi_1)\, w^{AB}(\chi_2,\chi_1).
+    \label{eq:sym}
+\end{align}
+
+Introducing $R \equiv \chi_2/\chi_1 \in (0,1]$ in the first integral and
+$R \equiv \chi_1/\chi_2$ in the second, Eq.~\eqref{eq:sym} becomes:
+\begin{equation}
+    \boxed{C^{AB}_{ij}(\ell) =
+    \int_0^\infty d\chi
+    \int_0^1 dR\;\chi\,
+    \Bigl[K^A_i(\chi)\,K^B_j(R\chi) + K^B_j(\chi)\,K^A_i(R\chi)\Bigr]\,
+    w^{AB}_\ell(\chi,R\chi),}
+    \label{eq:Cl_chiR}
+\end{equation}
+where the modified kernels are:
+\begin{equation}
+    \mathcal{K}^A_i(\chi) =
+    \begin{cases}
+        K^A_i(\chi)       & \text{clustering},\\
+        K^A_i(\chi)/\chi^2 & \text{lensing}.
+    \end{cases}
+    \label{eq:kernel_mod}
+\end{equation}
+
+\subsubsection{Non-linear Power Spectrum Treatment}
+
+The non-linear matter power spectrum is split into linear and non-linear
+contributions:
+\begin{equation}
+    P_\delta(k,\chi_1,\chi_2) = P_{\rm lin}(k,\chi_1,\chi_2)
+    + \bigl[P_\delta - P_{\rm lin}\bigr](k,\chi_1,\chi_2).
+    \label{eq:Pk_split}
+\end{equation}
+
+The total angular power spectrum is then assembled as:
+\begin{equation}
+    C^{\rm tot}(\ell) = C^{\rm lin}(\ell)
+    + C^{\rm limb}_\delta(\ell) - C^{\rm limb}_{\rm lin}(\ell),
+    \label{eq:Cl_total}
+\end{equation}
+where the non-linear contribution is computed using the Limber approximation.
+
+%-------------------------------------------------------------------
+\subsection{Cosmological Kernels}
+%-------------------------------------------------------------------
+
+\subsubsection{Galaxy Clustering Kernel}
+\begin{equation}
+    W_g(\chi) = \frac{H(z)}{c}\,n(z),
+\end{equation}
+where $n(z)$ is normalised such that $\int n(z)\,dz = 1$.
+
+\subsubsection{Weak Lensing Shear Kernel}
+\begin{equation}
+    W_\gamma(\chi) = \frac{3}{2}\frac{H_0^2}{c^2}\,\Omega_m\,
+    \frac{\chi}{a(\chi)}
+    \int_{z(\chi)}^\infty dz'\,n(z')\,\frac{\chi(z')-\chi}{\chi(z')}.
+\end{equation}
+
+\subsubsection{CMB Lensing Kernel}
+\begin{equation}
+    W_\kappa(\chi) = \frac{3}{2}\frac{H_0^2}{c^2}\,\Omega_m\,
+    \frac{\chi}{a(\chi)}\,\frac{\chi^* - \chi}{\chi^*},
+\end{equation}
+where $\chi^* = \chi(z_{\rm CMB} = 1100)$ is the comoving distance to the
+last-scattering surface.
+
+%-------------------------------------------------------------------
+\subsection{Background Cosmology}
+%-------------------------------------------------------------------
+
+\subsubsection{Adimensional Hubble Factor}
+
+For a flat $w_0 w_a$CDM cosmology:
+\begin{equation}
+    E(z) = \sqrt{
+        \Omega_m(1+z)^3
+        + \Omega_r(1+z)^4
+        + \Omega_{\rm de}(1+z)^{3(1+w_0+w_a)}\exp\!\left(-3w_a\frac{z}{1+z}\right)
+        + \Omega_k(1+z)^2
+    }.
+    \label{eq:Ez}
+\end{equation}
+
+\subsubsection{Hubble Parameter}
+\begin{equation}
+    H(z) = H_0\,E(z).
+\end{equation}
+
+\subsubsection{Comoving Distance}
+\begin{equation}
+    \chi(z) = \frac{c}{H_0}\int_0^z \frac{dz'}{E(z')}.
+\end{equation}
+
+%-------------------------------------------------------------------
+\subsection{Accuracy Metric and Noise Model}
+%-------------------------------------------------------------------
+
+\subsubsection{Challenge Accuracy Metric}
+
+The accuracy is quantified by the $\Delta\chi^2$ metric:
+\begin{equation}
+    \Delta\chi^2 \equiv \sum_b N_b\,
+    \mathrm{Tr}\!\left[
+        \left(\Sigma^{AB}_{ij}(\ell_b)\right)^{-1}
+        \Delta C^{AB}_{ij}(\ell_b)
+    \right]^2,
+    \label{eq:delta_chi2}
+\end{equation}
+where $\Delta C^{AB}_{ij}(\ell_b)$ is the difference between benchmark and
+method predictions, and $N_b$ is the effective number of modes per bandpower:
+\begin{equation}
+    N_b = \frac{f_{\rm sky}}{2}\sum_{\ell \in b}(2\ell+1).
+    \label{eq:Nb}
+\end{equation}
+
+\subsubsection{Covariance Matrix}
+
+The matrix $\Sigma^{AB}_{ij}(\ell_b)$ encodes the Gaussian covariance and
+instrumental noise:
+\begin{equation}
+    \Sigma^{AB}_{ij}(\ell_b) = \sqrt{\frac{2}{(2\ell_b+1)\,\Delta\ell_b\,f_{\rm sky}}}
+    \left[C^{AB}_{ij}(\ell_b) + N^{AB}_{ij}(\ell_b)\right],
+    \label{eq:Sigma}
+\end{equation}
+with shot noise and shape noise:
+\begin{align}
+    N^{CC}_{ij} &= \frac{1}{\bar{n}_\ell}\,\delta_{ij}, \\
+    N^{LL}_{ij} &= \frac{\sigma_\epsilon^2}{\bar{n}_s}\,\delta_{ij}, \\
+    N^{CL}_{ij} &= 0,
+\end{align}
+and the fiducial LSST-Y10 values:
+\begin{equation}
+    n_\ell = 40\;\mathrm{gal\,arcmin^{-2}}, \quad
+    n_s = 27\;\mathrm{gal\,arcmin^{-2}}, \quad
+    \sigma_\epsilon = 0.28, \quad
+    f_{\rm sky} = 0.4.
+\end{equation}
+
+\subsubsection{Mean Absolute Error Ratio (MAER)}
+
+The per-multipole accuracy is quantified by:
+\begin{equation}
+    \mathrm{MAER}^{AB}_{ij}(\ell) =
+    \frac{|C^{AB}_{ij}(\ell) - C^{AB}_{ij,\rm bench}(\ell)|}{\sigma^{AB}_{ij}(\ell)},
+    \label{eq:MAER}
+\end{equation}
+where the Knox cosmic-variance uncertainty is:
+\begin{equation}
+    \sigma^{AB}_{ij}(\ell) =
+    \sqrt{\frac{C^{AA}_{ii}(\ell)\,C^{BB}_{jj}(\ell)
+    + \bigl(C^{AB}_{ij}(\ell)\bigr)^2}{f_{\rm sky}(2\ell+1)}}.
+    \label{eq:Knox}
+\end{equation}
+
+%-------------------------------------------------------------------
+\subsection{$\ell$-dependent Prefactors}
+%-------------------------------------------------------------------
+
+The factorials appearing in the spin-2 lensing prefactors are:
+\begin{equation}
+    \frac{(\ell+2)!}{(\ell-2)!} = (\ell-1)\,\ell\,(\ell+1)\,(\ell+2).
+\end{equation}
+
+The full set of $\ell$-prefactors $\mathcal{N}(\ell)$ for each probe
+combination is:
+\begin{align}
+    \mathcal{N}^{gg}(\ell) &= \frac{2}{\pi}, \\
+    \mathcal{N}^{gs}(\ell) &= \frac{2}{\pi}\sqrt{(\ell-1)\,\ell\,(\ell+1)\,(\ell+2)}, \\
+    \mathcal{N}^{ss}(\ell) &= \frac{2}{\pi}\,(\ell-1)\,\ell\,(\ell+1)\,(\ell+2).
+\end{align}
+
+%-------------------------------------------------------------------
+\subsection{Number of Modes}
+%-------------------------------------------------------------------
+
+For a full-sky survey, the effective number of modes per $\ell$-bin is:
+\begin{equation}
+    N_{\rm modes}(\ell_i) = \frac{1}{2}\left[\ell_{i+1}^2 - \ell_i^2\right].
+\end{equation}
+
+%-------------------------------------------------------------------
+\subsection{Numerical Integration}
+%-------------------------------------------------------------------
+
+\subsubsection{Simpson Quadrature (for $\chi$)}
+
+The integral over comoving distance $\chi$ is performed with the composite
+Simpson rule using $n_\chi$ evenly-spaced points:
+\begin{equation}
+    \int_a^b f(\chi)\,d\chi \approx \Delta\chi \sum_{k=0}^{n_\chi - 1} w_k\,f(\chi_k),
+    \quad \Delta\chi = \frac{b-a}{n_\chi - 1},
+\end{equation}
+with Simpson weights $w_k \in \{1/3, 4/3, 1/3, \ldots\}$.
+
+\subsubsection{Clenshaw-Curtis Quadrature (for $k$ and $R$)}
+
+The integrals over $k$ (in the precomputation step) and over $R$ (in the
+outer integration) are performed with the Clenshaw-Curtis rule. Integration
+nodes are the $N$ Chebyshev points rescaled to $[k_{\min}, k_{\max}]$:
+\begin{equation}
+    k_j = \frac{k_{\max}-k_{\min}}{2}\,t_j + \frac{k_{\min}+k_{\max}}{2},
+    \quad t_j = \cos\!\left(\frac{2j+1}{2N}\pi\right),
+\end{equation}
+and the weights are scaled accordingly:
+\begin{equation}
+    w_j \to \frac{k_{\max}-k_{\min}}{2}\,w_j.
+\end{equation}
+
+For the $R$-integration, $N_R = 97$ Chebyshev points are placed on $[-1,1]$
+and only the strictly positive half ($N_R^+ = 48$ points in $(0,1]$) is
+retained.
+
+\subsubsection{Full $C_\ell$ Integration}
+
+Combining all elements, the final integral in Eq.~\eqref{eq:Cl_chiR} is
+evaluated numerically as:
+\begin{equation}
+    C^{AB}_{ij}(\ell) \approx
+    \mathcal{N}(\ell)\,\Delta\chi
+    \sum_{n=1}^{n_\chi} \sum_{m=1}^{n_R}
+    \chi_n\,\tilde{K}^{AB}_{ij}(\chi_n, R_m)\,
+    w^{AB}_\ell(\chi_n, R_m)\,
+    w^\chi_n\,w^R_m,
+    \label{eq:Cl_numerical}
+\end{equation}
+where $w^\chi_n$ are Simpson weights and $w^R_m$ are Clenshaw-Curtis weights.

@@ -1,0 +1,276 @@
+\section{Detailed Explanations of Key Cosmological Equations}
+
+\subsection{Angular Power Spectra: General Theory}
+%-----------------------------------------------------
+
+\subsubsection{Step 1: Sky Projection}
+
+A generic scalar observable $\tilde{A}(\hat{n})$ on the sky is related to its 3D
+counterpart through a projection kernel $W_i(z)$:
+\begin{equation}
+    \tilde{A}(\hat{n}) = \int dz\, W_i(z)\, A(\chi(z)\hat{n};\, z),
+    \label{eq:projection}
+\end{equation}
+where $\chi(z)$ is the comoving distance.
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:projection}:}\\
+\textit{What is this equation doing?} This is the fundamental bridge between 3D cosmology and 2D observations on the sky.
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Left side:} $\tilde{A}(\hat{n})$ is what we \emph{observe}: a quantity measured on the sky as a function of direction $\hat{n}$ (a unit 3-vector pointing to a specific location on the celestial sphere).
+    
+    \item \textbf{Right side ingredients:}
+        \begin{itemize}
+            \item $A(\chi(z)\hat{n}; z)$ is the true 3D cosmological field (e.g., matter density contrast $\delta_m(\mathbf{r})$, galaxy number density, etc.), evaluated at physical position $\mathbf{r} = \chi(z) \hat{n}$ and redshift $z$.
+            \item $\chi(z)$ = comoving distance to redshift $z$ (how far away along the line of sight).
+            \item $W_i(z)$ = projection/selection kernel; it \emph{weights} how much of the 3D field at each redshift contributes to the observation.
+        \end{itemize}
+    \item \textbf{The integral:} $\int dz\, W_i(z) [\cdot]$ sums (integrates) contributions from all redshifts, weighted by $W_i$.
+    
+    \item \textbf{Physical interpretation:}
+        \begin{itemize}
+            \item We cannot observe the full 3D universe; we only measure integrated properties along the radial (line-of-sight) direction.
+            \item $W_i(z)$ encodes \emph{what parts of the universe we're sensitive to}:
+                \begin{itemize}
+                    \item For galaxy clustering: $W_i(z)$ peaks near the redshift of our galaxy sample (we only see galaxies at certain distances).
+                    \item For weak gravitational lensing: $W_i(z)$ peaks at intermediate redshifts (we're most sensitive to structures between us and distant background galaxies).
+                \end{itemize}
+            \item The final result $\tilde{A}(\hat{n})$ is a 2D field on the sphere: for each direction $\hat{n}$, we have a single number (the integrated 3D information along that line of sight).
+        \end{itemize}
+\end{itemize}
+
+\subsubsection{Step 2: Fourier Decomposition of 3D Field}
+
+The 3D field in Fourier space is:
+\begin{equation}
+    A(\chi(z)\hat{n};\,z) = \int \frac{d^3k}{(2\pi)^3}\, A(\mathbf{k},z)\,
+    e^{i\mathbf{k}\cdot\hat{n}\,\chi(z)}.
+    \label{eq:fourier_expansion}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:fourier_expansion}:}\\
+\textit{What is this equation doing?} We decompose the real-space field into Fourier modes (plane waves).
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Left side:} Real-space field at position $\chi(z)\hat{n}$ (comoving distance $\chi(z)$ in direction $\hat{n}$).
+    
+    \item \textbf{Right side:}
+        \begin{itemize}
+            \item $A(\mathbf{k}, z)$ = \textbf{Fourier mode amplitudes}: complex numbers specifying the amplitude and phase of each plane wave.
+                \begin{itemize}
+                    \item $\mathbf{k}$ = 3D wavevector (specifies wavelength and direction of oscillation).
+                    \item Large $|\mathbf{k}|$ = small scales (high-frequency oscillations).
+                    \item Small $|\mathbf{k}|$ = large scales (low-frequency oscillations).
+                \end{itemize}
+            \item $e^{i\mathbf{k} \cdot \hat{n} \chi(z)}$ = a plane wave with wave vector $\mathbf{k}$, oscillating as a function of distance $\chi(z)$.
+            \item $(2\pi)^{-3}$ = normalization constant (ensures Parseval's theorem: total energy is conserved in the transform).
+        \end{itemize}
+    
+    \item \textbf{Interpretation:} We've decomposed the complicated 3D field $A(\mathbf{r}, z)$ into simple plane-wave components. Each plane wave is labeled by a wavevector $\mathbf{k}$ and carries a specific amplitude $A(\mathbf{k}, z)$.
+    
+    \item \textbf{Next step:} These plane waves will be further decomposed into spherical harmonics (to isolate angular scales on the sky).
+\end{itemize}
+
+\subsubsection{Step 3: Rayleigh Expansion (Cartesian→Spherical Transform)}
+
+The Rayleigh / plane-wave expansion converts Cartesian plane waves to spherical coordinates:
+\begin{equation}
+    e^{i\mathbf{k}\cdot\hat{n}\,r} = 4\pi \sum_{\ell,m} i^\ell\,
+    j_\ell(kr)\,Y^*_{\ell m}(\hat{k})\,Y_{\ell m}(\hat{n}),
+    \label{eq:rayleigh}
+\end{equation}
+where $j_\ell(x)$ are the spherical Bessel functions, and $Y_{\ell m}$ are spherical harmonics.
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:rayleigh}:}\\
+\textit{What is this equation doing?} This is one of the most important identities in cosmology: it separates a plane wave into angular modes (observable on the sky) and radial modes.
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Left side:} A plane wave $e^{i\mathbf{k} \cdot \hat{n} r}$ in direction $\hat{n}$ at distance $r = \chi(z)$. This is the Fourier representation in Cartesian coordinates: a clean single plane wave oscillating in the direction of $\mathbf{k}$.
+    
+    \item \textbf{Right side:} The \emph{same} plane wave, but decomposed into spherical modes:
+        \begin{itemize}
+            \item $\sum_{\ell, m}$ = sum over all multipole modes.
+            \item $\ell$ = multipole order (angular scale resolution):
+                \begin{itemize}
+                    \item $\ell = 0$ = monopole (uniform on the sky).
+                    \item $\ell = 1$ = dipole (one positive lobe, one negative lobe).
+                    \item Large $\ell$ (e.g., $\ell = 1000$) = very small angular scales (resolution $\sim 180°/\ell$).
+                \end{itemize}
+            \item $m$ = azimuthal mode ($-\ell \leq m \leq \ell$): describes rotational dependence around a symmetry axis.
+            \item $Y_{\ell m}(\hat{n})$ = spherical harmonics on the sky direction $\hat{n}$. These are the analogues of sines/cosines on the sphere.
+            \item $j_\ell(kr)$ = spherical Bessel function: the radial oscillation profile for each angular mode $\ell$.
+                \begin{itemize}
+                    \item Oscillates with frequency $\sim k$ (higher $k$ = faster oscillations).
+                    \item Has a characteristic peak near $r \approx \ell / k$ (large-$\ell$ modes are concentrated at larger radii).
+                \end{itemize}
+            \item $Y^*_{\ell m}(\hat{k})$ = projects the Fourier wavevector direction $\hat{k}$ onto the same multipole $(\ell, m)$.
+            \item $i^\ell = e^{i\pi \ell/2}$ = phase convention (ensures proper angular momentum quantum numbers).
+            \item $4\pi$ = normalization absorbing factors from Fourier integrals.
+        \end{itemize}
+    
+    \item \textbf{Key insight:} 
+        \begin{itemize}
+            \item The Rayleigh expansion is an \emph{identity}: left and right sides are mathematically identical.
+            \item It separates the plane wave into independent angular modes, each with its own radial profile.
+            \item Different angular scales ($\ell$ values) \emph{decouple}: this is why we can compute $C_\ell(\ell)$ separately for each multipole!
+            \item This is why spherical harmonic analysis works: it's a natural way to exploit the spherical symmetry of the CMB/universe.
+        \end{itemize}
+    
+    \item \textbf{Physical interpretation:} A high-$k$ plane wave (small-wavelength oscillations) contains contributions to \emph{all} multipoles $\ell$. By measuring different $\ell$ modes, we sample the same underlying structure at different angular scales.
+\end{itemize}
+
+\subsubsection{Step 4: Computing Spherical Harmonic Coefficients}
+
+Inserting the plane-wave expansion into the projection integral:
+\begin{equation}
+    A_{\ell,m} = 4\pi i^\ell \int dz\, W_i(z)\,
+    \int \frac{d^3k}{(2\pi)^3}\, A(\mathbf{k},z)\,
+    j_\ell(k\chi(z))\, Y^*_{\ell m}(\hat{k}).
+    \label{eq:A_lm}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:A_lm}:}\\
+\textit{What is this equation doing?} We now extract the spherical harmonic amplitude $A_{\ell,m}$ from the full 3D field, combining all steps above.
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{$A_{\ell, m}$ on the left:} A single complex number representing the amplitude of multipole mode $(\ell, m)$.
+        \begin{itemize}
+            \item This is the fundamental observable quantity: the amplitude of the $\ell$-th multipole on the sky after integrating all 3D information.
+            \item One number per multipole pair $(\ell, m)$.
+        \end{itemize}
+    
+    \item \textbf{Right side - combining the pieces:}
+        \begin{enumerate}
+            \item $\int dz\, W_i(z) [\cdot]$ = redshift projection: weights each redshift according to the kernel $W_i(z)$.
+            \item $\int d^3k \, A(\mathbf{k}, z) [\cdot]$ = integrate over all Fourier modes.
+            \item $j_\ell(k\chi(z))$ = connect the Fourier wavenumber $k$ to the multipole $\ell$ via the Bessel function and distance $\chi(z)$.  
+            \item $Y^*_{\ell m}(\hat{k})$ = project the Fourier direction $\hat{k}$ onto the desired multipole $(\ell, m)$.
+        \end{enumerate}
+    
+    \item \textbf{Result:} All 3D information (infinitely many degrees of freedom) has been compressed into a single number $A_{\ell,m}$ for each multipole!
+    
+    \item \textbf{Why this works:}
+        \begin{itemize}
+            \item The kernel $W_i(z)$ selects which parts of the universe contribute (redshift selection).
+            \item The spherical harmonics $Y_{\ell m}$ select which angular scales we're interested in.
+            \item The Bessel functions $j_\ell$ automatically handle the connection between Fourier scales and angular scales.
+        \end{itemize}
+\end{itemize}
+
+\subsubsection{Step 5: Angular Power Spectrum (Correlating Two Fields)}
+
+The angular cross-power spectrum between two projected fields $\tilde{A}$ and $\tilde{B}$ is:
+\begin{equation}
+    C^{AB}(\ell) = \langle A_{\ell m} B^*_{\ell m} \rangle =
+    \frac{2}{\pi}
+    \int dz\, W_i(z) \int dz'\, W_j(z')
+    \int dk\, k^2\, P^{AB}(k,z,z')\,
+    j_\ell(k\chi(z))\,j_\ell(k\chi(z')).
+    \label{eq:Cl_general}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:Cl_general}:}\\
+\textit{What is this equation doing?} We compute the covariance of two fields, yielding the observable power spectrum.
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{$C^{AB}(\ell)$ on the left:} The angular power spectrum coefficient for multipole $\ell$.
+        \begin{itemize}
+            \item This is \emph{what we measure}: the variance of the $\ell$-th angular mode in the cross-correlation of fields $A$ and $B$.
+            \item Superscript $AB$ indicates which fields we're correlating (e.g., $CC$ = clustering-clustering, $LL$ = lensing-lensing, etc.).
+            \item  $C_\ell$ depends on $\ell$ but not on $m$ due to rotational symmetry.
+        \end{itemize}
+    
+    \item \textbf{$\langle A_{\ell m} B^*_{\ell m} \rangle$ on the right:} Statistical expectation (ensemble average) of the product of mode amplitudes.
+        \begin{itemize}
+            \item $\langle \cdot \rangle$ denotes time-average or ensemble average over many universes (in practice, we average the observed sky).
+            \item $B^*_{\ell m}$ is the complex conjugate (necessary for computing power/variance).
+        \end{itemize}
+    
+    \item \textbf{Triple integral structure:}
+        \begin{itemize}
+            \item First two integrals: $\int dz \int dz'$ over redshifts of the two fields.
+            \item Third integral: $\int dk$ over wavenumbers.
+        \end{itemize}
+    
+    \item \textbf{3D power spectrum $P^{AB}(k, z, z')$:} This encodes the statistical properties of matter fluctuations.
+        \begin{itemize}
+            \item $P^{AB}(k, z, z')$ = correlation of Fourier modes at different redshifts.
+            \item For clustering-clustering: this is the matter power spectrum squared.
+            \item For combinations with lensing: encodes cross-correlations of different physical quantities.
+        \end{itemize}
+    
+    \item \textbf{Two Bessel functions $j_\ell(k\chi(z)) \times j_\ell(k\chi(z'))$:} 
+        \begin{itemize}
+            \item These \emph{couple} the Fourier scale $k$ to the angular scale $\ell$ at both redshifts.
+            \item The product of two Bessel functions is non-zero when both $k\chi(z)$ and $k\chi(z')$ are near $\ell + 1/2$ (the peak of $j_\ell$).
+            \item This determines which wavenumbers and distances contribute most to each $\ell$.
+        \end{itemize}
+    
+    \item \textbf{Factor $2/\pi$:} Normalization from angular integrals and Fourier conventions.
+    
+    \item \textbf{This is the fundamental equation:} All subsequent approximations and methods are attempts to compute this triple integral efficiently!
+\end{itemize}
+
+\subsubsection{Step 6: Master Equation (Probe-Specific Form)}
+
+Changing variables from $z$ to $\chi(z)$ and including probe-specific prefactors:
+\begin{equation}
+    C^{AB}_{ij}(\ell) = \mathcal{N}(\ell)
+    \int_0^\infty d\chi_1\, W^A_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^B_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{AB}(k,\chi_1,\chi_2)\,
+    \frac{j_\ell(k\chi_1)}{(k\chi_1)^\alpha}
+    \frac{j_\ell(k\chi_2)}{(k\chi_2)^\beta},
+    \label{eq:Cl_full}
+\end{equation}
+where the exponents $\alpha$ and $\beta$ are:
+\begin{equation}
+    (\alpha, \beta) = \begin{cases}
+        (0, 0) & \text{clustering-clustering (gg)} \\
+        (2, 2) & \text{lensing-lensing (ss)} \\
+        (0, 2) & \text{clustering-lensing (gs)}
+    \end{cases}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:Cl_full}:}\\
+\textit{What is this equation doing?} This is the \textbf{master equation}: the universal formula for computing angular power spectra, valid for all cosmological probes.
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{$C^{AB}_{ij}(\ell)$ on the left:} Angular power spectrum with tomographic bins:
+        \begin{itemize}
+            \item Subscripts $ij$ = which tomographic bins we're correlating (e.g., bin 1 of galaxies with bin 3 of lensing sources).
+            \item Tomography = splitting your sample by redshift into independent sub-samples, increasing precision.
+        \end{itemize}
+    
+    \item \textbf{Integration limits:} All three integrals go from 0 to $\infty$ (all positive distances and wavenumbers contribute).
+    
+    \item \textbf{Kernels $W^A_i(\chi_1)$ and $W^B_j(\chi_2)$:} These replace the redshift integrals and encode the observational selection:
+        \begin{itemize}
+            \item $W^A_i(\chi_1)$ = weight for field $A$ in bin $i$ at distance $\chi_1$.
+            \item For clustering: $W^g_i(\chi) = H(z) n_i(z) b_g(z)$ (Hubble rate × redshift distribution × bias).
+            \item For lensing: $W^s_i(\chi)$ = integrated projection (more complicated; includes distances to background galaxies).
+        \end{itemize}
+    
+    \item \textbf{Probe-dependent prefactors $(k\chi)^{-\alpha}$ and $(k\chi)^{-\beta}$:}\\
+        These encode fundamental physics of each probe:
+        \begin{itemize}
+            \item $\alpha = 0$ (clustering): no extra radial weight. The Bessel function is the only radial dependence.
+            \item $\alpha = 2$ (lensing): strong $1/(k\chi)^2$ suppression. Physically, the weak-lensing convergence is a projected quantity, which introduces this power-law suppression.
+            \item The asymmetry between $\alpha$ and $\beta$ allows for cross-correlations (e.g., clustering × lensing) with different weightings.
+        \end{itemize}
+    
+    \item \textbf{Normalization $\mathcal{N}(\ell)$:} 
+        \begin{itemize}
+            \item Absorbs all remaining numerical constants from normalization.
+            \item Depends slightly on $\ell$ and on the specific probe combination.
+        \end{itemize}
+    
+    \item \textbf{The triple integral:} $(d\chi_1, d \chi_2, dk)$ represents a 3D numerical integral that must be evaluated.
+        \begin{itemize}
+            \item For large samples with many $\ell$ modes, this becomes computationally expensive.
+            \item This is where approximations (Limber, Chebyshev decomposition, etc.) become essential!
+        \end{itemize}
+    
+    \item \textbf{Why this works:}
+        \begin{itemize}
+            \item Eq.\,\eqref{eq:Cl_full} is \textbf{exact}: no approximations have been made (yet).
+            \item It encodes all the 3D information into 2D observables (the angular power spectra).
+            \item The form is universal: all cosmological correlations fit this template by choosing appropriate kernels and exponents.
+        \end{itemize}
+\end{itemize}
+
+\end{document}
