@@ -1,0 +1,539 @@
+
+%-------------------------------------------------------------------
+\section{The \texttt{Blast.jl} Algorithm}
+%-------------------------------------------------------------------
+
+The \texttt{Blast.jl} algorithm computes angular power spectra for cosmological observations by combining three key computational strategies: (1) probe-specific angular power spectrum equations, (2) Chebyshev polynomial decomposition of the matter power spectrum, and (3) numerically efficient integration over distance and ratio variables. This section explains each component in depth.
+
+%-------------------------------------------------------------------
+\subsection{Part A: Probe-Specific Angular Power Spectra}
+%-------------------------------------------------------------------
+
+The observed universe is probed by different tracers (galaxies, weak lensing patterns, etc.), each sensitive to the underlying matter distribution in different ways. The algorithm computes the angular power spectrum $C_\ell$ for three probe combinations: galaxy clustering ($gg$), weak lensing shear ($ss$), and their cross-correlation ($gs$).
+
+\subsubsection{Galaxy Clustering}
+
+Galaxy clustering measures the clustering pattern of galaxies on the sky: nearby galaxies tend to cluster together more than random chance would predict.
+
+\begin{equation}
+    C^{gg}_{ij}(\ell) = \frac{2}{\pi}
+    \int_0^\infty d\chi_1\, W^g_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^g_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{gg}(k,\chi_1,\chi_2)\,
+    j_\ell(k\chi_1)\,j_\ell(k\chi_2).
+    \label{eq:Cl_gg}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:Cl_gg}:}\\
+\textit{What does each term represent?}
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Overall structure:} This triple integral sums contributions from three independent variables:
+    \begin{itemize}
+        \item $\chi_1, \chi_2$: Two different comoving distances (locations along the line of sight for the two galaxies in the correlation).
+        \item $k$: Wavenumber of the matter density fluctuation we're measuring.
+    \end{itemize}
+
+    \item \textbf{$C^{gg}_{ij}(\ell)$:} The angular power spectrum for galaxy clustering between tomographic bins $i$ and $j$ at multipole $\ell$. 
+    \begin{itemize}
+        \item Multipole $\ell$ is the ``angular scale'': small $\ell$ = large angles on the sky, large $\ell$ = small angles.
+        \item Tomographic bins: we divide galaxies into redshift slices (bin $i$, bin $j$) to extract radial information.
+    \end{itemize}
+
+    \item \textbf{Prefactor $\frac{2}{\pi}$:} Normalizes the integral over the matter power spectrum and the plane-wave expansion. This comes from angular momentum algebra and Fourier conventions.
+
+    \item \textbf{$W^g_i(\chi)$ and $W^g_j(\chi)$:} Selection kernels for the galaxy samples in bins $i$ and $j$.
+    \begin{itemize}
+        \item These encode ``which galaxies do we see at which distances?''
+        \item Their product $W^g_i(\chi_1) \times W^g_j(\chi_2)$ selects pairs of galaxies: one from bin $i$ at distance $\chi_1$, one from bin $j$ at distance $\chi_2$.
+    \end{itemize}
+
+    \item \textbf{$P^{gg}(k,\chi_1,\chi_2)$:} The matter power spectrum.
+    \begin{itemize}
+        \item Describes the amplitude of density fluctuations at wavenumber $k$ (inverse length scale).
+        \item Depends on both the ``internal'' coordinate $k$ (the density fluctuation's wavelength) and the two distances $\chi_1,\chi_2$ (because the universe evolves with expansion).
+        \item For galaxy clustering, it's really the galaxy power spectrum, which is biased relative to the matter: $P^{gg}(k, \chi) = b_g(\chi)^2 P_\delta(k,\chi)$, where $b_g$ is the galaxy bias.
+    \end{itemize}
+
+    \item \textbf{$k^2 \, dk$:} The volume element in Fourier space.
+    \begin{itemize}
+        \item In 3D Fourier space, $d^3 k = 4\pi k^2 \, dk$ (spherical coordinates in $k$-space).
+        \item The $k^2$ factor arises from this geometry; it weights larger-scale modes more heavily per unit $dk$ interval.
+    \end{itemize}
+
+    \item \textbf{$j_\ell(k\chi_1) \, j_\ell(k\chi_2)$:} Spherical Bessel functions.
+    \begin{itemize}
+        \item These encode how a 3D plane wave $e^{i\mathbf{k} \cdot \mathbf{r}}$ couples to a specific angular multipole $\ell$ on the sky.
+        \item For a given $\ell$ and $\chi$, the Bessel function $j_\ell(k\chi)$ peaks when $k \chi \approx \ell$, i.e., when the wavelength is comparable to the angular scale we're probing.
+        \item The product $j_\ell(k\chi_1) \, j_\ell(k\chi_2)$ connects the two distances to the same multipole.
+    \end{itemize}
+
+    \item \textbf{Physical interpretation:} This integral computes how galaxies at different distances cluster together on the sky at angular scale $\ell$. The power spectrum $P^{gg}$ tells us the strength of fluctuations; the kernels and Bessel functions perform the geometric accounting of how 3D clustering projects onto the 2D sky.
+\end{itemize}
+
+\noindent\textbf{\large Galaxy Clustering Kernel:}
+
+\begin{equation}
+    W^g_i(\chi) = H(z)\,n_i(z)\,b_g(z),
+    \label{eq:kernel_gg}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:kernel_gg}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{$H(z)$:} The Hubble expansion rate at redshift $z$.
+    \begin{itemize}
+        \item Factor of $H$ appears because distances in Fourier space (wavenumber $k$) are measured in comoving coordinates, but the physical galaxy density $n_i(z)$ is typically given as a number per unit physical volume.
+        \item We need $H$ to convert between these units.
+    \end{itemize}
+
+    \item \textbf{$n_i(z)$:} The redshift distribution of galaxies in tomographic bin $i$.
+    \begin{itemize}
+        \item Normalized so that $\int_0^\infty dz \, n_i(z) = 1$ (represents a probability distribution over redshift).
+        \item Tells us: ``what fraction of galaxies in bin $i$ are at redshift $z$?''
+    \end{itemize}
+
+    \item \textbf{$b_g(z)$:} The linear galaxy bias.
+    \begin{itemize}
+        \item Galaxies don't follow the matter exactly; they preferentially occupy denser regions (positive bias) or avoid them (negative bias).
+        \item Measured as: $\delta_g(k,z) = b_g(z) \, \delta_m(k,z)$, where $\delta_g$ and $\delta_m$ are galaxy and matter density contrasts.
+        \item Typical values: $b_g \sim 1$--$2$ for low-redshift galaxies, higher for luminous/massive galaxies at high redshift.
+    \end{itemize}
+
+    \item \textbf{Combined meaning:} $W^g_i(\chi)$ answers: ``At comoving distance $\chi$ (redshift $z(\chi)$), how many galaxies from bin $i$ contribute to the clustering signal?'' The product $H \times n_i \times b_g$ weights by the galaxy number density and their amplified (or reduced) clustering relative to the underlying matter.
+\end{itemize}
+
+%---
+\subsubsection{Weak Lensing Shear}
+
+Weak gravitational lensing bends light paths slightly as it travels through the universe. Distant galaxies appear slightly distorted (sheared) due to the cumulative effect of matter between us and those galaxies.
+
+\begin{equation}
+    C^{ss}_{ij}(\ell) = \frac{2(\ell+2)!}{\pi(\ell-2)!}
+    \int_0^\infty d\chi_1\, W^s_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^s_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{ss}(k,\chi_1,\chi_2)\,
+    \frac{j_\ell(k\chi_1)}{(k\chi_1)^2}\,
+    \frac{j_\ell(k\chi_2)}{(k\chi_2)^2}.
+    \label{eq:Cl_ss}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:Cl_ss}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Key difference from clustering:} Weak lensing has a spin-2 character (shear is a tensor, not a scalar), leading to two major differences:
+    \begin{enumerate}
+        \item The prefactor $\frac{2(\ell+2)!}{\pi(\ell-2)!} = \frac{2}{\pi} (\ell-1)\ell(\ell+1)(\ell+2)$ differs from clustering.
+        \item The Bessel functions are divided by $(k\chi)^2$.
+    \end{enumerate}
+
+    \item \textbf{Why $(k\chi)^{-2}$ factors?}
+    \begin{itemize}
+        \item Shear is the \emph{gradient} of the lensing potential; mathematically, derivatives in Fourier space multiply by factors of $ik$.
+        \item Two derivatives (for a 2D shear tensor) give $(ik)^2 = -k^2$, hence the factor $k^{-2}$ (the minus sign is absorbed in the convention).
+        \item Physically: large-scale modes ($k$ small) produce little shear; small-scale structure creates visible lensing distortions.
+    \end{itemize}
+
+    \item \textbf{Power spectrum:} $P^{ss}(k,\chi_1,\chi_2)$ for lensing probes the matter power spectrum (not galaxy-biased), since lensing directly probes gravity.
+\end{itemize}
+
+\noindent\textbf{\large Weak Lensing Shear Kernel:}
+
+\begin{equation}
+    W^s_i(\chi) = \frac{3H_0^2\Omega_m}{2a(\chi)}\,\chi
+    \int_{\chi}^\infty d\chi'\,n_i(\chi')\,\frac{\chi'-\chi}{\chi'},
+    \label{eq:kernel_ss}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:kernel_ss}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{$\frac{3H_0^2\Omega_m}{2a(\chi)}$:} The lensing strength, proportional to the matter density and inversely proportional to the expansion factor.
+    \begin{itemize}
+        \item $H_0, \Omega_m$: Today's Hubble rate and matter density (fundamental cosmological parameters).
+        \item $a(\chi)$: The scale factor (inverse of $(1+z)$) at distance $\chi$; lensing strength decreases as we go to earlier times (smaller $a$).
+    \end{itemize}
+
+    \item \textbf{$\chi$:} The comoving distance to the lensing structure; multiplies the lensing strength (farther structures lens more strongly).
+
+    \item \textbf{The integral $\int_{\chi}^\infty d\chi'\, n_i(\chi')\, \frac{\chi'-\chi}{\chi'}$:}
+    \begin{itemize}
+        \item This is the key: lensing by structures \emph{between us and the source}.
+        \item $n_i(\chi')$: redshift distribution of \emph{background} sources (the galaxies being lensed) in bin $i$.
+        \item For each source at distance $\chi' > \chi$, the lensing is proportional to:
+        \begin{itemize}
+            \item Geometric factor $\frac{\chi'-\chi}{\chi'}$: the fractional contribution to lensing increases with $\chi' - \chi$ (more separation) but decreases if the source is at infinity.
+            \item This encodes: ``a structure at distance $\chi$ lenses distant galaxies more effectively than nearby ones.''
+        \end{itemize}
+        \item The integral over $\chi' > \chi$ sums contributions from all galaxies being lensed by matter at distance $\chi$.
+    \end{itemize}
+
+    \item \textbf{Physical interpretation:} $W^s_i(\chi)$ tells us: ``At distance $\chi$, how much does the matter lens our background galaxies in bin $i$?'' High sensitivity between us and the farthest sources, peaking at intermediate redshifts.
+\end{itemize}
+
+%---
+\subsubsection{Galaxy-Shear Cross-Correlation}
+
+Galaxies and lensing both trace matter, so they are partially correlated. This cross-correlation provides complementary information.
+
+\begin{equation}
+    C^{gs}_{ij}(\ell) = \frac{2}{\pi}\sqrt{\frac{(\ell+2)!}{(\ell-2)!}}
+    \int_0^\infty d\chi_1\, W^g_i(\chi_1)
+    \int_0^\infty d\chi_2\, W^s_j(\chi_2)
+    \int_0^\infty dk\, k^2\, P^{gs}(k,\chi_1,\chi_2)\,
+    \frac{j_\ell(k\chi_1)}{(k\chi_1)^2}\,j_\ell(k\chi_2).
+    \label{eq:Cl_gs}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:Cl_gs}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Hybrid structure:} This equation combines features of clustering and lensing:
+    \begin{itemize}
+        \item Galaxy clustering term (scalars): $j_\ell(k\chi_1)$ (no division by $k\chi_1$).
+        \item Lensing term (spin-2): $j_\ell(k\chi_2) / (k\chi_2)^2$ (one derivative for shear).
+    \end{itemize}
+
+    \item \textbf{Prefactor:} $\sqrt{\frac{(\ell+2)!}{(\ell-2)!}} = \sqrt{(\ell-1)\ell(\ell+1)(\ell+2)}$ is the geometric mean of clustering and lensing prefactors.
+
+    \item \textbf{Power spectrum:} $P^{gs}(k,\chi_1,\chi_2)$ is the cross-power spectrum between galaxies and matter; it's related to the matter power by $P^{gs} \propto b_g \times P_\delta$ at the overlap redshifts.
+
+    \item \textbf{Physical meaning:} This measures how galaxy overdensities at distance $\chi_1$ correlate with matter overdensities (traced via lensing) at a different distance $\chi_2$. It's sensitive to how the same structures appear in both tracers.
+\end{itemize}
+
+%---
+%-------------------------------------------------------------------
+\subsection{Part B: Chebyshev Polynomial Decomposition}
+%-------------------------------------------------------------------
+
+The algorithm does not directly use the full $k$-integration for every possible pair $(\chi_1, \chi_2)$. Instead, it decomposes the matter power spectrum in a basis of Chebyshev polynomials, which enables efficient numerical evaluation.
+
+\subsubsection{Chebyshev Basis and Series}
+
+\begin{equation}
+    T_n(\cos\varphi) = \cos(n\varphi),
+    \label{eq:cheb_def}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:cheb_def}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Definition:} Chebyshev polynomials of the first kind $T_n(x)$ are orthogonal polynomials on the interval $[-1,1]$ with weight $w(x) = 1/\sqrt{1-x^2}$.
+    
+    \item \textbf{Explicit form:} They satisfy a simple recurrence:
+    \begin{equation}
+        T_0(x) = 1, \quad T_1(x) = x, \quad T_{n+1}(x) = 2x T_n(x) - T_{n-1}(x).
+    \end{equation}
+    Examples: $T_2(x) = 2x^2 - 1$, $T_3(x) = 4x^3 - 3x$, etc.
+
+    \item \textbf{Why Chebyshev?}
+    \begin{itemize}
+        \item Any function can be approximated as a linear combination: $f(x) \approx \sum_n a_n T_n(x)$.
+        \item Chebyshev series converge rapidly (faster than power series) for smooth functions.
+        \item The FFT can compute Chebyshev coefficients efficiently (via trigonometric identities).
+    \end{itemize}
+\end{itemize}
+
+\noindent\textbf{\large Chebyshev Series Expansion:}
+
+\begin{equation}
+    f(x) = \sum_{n=0}^\infty a_n\,T_n(x),
+\end{equation}
+
+with coefficients:
+\begin{equation}
+    a_n = \frac{2}{\pi}\int_{-1}^{1}\frac{f(x)\,T_n(x)}{\sqrt{1-x^2}}\,dx.
+    \label{eq:cheb_coeff}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:cheb_coeff}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Orthogonality:} The weight $1/\sqrt{1-x^2}$ ensures that different Chebyshev polynomials are orthogonal, allowing us to extract individual coefficients $a_n$.
+    
+    \item \textbf{Computational approach (Clenshaw-Curtis quadrature):} Rather than evaluate the integral, we approximate $f$ by evaluating it at special grid points (Chebyshev nodes):
+    \begin{equation}
+        t_n = \cos\left(\frac{2n+1}{2N}\pi\right), \quad n = 0, 1, \ldots, N-1.
+    \end{equation}
+    Then, a discrete FFT gives us interpolation coefficients $c_n \approx a_n$.
+\end{itemize}
+
+\noindent\textbf{\large Application to Matter Power Spectrum:}
+
+\begin{equation}
+    P(k,\chi_1,\chi_2;\,\theta) \approx
+    \sum_{n=0}^{n_{\max}} c_n(\chi_1,\chi_2;\,\theta)\,T_n(k),
+    \label{eq:Pk_cheb}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:Pk_cheb}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Scope:} We represent $P(k, \chi_1, \chi_2)$ as a truncated series in Chebyshev polynomials of $k$ over a range $[k_{\min}, k_{\max}]$.
+    
+    \item \textbf{Coefficients:} $c_n(\chi_1, \chi_2; \theta)$ depend on the pair of distances and any cosmological parameters $\theta$. Each $(\\chi_1, \chi_2)$ pair has its own set of Chebyshev coefficients.
+    
+    \item \textbf{Why this helps:}
+    \begin{itemize}
+        \item Instead of recalculating the expensive $k$-integral for every $C_\ell$, we precompute the Chebyshev coefficients once.
+        \item The integral over $k$ becomes many integrals of $T_n(k)$ against Bessel functions, which can be tabulated.
+        \item For a new $C_\ell$, we just sum the precomputed terms with the appropriate $c_n$ coefficients.
+    \end{itemize}
+    
+    \item \textbf{Truncation:} We keep only the first $n_{\max}$ terms. This is valid for smooth power spectra; typically $n_{\max} \sim 10$--$50$.
+\end{itemize}
+
+%---
+%-------------------------------------------------------------------
+\subsection{Part C: Precomputed Integrals and Projected Matter Density}
+%-------------------------------------------------------------------
+
+Once the power spectrum is decomposed in Chebyshev basis, we define precomputed integrals that encapsulate the expensive $k$-integration.
+
+\subsubsection{Projected Matter Density}
+
+\begin{equation}
+    w^{AB}_\ell(\chi_1,\chi_2;\,\theta) \equiv
+    \sum_{n=0}^{n_{\max}} c_n(\chi_1,\chi_2;\,\theta)\,
+    \tilde{T}^{AB}_{n;\ell}(\chi_1,\chi_2),
+    \label{eq:w_ell}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:w_ell}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Definition:} $w^{AB}_\ell(\chi_1,\chi_2)$ is the ``projected matter density'' — a hybrid quantity that combines:
+    \begin{itemize}
+        \item The cosmological dependence (via Chebyshev coefficients $c_n$, which change with cosmological parameters).
+        \item The pure geometry (via $\tilde{T}$ integrals, which are fixed once and for all).
+    \end{itemize}
+    
+    \item \textbf{Why decouple?} This separation is the computational heart of \texttt{Blast.jl}:
+    \begin{itemize}
+        \item Precompute $\tilde{T}^{AB}_{n;\ell}$ once, for all $\ell$, $n$, and probe pairs $(A,B)$.
+        \item For any cosmology, just read off the $c_n$ and do a linear sum—no slow $k$-integration needed!
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Precomputed Geometric Integrals}
+
+\begin{equation}
+    \tilde{T}^{AB}_{n;\ell}(\chi_1,\chi_2) \equiv
+    \int_{k_{\min}}^{k_{\max}} dk\, f^{AB}(k)\,T_n(k)\,
+    j_\ell(k\chi_1)\,j_\ell(k\chi_2),
+    \label{eq:T_tilde}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:T_tilde}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{What is computed?} For each combination of:
+    \begin{itemize}
+        \item Chebyshev polynomial index $n$ (typically $n=0,\ldots,n_{\max}$).
+        \item Multipole $\ell$ (covering the range of interest, e.g., $\ell=1$ to $10000$).
+        \item Probe pair $(A,B)$ (e.g., $gg$, $ss$, $gs$).
+        \item Distance pair $(\chi_1, \chi_2)$ (typically on a grid of $\sim 100^2$ points).
+    \end{itemize}
+    we compute this integral and store it.
+
+    \item \textbf{Ingredients:}
+    \begin{itemize}
+        \item $f^{AB}(k)$: probe-dependent weight (explained below).
+        \item $T_n(k)$: Chebyshev polynomial.
+        \item $j_\ell(k\chi_1), j_\ell(k\chi_2)$: Bessel functions.
+    \end{itemize}
+
+    \item \textbf{Probe-dependent weights:}
+    \begin{equation}
+        f^{AB}(k) =
+        \begin{cases}
+            k^2  & AB = gg\text{ (clustering)}, \\
+            k^{-2} & AB = ss\text{ (lensing)}, \\
+            1    & AB = gs\text{ (cross-correlation)}.
+        \end{cases}
+    \end{equation}
+    These arise from the different spin characters: $k^2$ for scalars, $k^{-2}$ for spin-2, $1$ for mixed.
+
+    \item \textbf{Examples:}
+    \begin{itemize}
+        \item For galaxy clustering, $\tilde{T}^{gg}_{0;\ell}(\chi_1,\chi_2)$ is the integral of a constant Chebyshev polynomial ($T_0=1$) times $k^2$ times Bessel functions—a fairly broad distribution.
+        \item For lensing, $\tilde{T}^{ss}_{0;\ell}(\chi_1,\chi_2)$ has an extra $k^{-2}$, making it concentrated at smaller $k$.
+    \end{itemize}
+\end{itemize}
+
+%---
+%-------------------------------------------------------------------
+\subsection{Part D: Change of Variables and Final Integration}
+%-------------------------------------------------------------------
+
+The final step is to efficiently integrate over $\chi_1$ and $\chi_2$, using a change of variables and numerical quadrature.
+
+\subsubsection{Symmetrization and New Variables}
+
+The naive triple integral (over $\chi_1$, $\chi_2$, $k$) can be reorganized. First, we symmetrize:
+
+\begin{align}
+    C^{AB}_{ij}(\ell) &=
+    \int_0^\infty d\chi_1\, K^A_i(\chi_1)
+    \int_0^{\chi_1} d\chi_2\, K^B_j(\chi_2)\, w^{AB}_\ell(\chi_1,\chi_2) \notag\\
+    &\quad +
+    \int_0^\infty d\chi_2\, K^B_j(\chi_2)
+    \int_0^{\chi_2} d\chi_1\, K^A_i(\chi_1)\, w^{AB}_\ell(\chi_2,\chi_1),
+    \label{eq:sym}
+\end{align}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:sym}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Why symmetrize?} The original integral is over all $(\chi_1, \chi_2) \in [0,\infty)^2$. 
+    \begin{itemize}
+        \item We split it into regions: $\chi_1 > \chi_2$ and $\chi_2 > \chi_1$.
+        \item This allows us to change variables more cleanly.
+    \end{itemize}
+    
+    \item \textbf{Structure:} Each line represents one ordering:
+    \begin{itemize}
+        \item Line 1: $\chi_1 > \chi_2$ (first kernel depends on the larger distance).
+        \item Line 2: $\chi_2 > \chi_1$ (first kernel depends on the other larger distance).
+    \end{itemize}
+\end{itemize}
+
+\noindent\textbf{\large Change of Variables: $(\chi_1, \chi_2) \to (\chi, R)$}
+
+Introducing $R \equiv \chi_2/\chi_1 \in (0,1]$ in the first integral and $R \equiv \chi_1/\chi_2$ in the second, Eq.~\eqref{eq:sym} becomes:
+
+\begin{equation}
+    \boxed{C^{AB}_{ij}(\ell) =
+    \int_0^\infty d\chi
+    \int_0^1 dR\;\chi\,
+    \Bigl[K^A_i(\chi)\,K^B_j(R\chi) + K^B_j(\chi)\,K^A_i(R\chi)\Bigr]\,
+    w^{AB}_\ell(\chi,R\chi),}
+    \label{eq:Cl_chiR}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:Cl_chiR}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{New variables:}
+    \begin{itemize}
+        \item $\chi$: The ``primary'' distance (the larger of $\chi_1, \chi_2$ in each region).
+        \item $R = \chi_{\text{smaller}}/\chi_{\text{larger}} \in (0,1]$: The ratio of the two distances.
+    \end{itemize}
+
+    \item \textbf{Jacobian:} The change of variables $(\chi_1,\chi_2) \to (\chi, R)$ introduces a factor of $\chi$ (the Jacobian determinant of the coordinate transformation).
+
+    \item \textbf{Kernel modification:} The kernels appear as:
+    \begin{equation}
+        K^A_i(\chi) \times K^B_j(R\chi) + K^B_j(\chi) \times K^A_i(R\chi).
+    \end{equation}
+    This accounts for the two orderings of $\chi_1$ and $\chi_2$ being swapped.
+
+    \item \textbf{Physical interpretation:}
+    \begin{itemize}
+        \item We integrate over one "reference" distance $\chi$ (from $0$ to $\infty$).
+        \item For each $\chi$, we integrate over the ratio $R$: from $0$ (the two sources infinitesimally close) to $1$ (they're at the same distance).
+        \item This two-step integration is often numerically more efficient and stable than the original formulation.
+    \end{itemize}
+
+    \item \textbf{Modified kernels (for lensing):} When dealing with lensing kernels, we sometimes divide by $\chi^2$ to account for spin-2 weights, giving:
+    \begin{equation}
+        \mathcal{K}^A_i(\chi) =
+        \begin{cases}
+            K^A_i(\chi)       & \text{if } A = \text{clustering},\\
+            K^A_i(\chi)/\chi^2 & \text{if } A = \text{lensing}.
+        \end{cases}
+        \label{eq:kernel_mod}
+    \end{equation}
+\end{itemize}
+
+%---
+%-------------------------------------------------------------------
+\subsection{Part E: Non-Linear Power Spectrum and Final Assembly}
+%-------------------------------------------------------------------
+
+Real matter evolves nonlinearly at small scales due to gravitational collapse. \texttt{Blast.jl} handles this via a split.
+
+\subsubsection{Linear-Nonlinear Split}
+
+\begin{equation}
+    P_\delta(k,\chi_1,\chi_2) = P_{\rm lin}(k,\chi_1,\chi_2)
+    + \bigl[P_\delta - P_{\rm lin}\bigr](k,\chi_1,\chi_2).
+    \label{eq:Pk_split}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:Pk_split}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Motivation:} Linear perturbation theory (assuming $\delta \ll 1$) is accurate on large scales ($k \to 0$) but fails on small scales ($k \sim 1\, \text{Mpc}^{-1}$ or smaller).
+    
+    \item \textbf{Split:} We decompose $P_\delta$ into:
+    \begin{itemize}
+        \item $P_{\rm lin}$: Predicted by linear theory (fast to compute, accurate on large scales).
+        \item $[P_\delta - P_{\rm lin}]$: The nonlinear correction (the residual difference).
+    \end{itemize}
+
+    \item \textbf{Advantage:}
+    \begin{itemize}
+        \item The linear part is treated \emph{exactly} via Chebyshev decomposition.
+        \item The nonlinear correction is smoother and shorter-ranged, allowing a good approximation via other methods (e.g., Limber approximation, halo models).
+        \item This hybrid approach reduces errors compared to naive linear or full nonlinear calculations.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Total Angular Power Spectrum}
+
+\begin{equation}
+    C^{\rm tot}(\ell) = C^{\rm lin}(\ell)
+    + C^{\rm limb}_\delta(\ell) - C^{\rm limb}_{\rm lin}(\ell),
+    \label{eq:Cl_total}
+\end{equation}
+
+\noindent\textbf{\large Explanation of Eq.\,\eqref{eq:Cl_total}:}\\
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Three terms:}
+    \begin{itemize}
+        \item $C^{\rm lin}(\ell)$: Angular power spectrum from linear matter power (computed exactly via the full algorithm above).
+        \item $C^{\rm limb}_\delta(\ell)$: Angular power spectrum from the \emph{full nonlinear} power spectrum, but \emph{computed using the Limber approximation} (fast but approximate at large $\ell$).
+        \item $C^{\rm limb}_{\rm lin}(\ell)$: Angular power spectrum from \emph{linear} power, also via Limber approximation.
+    \end{itemize}
+
+    \item \textbf{Cancellation:} The last two terms subtract; their difference $C^{\rm limb}_\delta(\ell) - C^{\rm limb}_{\rm lin}(\ell)$ captures the \emph{nonlinear correction} in the Limber limit.
+
+    \item \textbf{Why this works:}
+    \begin{itemize}
+        \item The exact linear term dominates large-$\ell$ (small scales), where linearity breaks down anyway.
+        \item By using Limber to estimate nonlinearity, we avoid the full $k$-integration for the small, complex nonlinear piece.
+        \item This reduces computation time while maintaining accuracy.
+    \end{itemize}
+
+    \item \textbf{Final result:} $C^{\rm tot}(\ell)$ is an approximation to the observed angular power spectrum, combining the best of exact (linear) and fast (Limber) treatments.
+\end{itemize}
+
+%---
+%-------------------------------------------------------------------
+\section{Summary: The Computational Pipeline}
+%-------------------------------------------------------------------
+
+\begin{enumerate}[leftmargin=2cm]
+    \item \textbf{Inputs:} Cosmological parameters ($\Omega_m, \Omega_\Lambda, H_0$, etc.), galaxy/lensing redshift distributions, bias functions, wavenumber range $[k_{\min}, k_{\max}]$, multipole range, Chebyshev truncation $n_{\max}$.
+
+    \item \textbf{Precomputation (once per setup):}
+    \begin{itemize}
+        \item Build a grid of comoving distances $\chi$.
+        \item For each probe pair $(A,B)$, multipole $\ell$, and Chebyshev index $n$: compute and store $\tilde{T}^{AB}_{n;\ell}(\chi_1,\chi_2)$ via the integral in Eq.~\eqref{eq:T_tilde}.
+        \item Total storage: $\sim \text{(probes)} \times \text{(multipoles)} \times \text{(Chebyshev terms)} \times \text{(distance grid)}^2$.
+    \end{itemize}
+
+    \item \textbf{For any cosmology:}
+    \begin{itemize}
+        \item Compute the matter power spectrum $P(k, \chi; \theta)$.
+        \item Decompose in Chebyshev basis: obtain coefficients $c_n(\chi_1, \chi_2; \theta)$.
+        \item Compute projected matter density: $w^{AB}_\ell(\chi_1, \chi_2) = \sum_n c_n \times \tilde{T}^{AB}_{n;\ell}$ (a fast linear sum).
+        \item Integrate $\chi$ and $\chi_2$ (or $\chi$ and $R$) numerically using Simpson and Clenshaw-Curtis quadrature.
+        \item Add nonlinear correction via Limber approximation (Eq.~\eqref{eq:Cl_total}).
+        \item Output: $C_\ell^{AB}$ for the given cosmology.
+    \end{itemize}
+
+    \item \textbf{Efficiency:} Instead of a slow triple integral for each cosmology, we do a precomputed table lookup plus a fast double integral. For parameter estimation (testing thousands of cosmologies), this is a huge speedup.
+\end{enumerate}
