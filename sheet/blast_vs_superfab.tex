@@ -1,0 +1,566 @@
+\section{Blast vs SuperFaB}
+%==============================================================
+
+Both \textbf{Blast.jl} \cite{chiarenza2024blast} and \textbf{SuperFaB}
+\cite{grasshorn2022superfab} are modern Julia codes designed to compute
+statistics related to the angular (or spherical) power spectrum
+$C_\ell$. Despite this shared goal, the two codes address fundamentally
+different scientific problems:
+
+\begin{itemize}
+    \item \textbf{Blast.jl} is a \emph{theory prediction code}.
+    It computes the projected 2D angular power spectrum
+    $C_\ell^{AB}$ between tomographic bins of galaxy surveys without
+    invoking the Limber approximation, allowing sub-percent accuracy
+    at low multipoles.
+
+    \item \textbf{SuperFaB} is a \emph{data estimator}. It measures
+    the full 3D Spherical Fourier-Bessel (SFB) power spectrum
+    $C_\ell(k, k')$ directly from a galaxy catalogue, retaining all
+    radial and angular information without collapsing it into redshift
+    bins.
+\end{itemize}
+
+The two approaches are complementary: SuperFaB provides a richer
+estimator suited for all-sky spectroscopic surveys, while Blast.jl
+provides a fast and accurate theory model especially relevant for
+tomographic (photometric) analyses such as 3$\times$2\,pt statistics.
+
+%==============================================================
+\subsection{The Angular Power Spectrum: Two Perspectives}
+%==============================================================
+
+\subsection{Blast.jl --- Beyond-Limber Angular Power Spectra}
+
+\subsubsection{From 3D to 2D: the projection integral}
+
+Any 2D field observed on the sky is a projection of a 3D field
+$A(\mathbf{r}, z)$ through a window function $W_i(z)$:
+\begin{equation}
+    \tilde{A}(\hat{n}) = \int dz\, W_i(z)\, A(\chi(z)\hat{n};\, z),
+\end{equation}
+where $\chi(z)$ is the comoving distance. Expanding in spherical
+harmonics via the Rayleigh formula $e^{i\mathbf{k}\cdot\hat{n}r} =
+4\pi\sum_{\ell m}i^\ell j_\ell(kr)Y^*_{\ell m}(\hat{k})Y_{\ell m}(\hat{n})$,
+one obtains the angular power spectrum between probes $A$ and $B$ in
+tomographic bins $i$ and $j$:
+\begin{equation}
+    \boxed{
+    C_{ij}^{AB}(\ell) = \mathcal{N}(\ell)
+    \int_0^\infty d\chi_1\, W_i^A(\chi_1)
+    \int_0^\infty d\chi_2\, W_j^B(\chi_2)
+    \int_0^\infty dk\, k^2\,
+    \frac{P^{AB}(k,\chi_1,\chi_2)\,j_\ell(k\chi_1)\,j_\ell(k\chi_2)}
+         {(k\chi_1)^\alpha (k\chi_2)^\beta}
+    }
+    \label{eq:blast_cij}
+\end{equation}
+where $j_\ell(x)$ are the spherical Bessel functions,
+$P^{AB}(k,\chi_1,\chi_2)$ is the (possibly unequal-time) 3D matter
+power spectrum, and the exponents $(\alpha,\beta)$ depend on the probe
+combination:
+\begin{equation}
+    (\alpha, \beta) =
+    \begin{cases}
+        (0,0) & \text{galaxy clustering (gg)}\\
+        (2,2) & \text{weak lensing shear (ss)}\\
+        (0,2) & \text{galaxy--galaxy lensing (gs)}
+    \end{cases}
+\end{equation}
+The prefactor is $\mathcal{N}(\ell) = 2/\pi$ for clustering and
+$\mathcal{N}(\ell) = 2(ell+2)!/[\pi(\ell-2)!]$ for lensing.
+
+The probe-specific kernels are
+\begin{align}
+    W_i^g(\chi) &= \frac{H(z)}{c}\,n_i(z)\,b_g(z), \\
+    W_i^s(\chi) &= \frac{3H_0^2\Omega_m}{2c^2\,a(\chi)}\,\chi
+                   \int_z^\infty dz'\,n_i(z')
+                   \frac{\chi(z')-\chi}{\chi(z')}.
+\end{align}
+
+\subsubsection{The Limber approximation and its breakdown}
+
+The standard Limber approximation replaces the spherical Bessel
+function by a Dirac delta,
+\begin{equation}
+    j_\ell(x) \approx \sqrt{\frac{\pi}{2\ell+1}}\,
+    \delta^D\!\left(\ell+\tfrac{1}{2} - x\right),
+\end{equation}
+collapsing the double $(\chi_1,\chi_2)$ integral to a single 1D
+integral:
+\begin{equation}
+    C_{ij}^{AB}(\ell) \approx
+    \int_0^\infty \frac{d\chi}{\chi^2}\,
+    K_i^A(\chi)\,K_j^B(\chi)\,
+    P^{AB}\!\left(k_\ell = \frac{\ell+1/2}{\chi},\,z\right).
+    \label{eq:limber}
+\end{equation}
+While computationally cheap, Eq.~\eqref{eq:limber} breaks down for
+$\ell \lesssim 100$, narrow kernels (spectroscopic bins), and
+cross-bin correlations, introducing errors of order $\mathcal{O}(\ell^{-2})$.
+
+\subsubsection{The Blast.jl Chebyshev algorithm}
+
+The key idea of Blast.jl is to decompose the power spectrum on a
+Chebyshev basis:
+\begin{equation}
+    P(k,\chi_1,\chi_2;\,\theta) \approx
+    \sum_{n=0}^{n_{\max}} c_n(\chi_1,\chi_2;\,\theta)\,T_n(k),
+    \label{eq:cheb_pk}
+\end{equation}
+where $T_n(k)$ are Chebyshev polynomials of the first kind and $c_n$
+are coefficients that carry all cosmological parameter dependence.
+This separates the integral in Eq.~\eqref{eq:blast_cij} into a
+cosmology-independent (precomputable) part and a fast update:
+\begin{equation}
+    w_\ell^{AB}(\chi_1,\chi_2;\,\theta) =
+    \sum_{n=0}^{n_{\max}} c_n(\chi_1,\chi_2;\,\theta)\,
+    \tilde{T}_{n;\,\ell}^{AB}(\chi_1,\chi_2),
+    \label{eq:w_decomp}
+\end{equation}
+where the cosmology-\emph{independent} precomputed integrals are:
+\begin{equation}
+    \tilde{T}_{n;\,\ell}^{AB}(\chi_1,\chi_2) \equiv
+    \int_{k_{\min}}^{k_{\max}} dk\,f^{AB}(k)\,T_n(k)\,
+    j_\ell(k\chi_1)\,j_\ell(k\chi_2),
+\end{equation}
+with $f^{gg}(k)=k^2$, $f^{ss}(k)=k^{-2}$, $f^{gs}(k)=1$.
+
+Introducing the coordinate change $R \equiv \chi_2/\chi_1$, the
+outer double integral becomes
+\begin{equation}
+    C_{ij}^{AB}(\ell) =
+    \int_0^\infty d\chi
+    \int_0^1 dR\;\chi\,
+    \Bigl[K_i^A(\chi)\,K_j^B(R\chi)
+         + K_j^B(\chi)\,K_i^A(R\chi)\Bigr]\,
+    w_\ell^{AB}(\chi,\,R\chi),
+\end{equation}
+which is evaluated with Simpson quadrature in $\chi$ and
+Clenshaw-Curtis quadrature in $R$ (48 Chebyshev points in $(0,1]$),
+where the sharp feature at $R=1$ ($\chi_1 \approx \chi_2$) is well
+resolved by the Chebyshev node distribution.
+
+\subsubsection{Blast.jl implementation summary}
+
+The code stores three precomputed tensor arrays of $\tilde{T}$ (one
+per probe combination, with $\beta=\{2,0,-2\}$) loaded at module
+initialisation from \texttt{artifact} files. At inference time:
+\begin{enumerate}
+    \item Evaluate Chebyshev coefficients $c_n$ via FFT (DCT-I) of
+          $P(k_j,\chi_1,\chi_2)$ on the Chebyshev grid.
+    \item Contract $c_n$ with $\tilde{T}_{n;\ell}$ via \texttt{@tullio}
+          (Einstein notation) to obtain $w_\ell^{AB}(\chi,R)$.
+    \item Build the kernel product $K^{[2]}_{ij}(\chi,R)$ via a
+          \texttt{combine\_kernels} call.
+    \item Integrate with Simpson ($\chi$) and Clenshaw-Curtis ($R$)
+          weights to obtain $C_{ij}^{AB}(\ell)$.
+\end{enumerate}
+On a 32-core node, the fiducial LSST-Y10 data vector (10 clustering
+bins + 5 lensing bins, $\ell\in[2,200]$) is computed in $\approx 3.6$\,ms,
+roughly 10--15$\times$ faster than the previous best code (FKEM) in the
+N5K challenge \cite{leonard2023n5k}.
+
+%------------------------------------------------------------
+\subsection{SuperFaB --- Spherical Fourier-Bessel Decomposition}
+%------------------------------------------------------------
+
+\subsubsection{The SFB transform}
+
+SuperFaB works directly in 3D. An overdensity field
+$\delta(\mathbf{r})$ is expanded in the SFB basis:
+\begin{equation}
+    \delta(\mathbf{r}) =
+    \sum_{n\ell m}\bigl[g_{n\ell}(r)\,Y_{\ell m}(\hat{r})\bigr]
+    \delta_{n\ell m},
+    \qquad
+    \delta_{n\ell m} =
+    \int d^3r\,\bigl[g_{n\ell}(r)\,Y_{\ell m}^*(\hat{r})\bigr]
+    \delta(\mathbf{r}),
+\end{equation}
+with the integration over the volume $r_{\min}\le r\le r_{\max}$.
+The radial basis functions $g_{n\ell}(r)$ are linear combinations of
+spherical Bessel functions of the first and second kind,
+\begin{equation}
+    g_{n\ell}(r) = c_{n\ell}\,j_\ell(k_{n\ell}\,r)
+                 + d_{n\ell}\,y_\ell(k_{n\ell}\,r),
+\end{equation}
+satisfying \emph{potential boundary conditions} at $r_{\min}$ and
+$r_{\max}$ (Fisher et al.~1995, Samushia 2019):
+\begin{equation}
+    \ell\, g_{n\ell}(k_{n\ell}r_{\min})
+    = k_{n\ell}r_{\min}\,g'_{n\ell}(k_{n\ell}r_{\min}),
+    \quad
+    -({\ell+1})\,g_{n\ell}(k_{n\ell}r_{\max})
+    = k_{n\ell}r_{\max}\,g'_{n\ell}(k_{n\ell}r_{\max}),
+\end{equation}
+and the orthonormality condition:
+\begin{equation}
+    \int_{r_{\min}}^{r_{\max}} dr\,r^2\,
+    g_{n\ell}(r)\,g_{n'\ell}(r) = \delta_{nn'}^K.
+\end{equation}
+
+\subsubsection{The SFB power spectrum}
+
+For a survey with radial selection function $\phi(r)$ and linear
+growth $D(r)$, the observable SFB window becomes:
+\begin{equation}
+    \mathcal{W}_\ell(k, q) =
+    \frac{2qk}{\pi}
+    \int dr\,r^2\,\phi(r)\,D(r)\,b(r,q)\,
+    j_\ell(kr)\,j_\ell(qr).
+    \label{eq:sfb_window}
+\end{equation}
+The SFB power spectrum is then:
+\begin{equation}
+    \boxed{
+    C_\ell(k, k') = \int dq\,
+    \mathcal{W}_\ell(k, q)\,\mathcal{W}^*_\ell(k', q)\,P(q).
+    }
+    \label{eq:sfb_cll}
+\end{equation}
+This is a \emph{matrix} in $(k,k')$: diagonal entries
+$C_\ell(k,k)$ carry the auto-power at scale $k$, while off-diagonal
+entries encode mode coupling induced by redshift evolution of the
+growth factor and bias.
+
+In the Limber approximation $[j_\ell(kr)\approx
+\sqrt{\pi/(2\ell+1)}\,\delta^D(k-\ell+1/2)/r]\,r^{-1}$, the SFB
+window simplifies to
+\begin{equation}
+    \mathcal{W}_\ell^{\rm Limb}(k,q) =
+    \delta^D(q-k)\,\phi\!\left(\tfrac{\ell+1/2}{k}\right)
+    D\!\left(\tfrac{\ell+1/2}{k}\right)
+    b\!\left(\tfrac{\ell+1/2}{k},k\right),
+\end{equation}
+so $C_\ell(k,k')\to\delta^D(k-k')\,C_\ell(k)$, i.e.\ the spectrum
+becomes diagonal and the full 3D information collapses to a 1D
+function of $k$ at the characteristic radius $r=(\ell+1/2)/k$.
+
+\subsubsection{Estimation from data}
+
+SuperFaB does not compute a theory model but \emph{measures}
+Eq.~\eqref{eq:sfb_cll} from galaxies. The 3DEX approach
+(Leistedt et al.\ 2012) first performs the radial transform:
+\begin{equation}
+    \delta_{n\ell}^{\rm obs}(\hat{r}) =
+    \frac{1}{\bar{n}}\sum_p
+    \delta^D(\hat{r}-\hat{r}_p)\,g_{n\ell}(r_p)
+    - \mathcal{W}_{n\ell}(\hat{r}),
+\end{equation}
+then the angular spherical harmonic transform via HEALPix.
+The pseudo-SFB power spectrum estimator is:
+\begin{equation}
+    \hat{C}_\ell^{\rm obs}(n,n') =
+    \frac{1}{2\ell+1}\sum_m
+    \delta_{n\ell m}^{\rm obs}
+    \bigl(\delta_{n'\ell m}^{\rm obs}\bigr)^*,
+\end{equation}
+which is then corrected for the window mixing matrix
+$\mathcal{M}_{\ell nn'}^{LNN'}$, shot noise, and pixel window.
+
+%==============================================================
+\subsection{Key Conceptual Differences}
+%==============================================================
+
+\subsection{Observables and dimensionality}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{lcc}
+\toprule
+& \textbf{Blast.jl} & \textbf{SuperFaB} \\
+\midrule
+Output observable & $C_\ell^{AB}$ (scalar per $\ell$, bin pair) &
+    $C_\ell(k,k')$ (matrix in $k$) \\
+Info retained & Projected 2D & Full 3D radial + angular \\
+Survey type & Photometric (tomographic) & Spectroscopic / all-sky \\
+Role & Theory predictor & Data estimator \\
+Limber regime & Goes beyond & Recovers Limber on diagonal \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Relationship between $C_\ell^{AB}$ and $C_\ell(k,k')$}
+
+The Blast.jl projected angular power spectrum can be seen as a
+\emph{weighted integral of the SFB power spectrum}. Defining
+$\hat{W}_i^A(k) \equiv \int d\chi\,W_i^A(\chi)\,j_\ell(k\chi)$,
+one has schematically:
+\begin{equation}
+    C_{ij}^{AB}(\ell) \sim
+    \int dk\, dk'\,
+    \hat{W}_i^A(k)\,\hat{W}_j^B(k')\,
+    C_\ell(k, k').
+    \label{eq:connection}
+\end{equation}
+In the Limber limit $C_\ell(k,k')\to\delta^D(k-k')C_\ell(k)$, this
+becomes Eq.~\eqref{eq:limber}. Beyond Limber, both off-diagonal terms
+in $C_\ell(k,k')$ and the exact spherical Bessel integrals in
+$\hat{W}_i^A(k)$ must be retained --- this is precisely what
+Blast.jl does via its Chebyshev decomposition in $k$.
+
+Alternatively, the diagonal slice of the SFB spectrum contains a
+theory prediction:
+\begin{equation}
+    C_\ell(k,k) =
+    \int dq\,|\mathcal{W}_\ell(k,q)|^2\,P(q)
+    \xrightarrow{\rm Limber}
+    \phi^2\!\left(\frac{\ell+1/2}{k}\right)
+    D^2\!\left(\frac{\ell+1/2}{k}\right)
+    b^2\!\left(\frac{\ell+1/2}{k},k\right)
+    P(k),
+\end{equation}
+which is entirely analogous to the Limber approximation of $C_{ij}^{AB}$
+for a single broad bin with $W_i(\chi)=\phi(\chi)D(\chi)b(\chi)$.
+
+\subsection{Treatment of the spherical Bessel functions}
+
+Both codes must handle products of spherical Bessel functions
+$j_\ell(k\chi_1)j_\ell(k\chi_2)$, but they do so in opposite
+strategies:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{lcc}
+\toprule
+& \textbf{Blast.jl} & \textbf{SuperFaB} \\
+\midrule
+Bessel integration & Pre-computed $\tilde{T}_{n\ell}^{AB}$ tensors &
+    Discrete $k_{n\ell}$ modes from BCs \\
+Basis & Chebyshev $T_n(k)$ & Eigenmodes $g_{n\ell}(r)$ of $\nabla^2$ \\
+$k$-grid & Clenshaw-Curtis ($2^{15}+1$ pts) & Discrete $\{k_{n\ell}\}$ \\
+Oscillations handled by & High-$N$ CC quadrature & Orthogonality of $g_{n\ell}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Coordinate system for the outer integrals}
+
+Both codes use a change of coordinates to improve numerical accuracy:
+
+\begin{itemize}
+    \item \textbf{Blast.jl}: $(\chi_1,\chi_2)\to(\chi, R=\chi_2/\chi_1)$,
+    concentrating quadrature points near $R=1$ (same epoch,
+    diagonal of $P(k,\chi_1,\chi_2)$).
+    \item \textbf{SuperFaB}: $(r,\hat{r})\to(n\ell, \hat{r})$,
+    separating the radial transform (performed first) from the angular
+    HEALPix transform; the boundary at $r_{\min}$ eliminates the
+    numerically unstable empty volume.
+\end{itemize}
+
+\subsection{Boundary conditions and mode discreteness}
+
+A distinctive feature of SuperFaB is the imposition of potential
+boundary conditions at \emph{both} $r_{\min}$ and $r_{\max}$.
+This discretises the allowed wavenumbers $\{k_{n\ell}\}$ and
+orthogonalises the basis functions $g_{n\ell}$, making the window
+deconvolution ($\mathcal{M}^{-1}$) numerically stable.
+Blast.jl has no analogous discretisation: it works with a continuous
+$k$-range $[k_{\min}, k_{\max}]$ sampled on Chebyshev points for the
+precomputed $\tilde{T}$ integrals.
+
+%==============================================================
+\subsection{Comparison of the $C_\ell$ Result}
+%==============================================================
+
+\subsection{Limber approximation as a common benchmark}
+
+In the Limber limit, both formalisms converge:
+
+\begin{align}
+    C_{ij}^{AB,\,\rm Limber}(\ell) &=
+    \int \frac{d\chi}{\chi^2}\,
+    K_i^A(\chi)\,K_j^B(\chi)\,
+    P\!\left(\frac{\ell+1/2}{\chi},z(\chi)\right),
+    \label{eq:Clim_blast}\\[6pt]
+    C_\ell^{\rm Limber}(k) &=
+    \phi^2\!\left(\frac{\ell+1/2}{k}\right)
+    D^2\!\left(\frac{\ell+1/2}{k}\right)
+    b^2\!\left(\frac{\ell+1/2}{k},k\right)
+    P(k).
+    \label{eq:Clim_sfb}
+\end{align}
+
+These are related by $C_{ij}^{AB,\,\rm Limber}(\ell) =
+\int dk\,\hat{W}_i^A(k)^2\,C_\ell^{\rm Limber}(k)$
+for the auto-spectrum of a single bin.
+
+\subsection{Beyond-Limber corrections}
+
+Going beyond Limber reveals different structures in the two formalisms:
+
+\textbf{Blast.jl (beyond-Limber $C_\ell^{AB}$):}
+The full 3D integral in Eq.~\eqref{eq:blast_cij} captures:
+\begin{itemize}
+    \item Non-zero off-diagonal $(\chi_1\ne\chi_2)$ contributions,
+    which are suppressed only as $\mathcal{O}(\ell^{-2})$ in the Limber
+    limit.
+    \item Exact unequal-time power spectrum
+    $P(k,\chi_1\ne\chi_2)$, important for cross-bin correlations and
+    at low $\ell$.
+    \item The Chebyshev approach recovers sub-percent accuracy already
+    at $\ell = 2$ with $n_{\max}=120$ basis functions.
+\end{itemize}
+
+\textbf{SuperFaB (full SFB $C_\ell(k,k')$):}
+The off-diagonal $C_\ell(k\ne k')$ terms encode redshift evolution:
+\begin{equation}
+    C_\ell(k,k') \xrightarrow{{\rm evol.}}
+    \phi^2\!\left(\frac{\ell+1/2}{k}\right)
+    \phi^2\!\left(\frac{\ell+1/2}{k'}\right)
+    D\!\left(\frac{\ell+1/2}{k}\right)
+    D\!\left(\frac{\ell+1/2}{k'}\right)
+    \int dq\,P(q)\,\delta^D(q-k)\,\delta^D(q-k').
+\end{equation}
+Redshift evolution of $D(r)$ and $b(r)$ tilts the relation between
+the measured $k$-mode and the effective redshift, populating the
+off-diagonal elements of $C_\ell(k,k')$.
+
+\subsection{Accuracy and practical performance}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{Blast.jl} & \textbf{SuperFaB} \\
+\midrule
+N5K $\Delta\chi^2$ ($\ell\in[2,200]$) & $0.1054$ (pass, req.\ $<0.2$) &
+    N/A (not an angular $C_\ell$ code) \\
+Runtime (fiducial, 64 threads) & $5.12 \pm 0.01$\,ms &
+    $\sim10$\,CPU-min/sim (Roman) \\
+Pre-computation & $\tilde{T}$ once on laptop ($\sim$1-2 h) &
+    BCs + $g_{n\ell}$ once per survey \\
+Accuracy control & $n_{\max}$, $N_{\rm CC}$ & $\Delta\ell$, $\Delta n$ \\
+$\chi^2_\nu$ on simulations & --- & $1.033$ (Roman, 213 modes) \\
+Main limitation & $P(k,\chi_1,\chi_2)$ separability assumed
+    for NL part & $\chi^2_\nu$ degraded for poorly-deconvolved modes \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Formal connection via the SFB window matrix}
+
+The SFB window matrix (Eq.~\eqref{eq:sfb_cll}) and the Blast.jl
+kernel product are mathematically linked. Defining the SFB projection
+of the galaxy kernel as
+\begin{equation}
+    \hat{W}_i^g(k;\ell) \equiv
+    \frac{2}{\pi}k^2
+    \int d\chi\,W_i^g(\chi)\,j_\ell(k\chi),
+\end{equation}
+the Blast.jl clustering power spectrum in Eq.~\eqref{eq:blast_cij} can
+be rewritten as:
+\begin{equation}
+    C_{ij}^{gg}(\ell) =
+    \int \frac{dk}{k^2}\,
+    \hat{W}_i^g(k;\ell)\,
+    \hat{W}_j^g(k;\ell)\,
+    P(k)
+    \quad + \quad \text{unequal-time terms},
+\end{equation}
+which is the projection of the SFB window $\mathcal{W}_\ell(k,q)$
+(Eq.~\eqref{eq:sfb_window}) integrated over $q$.
+
+This shows that the SuperFaB SFB window $\mathcal{W}_\ell$ and the
+Blast.jl spherical Bessel integrals $\hat{W}_i^g$ are two faces of
+the same mathematical object, differentiated only by whether the full
+radial basis $g_{n\ell}$ (discrete, SuperFaB) or the continuous
+spherical Bessel integral (Blast.jl) is used.
+
+%==============================================================
+\subsection{When to Use Each Code}
+%==============================================================
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Science goal} & \textbf{Recommended} & \textbf{Why} \\
+\midrule
+Parameter inference with tomographic
+photometric data (3$\times$2\,pt) &
+    Blast.jl & Fast theory model, MCMC-friendly \\
+Primordial non-Gaussianity ($f_{\rm NL}$)
+via scale-dep.\ bias in spectroscopic survey &
+    SuperFaB & Retains large radial modes \\
+Cross-correlation of photo-$z$ bins
+at low $\ell$ &
+    Blast.jl & Beyond-Limber accuracy at $\ell<100$ \\
+RSD modelling, all wide-angle effects &
+    SuperFaB & Line-of-sight per galaxy, Kaiser built in \\
+Nonlinear scales ($k>0.3\,h/\mathrm{Mpc}$) &
+    Blast.jl + Limber for NL part &
+    NL contribution decays as $e^{-(D_1-D_2)^2}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%==============================================================
+\subsection{Connection to the Internship Code}
+%==============================================================
+
+The Julia source files provided (\texttt{blast\_tutorials.jl},
+\texttt{integrals.jl}, \texttt{projected\_matter.jl},
+\texttt{chebcoefs.jl}, \texttt{background.jl}) constitute the
+prototype of Blast.jl. The key data-flow is:
+
+\begin{enumerate}
+    \item \texttt{background.jl}: computes $H(z)$ and $\chi(z)$
+    by numerical quadrature of $1/E(z)$, populating
+    \texttt{BackgroundQuantities}.
+    \item \texttt{background.jl}: computes $W_i^g(\chi)$ and
+    $W_i^s(\chi)$ using \texttt{compute\_kernel!} for
+    \texttt{GalaxyKernel} and \texttt{ShearKernel} structs.
+    \item \texttt{chebcoefs.jl}: computes fast Chebyshev
+    coefficients $c_n$ via a pre-planned DCT-I FFT,
+    implementing Eq.~\eqref{eq:cheb_pk}.
+    \item \texttt{projected\_matter.jl}: computes $\tilde{T}_{n\ell}$
+    in \texttt{compute\_T\~{}} using Clenshaw-Curtis quadrature and
+    \texttt{LoopVectorization.@tturbo} inner loops, then contracts
+    with Chebyshev coefficients in \texttt{w\_ell\_tullio}.
+    \item \texttt{integrals.jl}: combines probe kernels in
+    \texttt{combine\_kernels} (via \texttt{@tullio} Einstein
+    contraction) and performs the $(\chi, R)$ outer integration in
+    \texttt{compute\_C\ell}, recovering $C_{ij}^{AB}(\ell)$.
+\end{enumerate}
+
+The goal of the internship project is to extend this framework toward
+the SFB decomposition of SuperFaB, i.e.\ to compute
+$C_\ell(k,k')$ beyond the Limber approximation using the Blast.jl
+Chebyshev machinery, providing a \emph{theory model} for the SFB
+estimator that SuperFaB measures from data.
+
+%==============================================================
+\subsection{Conclusions}
+%==============================================================
+
+Blast.jl and SuperFaB attack the same family of integrals from
+orthogonal directions:
+
+\begin{itemize}
+    \item \textbf{Blast.jl} precomputes the $k$-integrals of two
+    Bessel functions against Chebyshev polynomials, then evaluates
+    the outer $(\chi,R)$ integrals with quadrature at inference time.
+    The result is a projected angular power spectrum $C_\ell^{AB}$
+    valid beyond the Limber approximation.
+
+    \item \textbf{SuperFaB} defines an orthonormal radial basis
+    $g_{n\ell}$ from the Laplacian eigenfunctions with potential
+    boundary conditions, measures the SFB coefficients from galaxy
+    positions, and estimates the full 3D power spectrum matrix
+    $C_\ell(k,k')$.
+\end{itemize}
+
+In the Limber limit, the diagonal of $C_\ell(k,k)$ from SuperFaB
+and the $C_\ell^{AB}$ from Blast.jl converge to the same expression
+(Eqs.~\eqref{eq:Clim_blast}--\eqref{eq:Clim_sfb}).
+Beyond Limber, the Blast.jl approach provides exact projected spectra
+for tomographic analysis, while SuperFaB retains the full 3D
+structure needed for spectroscopic surveys sensitive to large radial
+modes, RSD, and primordial non-Gaussianity.
+
+The internship project bridges these two worlds: using the Chebyshev
+precomputation strategy of Blast.jl to build a fast theory predictor
+for the SFB power spectrum $C_\ell(k,k')$, enabling beyond-Limber
+parameter inference in the SFB framework.
