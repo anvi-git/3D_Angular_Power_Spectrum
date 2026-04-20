@@ -1,0 +1,797 @@
+\section{Spherical Fourier-Bessel Decomposition of Homogeneous and Isotropic Fields}
+
+\subsection{Motivation and Physical Context}
+
+The analysis of 3D cosmological fields, such as the galaxy density distribution or matter overdensity in the universe, requires a decomposition basis that naturally incorporates the spherical geometry of wide-field surveys. Unlike Cartesian Fourier analysis, which is well-suited for periodic or infinite Cartesian domains where translational symmetry is fundamental, cosmological observations of the universe as we observe it require analysis tools adapted to spherical geometry. Real surveys observe from a fixed location (Earth) and look outward in all directions, spanning large angular extents on the celestial sphere while simultaneously probing significant radial depths through the observation of distant galaxies at different redshifts.
+
+The Spherical Fourier-Bessel (SFB) decomposition provides precisely this framework. It is a natural generalization of Fourier analysis to spherical coordinates, combining:
+\begin{itemize}
+    \item \textbf{Spherical harmonics} ($Y_{\ell m}$): These describe the angular structure of the field over the celestial sphere, analogous to how Fourier modes $e^{i k_x x}$ describe structure in Cartesian space.
+    \item \textbf{Spherical Bessel functions} ($j_\ell$): These describe the radial structure of the field as a function of distance, providing oscillatory behavior in the radial direction.
+\end{itemize}
+
+The combination is natural because observational data naturally comes with spherical geometry built in: astronomers observe at positions with spherical coordinates $(r, \theta, \phi)$ where $r$ is the distance (related to redshift), and $(\theta, \phi)$ are angular positions on the sky.
+
+\subsection{The Spherical Fourier-Bessel Forward Transform}
+
+\subsubsection{Field Definition and Coordinate System}
+
+Consider a 3D scalar field $f(\vec{r})$ defined at time $t$, expressed in spherical polar coordinates. The position vector is written as:
+\begin{equation}
+\vec{r} = (r, \theta, \phi)
+\end{equation}
+where:
+\begin{itemize}
+    \item $r \geq 0$ is the \textbf{radial coordinate} (distance from origin), which in cosmology corresponds to the comoving distance to a galaxy or mass element.
+    \item $\theta \in [0, \pi]$ is the \textbf{polar angle}, measured from the north celestial pole.
+    \item $\phi \in [0, 2\pi)$ is the \textbf{azimuthal angle}, measured along the equator.
+\end{itemize}
+
+The field $f(\vec{r})$ represents a physical quantity of interest, such as:
+\begin{itemize}
+    \item The \textbf{galaxy overdensity}: $\delta_g(\vec{r}) = [\rho_g(\vec{r}) - \bar{\rho}_g]/\bar{\rho}_g$, which measures the departure of the galaxy density from its cosmic mean $\bar{\rho}_g$.
+    \item The \textbf{matter overdensity}: $\delta_m(\vec{r})$, similarly defined for the matter distribution.
+    \item The \textbf{mass density} itself: $\rho(\vec{r})$.
+    \item Or any other \textbf{scalar quantity} distributed in 3D space that is observed in cosmological surveys.
+\end{itemize}
+
+We assume a \textbf{flat spatial geometry}, which is consistent with modern cosmological observations (the spatial curvature parameter $\Omega_k$ is measured to be consistent with zero). In flat space, the Laplacian operator in spherical coordinates separates cleanly into independent radial and angular parts, which is the mathematical reason why the SFB decomposition works so naturally here.
+
+\subsubsection{The Complete SFB Decomposition Formula}
+
+In a flat geometry, any well-behaved field $f(\vec{r})$ satisfying appropriate boundary conditions can be decomposed into a complete and orthonormal basis of Spherical Fourier-Bessel functions:
+
+\begin{equation}
+f(\vec{r}) = \sqrt{\frac{2}{\pi}} \sum_{\ell=0}^{\infty} \sum_{m=-\ell}^{\ell} \int_0^{\infty} dk \, f_{\ell m}(k) \, k \, j_\ell(kr) \, Y_{\ell m}(\theta, \phi)
+\label{eq:sfb_forward}
+\end{equation}
+
+\textbf{Interpretation:} This formula states that \emph{any field can be written as a superposition of basis functions}, where each basis function is labeled by three quantum numbers:
+\begin{itemize}
+    \item $\ell$ (multipole order): determines angular structure.
+    \item $m$ (azimuthal order): distinguishes azimuthal patterns for a given $\ell$.
+    \item $k$ (radial wavenumber): determines radial oscillation frequency.
+\end{itemize}
+
+The expansion is an infinite sum in $\ell$ and $m$, combined with an integral over $k$ (which is continuous in infinite space). The coefficient $f_{\ell m}(k)$ tells us how much of the mode labeled $(\ell, m, k)$ is present in the field.
+
+\subsubsection{Detailed Explanation of Each Component}
+
+\paragraph{A. Spherical Bessel Functions $j_\ell(x)$}
+
+The spherical Bessel functions of the first kind, $j_\ell(x)$, are special functions that solve the radial Schrödinger equation in spherical coordinates. They are defined through the spherical Bessel differential equation:
+
+\begin{equation}
+\frac{d^2}{dx^2}[x j_\ell(x)] + \left[x^2 - \ell(\ell+1)\right] j_\ell(x) = 0
+\end{equation}
+
+For small integer orders, they have explicit closed forms in terms of trigonometric functions:
+
+\begin{align}
+j_0(x) &= \frac{\sin x}{x} \\
+j_1(x) &= \frac{\sin x}{x^2} - \frac{\cos x}{x} = \frac{\sin x - x\cos x}{x^2}\\
+j_2(x) &= \left(\frac{3}{x^3} - \frac{1}{x}\right)\sin x - \frac{3\cos x}{x^2} = \frac{(3 - x^2)\sin x - 3x\cos x}{x^3}
+\end{align}
+
+For arbitrary $\ell$, they satisfy a three-term recurrence relation:
+\begin{equation}
+j_{\ell+1}(x) = \frac{2\ell + 1}{x} j_\ell(x) - j_{\ell-1}(x)
+\end{equation}
+This allows numerical computation of higher-order Bessel functions from lower ones.
+
+\textbf{Physical Properties:}
+
+\begin{itemize}
+    \item \textbf{Oscillatory behavior for large $x$}: For $x \gg \ell$, we have the asymptotic form
+    \begin{equation}
+    j_\ell(x) \sim \frac{1}{x}\sin\left(x - \frac{\ell\pi}{2}\right)
+    \end{equation}
+    The function oscillates with period approximately $2\pi/k$ (since $x = kr$), while the amplitude decays as $1/x = 1/(kr)$. This decay is much slower than exponential, allowing the modes to probe structures at all distances.
+    
+    \item \textbf{Behavior near the origin}: At $x \to 0$:
+    \begin{equation}
+    j_\ell(x) \sim \frac{x^\ell}{(2\ell+1)!!}
+    \end{equation}
+    where $(2\ell+1)!! = 1 \cdot 3 \cdot 5 \cdots (2\ell+1)$ is the double factorial. Specifically:
+    - $j_0(0) = 1$ (finite at origin)
+    - $j_\ell(0) = 0$ for $\ell > 0$ (vanishes at origin)
+    
+    This ensures that the field is regular and well-behaved at the origin.
+    
+    \item \textbf{Zeros and normalization}: The function $j_\ell(x)$ oscillates and crosses zero at discrete locations $x_{\ell,n}$ (where $n = 1, 2, 3, \ldots$ labels the $n$-th zero). These zeros are important for defining discretized radial grids when approximating the infinite domain.
+    
+    \item \textbf{Orthogonality in $k$-space}: A critical property for the SFB decomposition is
+    \begin{equation}
+    \int_0^\infty dr \, r^2 \, j_\ell(kr) j_\ell(k'r) = \frac{\pi}{2k^2} \delta(k - k')
+    \label{eq:bessel_orthogonality}
+    \end{equation}
+    This orthogonality relation ensures that different wavenumber modes $k$ and $k'$ are linearly independent. This is the radial analogue of $\int dx \, e^{ikx} e^{ik'x} = 2\pi\delta(k - k')$ in Cartesian Fourier analysis.
+\end{itemize}
+
+\paragraph{B. Spherical Harmonics $Y_{\ell m}(\theta, \phi)$}
+
+The spherical harmonics form a complete orthonormal basis of functions defined on the two-dimensional sphere $S^2$. They are constructed as products of associated Legendre polynomials in $\cos\theta$ and exponential phase factors in $\phi$:
+
+\begin{equation}
+Y_{\ell m}(\theta, \phi) = \sqrt{\frac{2\ell+1}{4\pi} \frac{(\ell-|m|)!}{(\ell+|m|)!}} \, P_\ell^{|m|}(\cos\theta) \, e^{im\phi}
+\end{equation}
+
+where $P_\ell^{|m|}$ are the associated Legendre polynomials, and the overall prefactor ensures normalization on the sphere.
+
+\textbf{Low-Order Examples:}
+
+\begin{align}
+Y_{0,0}(\theta, \phi) &= \frac{1}{2\sqrt{\pi}} \quad \text{(monopole: spatially constant)} \\
+Y_{1,0}(\theta, \phi) &= \sqrt{\frac{3}{4\pi}} \cos\theta \quad \text{(dipole: $\propto z$-direction)} \\
+Y_{1,\pm 1}(\theta, \phi) &= \mp\sqrt{\frac{3}{8\pi}} \sin\theta \, e^{\pm i\phi} \quad \text{(dipole: transverse patterns)} \\
+Y_{2,0}(\theta, \phi) &= \sqrt{\frac{5}{16\pi}} (3\cos^2\theta - 1) \quad \text{(quadrupole)}
+\end{align}
+
+\textbf{Quantum Numbers and Physical Meaning:}
+
+\begin{itemize}
+    \item $\ell \geq 0$ is the \textbf{multipole order} or angular momentum quantum number. It determines the angular frequency or resolution of oscillation on the sphere:
+    \begin{itemize}
+        \item $\ell = 0$ (monopole): Constant over the sphere; represents the isotropic component.
+        \item $\ell = 1$ (dipole): Linear variation; represents directional preference or asymmetry (like dipole radiation).
+        \item $\ell = 2$ (quadrupole): Quadratic variation; represents more complex angular patterns.
+        \item Larger $\ell$: Finer angular structure; captures small-scale features on the sky.
+    \end{itemize}
+    
+    \item $m$ with $-\ell \leq m \leq \ell$ is the \textbf{azimuthal quantum number} or magnetic quantum number. It determines the azimuthal dependence through $e^{im\phi}$:
+    \begin{itemize}
+        \item $m = 0$: The harmonic is \emph{axially symmetric} (depends only on $\theta$, not on $\phi$).
+        \item $m \neq 0$: The harmonic has azimuthal structure, rotating $m$ times as you go around the sphere.
+        \item For a given $\ell$, there are $2\ell + 1$ independent functions (one for each $m$ from $-\ell$ to $+\ell$).
+    \end{itemize}
+\end{itemize}
+
+\textbf{Orthonormality on the Sphere:}
+
+The fundamental orthonormality property is:
+\begin{equation}
+\int d\Omega \, Y_{\ell m}(\theta, \phi) Y_{\ell' m'}^*(\theta, \phi) = \delta_{\ell \ell'} \delta_{m m'}
+\label{eq:spherical_harmonic_orthonormality}
+\end{equation}
+where $d\Omega = \sin\theta \, d\theta \, d\phi$ is the solid angle element on the sphere. This orthonormality ensures that each pair $(\ell, m)$ captures \emph{independent angular information}. If a field has a particular $({\ell, m})$ component, that component cannot appear in any other $(\ell', m')$ mode (for $(\ell, m) \neq (\ell', m')$).
+
+\paragraph{C. The Wavenumber $k$ and Radial Scales}
+
+The parameter $k \geq 0$ is the \textbf{radial wavenumber}, playing a role in spherical coordinates precisely analogous to the Fourier wavenumber in Cartesian space. At a fixed $k$ and $\ell$, the radial part of the basis function oscillates approximately as:
+\begin{equation}
+j_\ell(kr) \sim \frac{1}{kr}\sin\left(kr - \frac{\ell\pi}{2}\right)
+\end{equation}
+with characteristic wavelength $\lambda_r = 2\pi / k$ and radial period $\Delta r \sim 2\pi / k$.
+
+Physical interpretation:
+\begin{itemize}
+    \item \textbf{Small $k$ (large wavelengths)}: Smooth, long-wavelength variations in the radial direction. Example: $k = 0.01 \, \text{Mpc}^{-1}$ corresponds to wavelength $\lambda_r \sim 600 \, \text{Mpc}$, capturing the largest-scale radial structure.
+    \item \textbf{Large $k$ (short wavelengths)}: Rapid oscillations and small-scale radial structure. Example: $k = 0.5 \, \text{Mpc}^{-1}$ corresponds to wavelength $\lambda_r \sim 12.6 \, \text{Mpc}$, resolving finer radial details.
+\end{itemize}
+
+The integration over $k$ from $0$ to $\infty$ in Eq.~\eqref{eq:sfb_forward} ensures that \emph{all radial scales} are included in the decomposition, from arbitrarily large scales down to the infinitesimal.
+
+\paragraph{D. Expansion Coefficients $f_{\ell m}(k)$}
+
+The coefficient $f_{\ell m}(k)$ is a complex number that represents the \textbf{amplitude} of the basis function $k j_\ell(kr) Y_{\ell m}(\theta, \phi)$ in the decomposition. 
+
+Physical meaning:
+\begin{itemize}
+    \item $|f_{\ell m}(k)|$ gives the strength or magnitude of mode $(\ell, m, k)$.
+    \item $\arg[f_{\ell m}(k)]$ gives the phase of that mode.
+    \item Large $|f_{\ell m}(k)|$ means that pattern is prominent in the field.
+    \item Small $|f_{\ell m}(k)|$ means that mode contributes little.
+    \item If $f_{\ell m}(k) = 0$, the field contains no component of that mode.
+\end{itemize}
+
+The full decomposition is thus a weighted superposition of all such modes, with weights given by $f_{\ell m}(k)$.
+
+\paragraph{E. The Factor $k$ in the Basis Function}
+
+In Eq.~\eqref{eq:sfb_forward}, the basis function is written as $k \, j_\ell(kr)$, not just $j_\ell(kr)$. The factor of $k$ plays a crucial role:
+
+The volume measure in spherical coordinates is
+\begin{equation}
+d^3r = r^2 \sin\theta \, dr \, d\theta \, d\phi
+\end{equation}
+
+When we compute inner products of basis functions, we integrate:
+\begin{equation}
+\int_0^\infty dr \, r^2 \cdot j_\ell(kr) \cdot j_\ell(k'r)
+\end{equation}
+
+The orthogonality relation (Eq.~\eqref{eq:bessel_orthogonality}) states:
+\begin{equation}
+\int_0^\infty dr \, r^2 \, j_\ell(kr) j_\ell(k'r) = \frac{\pi}{2k^2} \delta(k - k')
+\end{equation}
+
+For the basis to be properly normalized with respect to the volume measure, we need:
+\begin{equation}
+\int_0^\infty dk \int d\Omega \, \left[ k j_\ell(kr) Y_{\ell m}(\theta, \phi) \right]^2 = 1
+\end{equation}
+
+The extra factor of $k$ in the integrand (outside the basis function) cancels with the $1/k^2$ in the orthogonality relation, yielding:
+\begin{equation}
+\int_0^\infty dk \cdot k \cdot \frac{\pi}{2k^2} = \int_0^\infty \frac{\pi}{2k} dk \quad \Rightarrow \quad \text{proper normalization}
+\end{equation}
+
+Thus, the factor $k$ is essential for the orthonormality of the basis with respect to the volume measure $d^3r$.
+
+\paragraph{F. Normalization Prefactor $\sqrt{2/\pi}$}
+
+The overall prefactor $\sqrt{2/\pi}$ ensures that the basis functions form a truly orthonormal set, making the expansion and reconstruction exact (up to convergence). Different conventions in the literature may use slightly different prefactors; the paper explicitly states that they follow the conventions of Leistedt et al.\ (2011) and Castro et al.\ (2005), who also carefully define this normalization.
+
+\subsection{The Inverse Transform: Extracting Coefficients}
+
+\subsubsection{Motivation and Strategy}
+
+The forward transform (Eq.~\eqref{eq:sfb_forward}) expresses a field as a superposition of basis functions. The inverse transform solves the converse problem: given a field $f(\vec{r})$, \emph{how do we extract the coefficients} $f_{\ell m}(k)$?
+
+The strategy is to use the orthonormality of the basis set. When basis functions are orthonormal, projecting a field onto a single basis function isolates the coefficient of that function, much like how in linear algebra, the component of a vector $\vec{v}$ along a unit vector $\hat{u}$ is simply the dot product $\vec{v} \cdot \hat{u}$.
+
+\subsubsection{The Inverse SFB Transform Formula}
+
+To extract the coefficient $f_{\ell m}(k)$, we project the field onto the corresponding basis function:
+
+\begin{equation}
+f_{\ell m}(k) = \sqrt{\frac{2}{\pi}} \int d^3 r \, f(\vec{r}) \, k \, j_\ell(kr) \, Y_{\ell m}^*(\theta, \phi)
+\label{eq:sfb_inverse}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item The integral is over all 3D space: $\int d^3 r = \int_0^\infty dr \, \int_0^\pi d\theta \, \int_0^{2\pi} d\phi = \int_0^\infty r^2 dr \int_0^\pi \sin\theta \, d\theta \, \int_0^{2\pi} d\phi$.
+    \item $Y_{\ell m}^*(\theta, \phi)$ is the complex conjugate of the spherical harmonic, needed because harmonics are complex-valued.
+    \item The same normalization prefactor $\sqrt{2/\pi}$ appears here as in the forward transform.
+\end{itemize}
+
+\subsubsection{Derivation via Orthonormality}
+
+To understand why Eq.~\eqref{eq:sfb_inverse} works, suppose we substitute the forward decomposition (Eq.~\eqref{eq:sfb_forward}) into the right-hand side of the inverse formula:
+
+\begin{align}
+f_{\ell m}(k) &= \sqrt{\frac{2}{\pi}} \int d^3 r \left[\sqrt{\frac{2}{\pi}} \sum_{\ell' m'} \int_0^\infty dk' \, f_{\ell' m'}(k') k' j_{\ell'}(k'r) Y_{\ell' m'}(\theta, \phi)\right] k j_\ell(kr) Y_{\ell m}^*(\theta, \phi) \\
+&= \frac{2}{\pi} \sum_{\ell' m'} \int_0^\infty dk' \, f_{\ell' m'}(k') \int d^3 r \, k j_\ell(kr) Y_{\ell m}^*(\theta, \phi) \cdot k' j_{\ell'}(k'r) Y_{\ell' m'}(\theta, \phi)
+\end{align}
+
+Now we use the fact that the basis functions are orthonormal. The integral separates into radial and angular parts:
+
+\begin{equation}
+\int d^3 r \, [k j_\ell(kr) Y_{\ell m}^*(\theta, \phi)] [k' j_{\ell'}(k'r) Y_{\ell' m'}(\theta, \phi)] = \left[\int_0^\infty dr \, r^2 k j_\ell(kr) \cdot k' j_{\ell'}(k'r)\right] \left[\int d\Omega \, Y_{\ell m}^*(\theta, \phi) Y_{\ell' m'}(\theta, \phi)\right]
+\end{equation}
+
+Using the orthogonality relations:
+\begin{align}
+\int_0^\infty dr \, r^2 k j_\ell(kr) \cdot k' j_{\ell'}(k'r) &= kk' \int_0^\infty dr \, r^2 j_\ell(kr) j_{\ell'}(k'r) = kk' \cdot \frac{\pi}{2k^2} \delta(k - k') \delta_{\ell \ell'} \\
+&= \frac{\pi k'}{2k} \delta(k - k') \delta_{\ell \ell'} \\
+\int d\Omega \, Y_{\ell m}^*(\theta, \phi) Y_{\ell' m'}(\theta, \phi) &= \delta_{\ell \ell'} \delta_{m m'}
+\end{align}
+
+Therefore:
+\begin{align}
+\int d^3 r \, [k j_\ell(kr) Y_{\ell m}^*(\theta, \phi)] [k' j_{\ell'}(k'r) Y_{\ell' m'}(\theta, \phi)] &= \frac{\pi k'}{2k} \delta(k - k') \delta_{\ell \ell'} \delta_{m m'} \\
+&= \frac{\pi k}{2k} \delta(k - k') \delta_{\ell \ell'} \delta_{m m'} \quad \text{(using } k' = k \text{ from delta function)}
+\end{align}
+
+Substituting back:
+\begin{align}
+f_{\ell m}(k) &= \frac{2}{\pi} \sum_{\ell' m'} \int_0^\infty dk' \, f_{\ell' m'}(k') \cdot \frac{\pi}{2} \delta(k - k') \delta_{\ell \ell'} \delta_{m m'} \\
+&= f_{\ell m}(k) \quad \checkmark
+\end{align}
+
+The orthonormality has eliminated all modes except $(\ell, m, k)$, confirming that the inverse formula correctly extracts the coefficient.
+
+\subsubsection{Physical Interpretation}
+
+Equation \eqref{eq:sfb_inverse} performs a \textbf{generalized Fourier analysis} in spherical coordinates:
+\begin{itemize}
+    \item We multiply the field $f(\vec{r})$ by a basis function (the product $k j_\ell(kr) Y_{\ell m}^*(\theta, \phi)$).
+    \item We integrate over all space using the volume measure $d^3r = r^2 \sin\theta \, dr \, d\theta \, d\phi$.
+    \item The result is a single complex number $f_{\ell m}(k)$, which is the amplitude of that mode in the field.
+\end{itemize}
+
+This is exactly analogous to computing a Fourier coefficient in Cartesian coordinates: $\tilde{f}(\vec{k}) = \int d^3x \, f(\vec{x}) e^{-i\vec{k}\cdot\vec{x}}$, which extracts the plane-wave component with wavenumber $\vec{k}$. Here, we extract the spherical Fourier-Bessel component with quantum numbers $(\ell, m, k)$.
+
+\subsection{Relation to Cartesian Fourier Decomposition}
+
+The SFB decomposition is the natural spherical-coordinate analogue of the standard Fourier decomposition in Cartesian coordinates. For reference, the Cartesian Fourier forward and inverse transforms are:
+
+\begin{align}
+f(\vec{x}) &= \frac{1}{(2\pi)^3} \int d^3 k \, \tilde{f}(\vec{k}) \, e^{i\vec{k}\cdot\vec{x}} \label{eq:fourier_forward} \\
+\tilde{f}(\vec{k}) &= \int d^3 x \, f(\vec{x}) \, e^{-i\vec{k}\cdot\vec{x}} \label{eq:fourier_inverse}
+\end{align}
+
+The key conceptual mapping is:
+\begin{itemize}
+    \item \textbf{Radial structure}: The plane wave $e^{i k_r r}$ in Cartesian space is replaced by the spherical Bessel function $j_\ell(kr)$ in spherical space. Both oscillate with wavenumber $k_r$ (or $k$), but the Bessel function decays more slowly at large distances.
+    \item \textbf{Angular structure}: The directional dependence of the plane wave, encoded in $e^{i(\vec{k}_\perp \cdot \vec{x}_\perp)}$ for transverse components, is replaced by spherical harmonics $Y_{\ell m}(\theta, \phi)$, which provide a complete angular basis on the sphere.
+    \item \textbf{Normalization}: The volume element in Fourier space, $(2\pi)^3$, is replaced by factors involving $k$, $\pi$, and integration measures in spherical coordinates.
+\end{itemize}
+
+\subsection{The Power Spectrum in SFB Space}
+
+\subsubsection{Motivation: Quantifying Statistical Properties of Fields}
+
+When analyzing cosmological data, we rarely have access to the full field $f(\vec{r})$ at every point in space. Instead, we have measurements from discrete survey objects (galaxies, for instance) scattered throughout space. For statistical inference, we need summary statistics that characterize the overall properties of the field without specifying it completely.
+
+The \textbf{power spectrum} is precisely such a statistic. It quantifies:
+\begin{itemize}
+    \item How much variance (or ``power'') is present in the field at each scale (characterized by wavenumber $k$ and multipole $\ell$).
+    \item How different modes of the field are correlated with each other.
+    \item The statistical signature of physical processes that created the field.
+\end{itemize}
+
+Rather than knowing every value $f(\vec{r})$ (which would be impossible in practice), knowing the power spectrum tells us the amplitude of each mode on average.
+
+\subsubsection{Definition of the SFB Power Spectrum}
+
+The SFB power spectrum $C_\ell(k)$ is defined through the \textbf{two-point correlation function} of the SFB coefficients. Under the assumption of \textbf{statistical isotropy and homogeneity}, we have:
+
+\begin{equation}
+\langle f_{\ell m}(k) f_{\ell' m'}^*(k') \rangle = C_\ell(k) \, \delta(k - k') \, \delta_{\ell \ell'} \, \delta_{m m'}
+\label{eq:sfb_ps_definition}
+\end{equation}
+
+\textbf{Interpretation of Each Term:}
+
+\begin{itemize}
+    \item $\langle \cdot \rangle$ denotes the \textbf{ensemble average}, meaning we average over many independent realizations of the universe (or statistically equivalent samples). In practice, for an isotropic universe, we instead average over many $(m, \ell')$ modes at fixed $(k, \ell)$ to estimate this ensemble average from a single realization.
+    
+    \item $f_{\ell m}(k) f_{\ell' m'}^*(k')$ is the product of a coefficient and the complex conjugate of another. For real-valued fields, this product measures correlation between modes.
+    
+    \item The delta functions $\delta(k - k')$, $\delta_{\ell \ell'}$, and $\delta_{m m'}$ state that:
+    \begin{itemize}
+        \item Modes with \emph{different wavenumbers} $k \neq k'$ are \textbf{uncorrelated}: $\langle f_{\ell m}(k) f_{\ell' m'}^*(k') \rangle = 0$.
+        \item Modes with \emph{different multipoles} $\ell \neq \ell'$ are \textbf{uncorrelated}: $\langle f_{\ell m}(k) f_{\ell' m'}^*(k') \rangle = 0$.
+        \item Modes with \emph{different azimuthal numbers} $m \neq m'$ are \textbf{uncorrelated}: $\langle f_{\ell m}(k) f_{\ell' m'}^*(k') \rangle = 0$.
+        
+        This lack of correlation between different modes is a consequence of statistical homogeneity and isotropy (see Section~\ref{sec:sih} below).
+    \end{itemize}
+    
+    \item $C_\ell(k)$ is the \textbf{SFB power spectrum}, which equals the correlation only when all quantum numbers match: $(\ell, m, k) = (\ell', m', k')$. It depends on both the multipole order $\ell$ and the wavenumber $k$, hence the notation $C_\ell(k)$.
+\end{itemize}
+
+\subsubsection{Relation to Variance}
+
+For modes that are uncorrelated with themselves (i.e., different $(m)$ at fixed $(\ell, k)$), the power spectrum can be related to the variance (or mean-square amplitude):
+
+\begin{equation}
+\langle |f_{\ell m}(k)|^2 \rangle = C_\ell(k)
+\end{equation}
+
+In other words, $C_\ell(k)$ is the \textbf{mean-square amplitude} of the coefficient $f_{\ell m}(k)$, averaged over different $m$ or over many realizations. It tells us: ``On average, how large are the coefficients for this particular $(\ell, k)$ pair?'' Large $C_\ell(k)$ means the field has substantial power in that mode; small $C_\ell(k)$ means that mode contributes little to the field.
+
+\subsubsection{Comparison with Cartesian Fourier Power Spectrum}
+
+For reference, the standard power spectrum in Cartesian Fourier space is defined similarly:
+
+\begin{equation}
+\langle \tilde{f}(\vec{k}) \tilde{f}^*(\vec{k}') \rangle = (2\pi)^3 P(\vec{k}) \, \delta^3(\vec{k} - \vec{k}')
+\label{eq:fourier_ps_definition}
+\end{equation}
+
+where $\tilde{f}(\vec{k})$ are the Fourier coefficients defined in Eqs.~\eqref{eq:fourier_forward}--\eqref{eq:fourier_inverse}.
+
+\textbf{Key Differences:}
+
+\begin{itemize}
+    \item \textbf{Dimensionality}: Cartesian power spectrum $P(\vec{k})$ depends on all three components of the 3D wavevector $\vec{k}$, or when isotropic, just on the magnitude $k = |\vec{k}|$. SFB power spectrum $C_\ell(k)$ depends on discrete quantum number $\ell$ (angular structure) and continuous wavenumber $k$ (radial structure).
+    
+    \item \textbf{Geometry}: Fourier modes $e^{i\vec{k}\cdot\vec{x}}$ are plane waves that oscillate uniformly throughout space. SFB modes $j_\ell(kr) Y_{\ell m}(\theta, \phi)$ have radial structure concentrated near the origin (decaying as $1/kr$) and angular structure on the sphere.
+    
+    \item \textbf{Normalization factor}: The prefactor $(2\pi)^3$ in Fourier space accounts for the volume element in Fourier space, $d^3k$. The SFB case has different normalization related to $\pi$, $k$, and the solid angle.
+\end{itemize}
+
+\subsubsection{Units and Interpretation}
+
+\begin{itemize}
+    \item If $f(\vec{r})$ is dimensionless (e.g., overdensity), then $f_{\ell m}(k)$ is also dimensionless, and $C_\ell(k)$ has dimensions of $[\text{dimensionless}]^2 = 1$ (dimensionless).
+    
+    \item If $f(\vec{r})$ has units of density ($\text{mass}/\text{volume}$), then $C_\ell(k)$ has units of $(\text{mass}/\text{volume})^2 = \text{mass}^2/\text{volume}^2$.
+    
+    \item The power spectrum is often plotted versus $k$ or $\ell$ to visualize which scales contribute most power. A peak in $C_\ell(k)$ at a particular $(k, \ell)$ indicates that the field has prominent structure at that scale and angular resolution.
+\end{itemize}
+
+\subsection{Key Result: Radialisation of the Power Spectrum}
+\label{sec:radialisation}
+
+\subsubsection{Statement of the Radialisation Theorem}
+
+For a field that satisfies the condition of being \textbf{Statistically Isotropic and Homogeneous (SIH)}, a remarkable and non-obvious simplification occurs. Under the SIH condition:
+
+\begin{equation}
+C_\ell(k) = P(k)
+\label{eq:sfb_radialisation}
+\end{equation}
+
+In other words, the SFB power spectrum is \emph{independent of the multipole order} $\ell$ and depends \emph{only on the radial wavenumber} $k$. This striking result is called the \textbf{radialisation} or \textbf{radialisation theorem}. It means that in SFB space, modes with the same $k$ but different $\ell$ and $m$ all have equal statistical strength on average.
+
+\subsubsection{Definition of Statistical Isotropy and Homogeneity (SIH)}
+
+Before explaining why radialisation holds, let's define what SIH means precisely.
+
+\paragraph{Statistical Homogeneity:}
+
+A field is \textbf{statistically homogeneous} if its statistical properties are the same at all locations in space. Mathematically, this means the power spectrum does not depend on the absolute position, only on separations.
+
+More formally: for any displacement vector $\Delta \vec{r}$, the statistical properties of the field at positions $\vec{r}_1$ and $\vec{r}_2 = \vec{r}_1 + \Delta \vec{r}$ are identical. The two-point correlation function depends only on the separation:
+\begin{equation}
+\langle f(\vec{r}_1) f^*(\vec{r}_2) \rangle = \langle f(\vec{r}) f^*(\vec{r} + \Delta \vec{r}) \rangle = C_{\text{2pt}}(\Delta \vec{r})
+\end{equation}
+where the right side depends only on $\Delta \vec{r}$, not on the absolute positions $\vec{r}_1$ or $\vec{r}_2$.
+
+\paragraph{Statistical Isotropy:}
+
+A field is \textbf{statistically isotropic} if its statistical properties are the same in all directions. There is no preferred direction in space. Mathematically, if we rotate the coordinate system by any rotation matrix $\mathsf{R}$, the statistical properties remain unchanged:
+\begin{equation}
+\langle f(\vec{r}) f^*(\vec{r} + \Delta \vec{r}) \rangle = \langle f(\mathsf{R}\vec{r}) f^*(\mathsf{R}(\vec{r} + \Delta \vec{r})) \rangle
+\end{equation}
+
+For the correlation function, isotropy means it depends only on the \emph{magnitude} of the separation, not its direction:
+\begin{equation}
+C_{\text{2pt}}(\Delta \vec{r}) = C_{\text{2pt}}(|\Delta \vec{r}|) = C_{\text{2pt}}(\Delta r)
+\end{equation}
+
+\paragraph{Joint SIH Condition:}
+
+Under both homogeneity \emph{and} isotropy, the two-point correlation of the field depends only on the separation distance $\Delta r = |\Delta \vec{r}|$. This is the essence of the SIH condition: translational symmetry (homogeneity) plus rotational symmetry (isotropy).
+
+\subsubsection{Derivation of Radialisation}
+
+To understand why radialisation holds, consider the relationship between the SFB power spectrum and the Cartesian Fourier power spectrum.
+
+The Cartesian power spectrum $P(\vec{k})$ for an isotropic field depends only on $k = |\vec{k}|$. By spherical averaging of the Cartesian modes (converting from Cartesian plane waves to spherical waves), one can show that:
+
+\begin{equation}
+P(\vec{k}) = P(k) \quad \text{(isotropic field)}
+\end{equation}
+
+Now, when one decomposes a field using the SFB basis and computes the power spectrum $C_\ell(k)$, the connection to Cartesian Fourier modes comes through a harmonic expansion. Specifically, for an isotropic field, the Cartesian plane waves $e^{i k_r r}$ (with various directions) can be decomposed into sums over spherical Bessel functions $j_\ell(kr)$:
+
+\begin{equation}
+e^{i \vec{k} \cdot \vec{r}} = e^{i k r \cos\gamma} = \sum_{\ell=0}^{\infty} (2\ell+1) i^\ell j_\ell(kr) P_\ell(\cos\gamma)
+\end{equation}
+
+where $\gamma$ is the angle between $\vec{k}$ and $\vec{r}$.
+
+Because a Cartesian plane wave with wavenumber $k$ has equal probability to point in any direction (isotropy), and because its SFB decomposition involves all $\ell$ values with equal weight (on average, after summing over directions), each $\ell$ mode for that $k$ carries the same power. This is the essence of radialisation: \emph{isotropy implies that all angular modes} $(\ell, m)$ \emph{carry equal power} for a given $k$.
+
+Mathematically, the power spectrum relates through:
+\begin{equation}
+C_\ell(k) = P(k) \quad \text{(SIH condition)}
+\end{equation}
+
+\textbf{Intuitive Explanation:}
+
+\begin{itemize}
+    \item For an \emph{isotropic field}, there is no preferred direction. All angular directions are equivalent.
+    \item Therefore, the power in mode $(k, \ell = 0)$ (monopole, isotropic angular structure) should equal the power in mode $(k, \ell = 1)$ (dipole, directional structure) on average.
+    \item And it should equal the power in mode $(k, \ell = 2)$ (quadrupole), $(k, \ell = 3)$, and so on.
+    \item All $\ell$ modes at fixed $k$ are statistically equivalent, hence they all have the same power: $C_\ell(k) = P(k)$, independent of $\ell$.
+\end{itemize}
+
+\subsubsection{Physical Significance}
+
+The radialisation result is profound because it connects two fundamental decompositions of isotropic 3D fields:
+
+\begin{itemize}
+    \item \textbf{Cartesian Fourier decomposition}: Natural for theoretical work and understanding physics in real space and Fourier space. The power spectrum $P(k)$ depends only on the magnitude of the wavevector.
+    
+    \item \textbf{Spherical Fourier-Bessel decomposition}: Natural for spherical survey geometries. The power spectrum $C_\ell(k)$ appears to depend on two parameters: $\ell$ and $k$.
+    
+    \item \textbf{Radialisation theorem}: For isotropic fields, despite the apparent complexity of $C_\ell(k)$, it is actually independent of $\ell$. The two decompositions describe the \emph{same physical power spectrum}, just viewed differently.
+\end{itemize}
+
+This unification is powerful: it means we can use SFB decomposition (natural for surveys) while still accessing the same physical information (the isotropic power spectrum $P(k)$) that would be measured in Cartesian Fourier space.
+
+\subsubsection{Practical Implications}
+
+Radialisation has important observational implications:
+
+\begin{itemize}
+    \item For an \textbf{ideal isotropic universe}, all $(k, \ell)$ modes would have power $C_\ell(k) = P(k)$, independent of $\ell$.
+    
+    \item In practice, real surveys have \textbf{violations of isotropy}:
+    \begin{itemize}
+        \item Finite survey volume breaks isotropy at large scales.
+        \item Radial selection function breaks isotropy in the radial direction.
+        \item Galaxy bias (if present) may depend on environment, affecting different scales differently.
+        \item Redshift-space distortions can introduce anisotropy.
+    \end{itemize}
+    
+    \item When isotropy is broken, $C_\ell(k)$ becomes \emph{dependent on $\ell$}: different multipoles carry different power.
+    
+    \item Studying how $C_\ell(k)$ depends on $\ell$ provides information about these deviations from isotropy---a powerful probe of physics and survey properties.
+\end{itemize}
+
+\subsubsection{Connection to the Fourier Power Spectrum}
+
+Equation \eqref{eq:sfb_radialisation} states that under SIH, $C_\ell(k) = P(k)$ where $P(k)$ is the Fourier power spectrum. This means:
+
+\begin{equation}
+C_\ell(k) = \frac{1}{(2\pi)^3} \int d^3 k' \, \tilde{f}(\vec{k}') \tilde{f}^*(\vec{k}' - \vec{k}) \, \delta(|\vec{k}' - \vec{k}| - k)
+\end{equation}
+
+In words: the SFB power spectrum at wavenumber $k$ equals the Fourier power spectrum at the same wavenumber, because for isotropic fields, all directions of $\vec{k}$ contribute equally. By decomposing plane waves into spherical waves and summing over directions, the contribution from all directions to a given $k$ is the same for each $\ell$, yielding the radialisation result.
+
+\subsection{Mathematical Foundation: Orthonormality and Completeness}
+
+\subsubsection{Orthonormality of the Basis}
+
+The SFB basis functions form an \textbf{orthonormal set}, meaning they satisfy two key properties: \emph{orthogonality} (different basis functions are independent) and \emph{normalization} (each basis function has unit norm).
+
+Mathematically, this is expressed as:
+\begin{equation}
+\int_0^\infty dk \int d\Omega \, \left[k j_\ell(kr) Y_{\ell m}(\theta, \phi)\right] \left[k' j_{\ell'}(k'r) Y_{\ell' m'}^*(\theta, \phi)\right] = \delta(k - k') \delta_{\ell \ell'} \delta_{m m'}
+\label{eq:full_orthonormality}
+\end{equation}
+
+This integral can be factored into radial and angular parts:
+
+\begin{align}
+&\int_0^\infty \int_0^\infty dk \, dk' \int_0^\infty r^2 dr \, k j_\ell(kr) k' j_{\ell'}(k'r) \int_0^\pi d\theta \int_0^{2\pi} d\phi \, \sin\theta \, Y_{\ell m}(\theta, \phi) Y_{\ell' m'}^*(\theta, \phi) \\
+&= \int_0^\infty \int_0^\infty dk \, dk' \, k k' \, \left[\int_0^\infty r^2 dr \, j_\ell(kr) j_{\ell'}(k'r)\right] \left[\int d\Omega \, Y_{\ell m} Y_{\ell' m'}^*\right] \\
+&= \int_0^\infty \int_0^\infty dk \, dk' \, k k' \, \cdot \frac{\pi}{2k^2} \delta(k - k') \delta_{\ell \ell'} \cdot \delta_{m m'} \\
+&= \int_0^\infty dk \, k k \, \cdot \frac{\pi}{2k^2} \delta_{\ell \ell'} \delta_{m m'} \\
+&= \int_0^\infty dk \, \frac{\pi}{2} \delta_{\ell \ell'} \delta_{m m'} \\
+&= \frac{\pi}{2} \delta_{\ell \ell'} \delta_{m m'}
+\end{align}
+
+The factor $\pi/2$ is compensated by the normalization prefactor $\sqrt{2/\pi}$ in the decomposition (Eq.~\eqref{eq:sfb_forward}), yielding true orthonormality.
+
+\textbf{Orthogonality Properties:}
+
+The basis satisfies the following independent orthogonality relations:
+
+\begin{align}
+\text{Radial orthogonality:} \quad &\int_0^\infty r^2 dr \, j_\ell(kr) j_\ell(k'r) = \frac{\pi}{2k^2} \delta(k - k') \label{eq:radial_orth}\\
+\text{Angular orthogonality:} \quad &\int d\Omega \, Y_{\ell m}(\theta, \phi) Y_{\ell' m'}^*(\theta, \phi) = \delta_{\ell \ell'} \delta_{m m'} \label{eq:angular_orth}\\
+\text{Multipole orthogonality:} \quad &\text{(implicit in Eq. above)}
+\end{align}
+
+These three relations ensure that basis functions labeled by different $(k, \ell, m)$ are completely independent.
+
+\subsubsection{Completeness of the Basis}
+
+A basis is \textbf{complete} if any square-integrable function in the domain can be represented as a superposition of basis functions (with appropriate convergence). For the SFB basis, completeness is expressed through the \textbf{closure relation}:
+
+\begin{equation}
+\delta^3(\vec{r} - \vec{r}') = \sum_{\ell, m} \int_0^\infty dk \, \left[k j_\ell(kr) Y_{\ell m}(\theta, \phi)\right] \left[k j_\ell(k r') Y_{\ell m}^*(\theta', \phi')\right]
+\label{eq:closure}
+\end{equation}
+
+This relation states that if we sum the outer products of all basis functions, we recover the Dirac delta function (which is the identity operator in function space).
+
+\textbf{Practical Implication:} If we expand any function $f(\vec{r})$ in the SFB basis and then reconstruct it using Eq. \eqref{eq:sfb_forward}, we recover exactly the original function (up to boundary conditions and convergence):
+
+\begin{equation}
+f(\vec{r}) = \int d^3 r' \, \delta^3(\vec{r} - \vec{r}') f(\vec{r}') = \sum_{\ell, m} \int_0^\infty dk \, f_{\ell m}(k) \, k j_\ell(kr) Y_{\ell m}(\theta, \phi)
+\end{equation}
+
+This shows that the expansion is \emph{exact} and \emph{invertible}: no information is lost when decomposing into SFB modes, and we can always reconstruct the original field.
+
+\subsubsection{Parseval's Theorem for SFB}
+
+Just as in Cartesian Fourier analysis, there is a Parseval's theorem relating the norm of a function to the sum of the squared coefficients:
+
+\begin{equation}
+\int d^3 r \, |f(\vec{r})|^2 = \sum_{\ell, m} \int_0^\infty dk \, |f_{\ell m}(k)|^2
+\label{eq:parseval_sfb}
+\end{equation}
+
+This states that the total ``energy'' (integral of squared field) can be computed either:
+\begin{itemize}
+    \item Directly from the field: integrate $|f|^2$ over all space.
+    \item From the coefficients: sum the squared magnitudes of all SFB coefficients.
+\end{itemize}
+
+The two approaches yield the same result. This is useful for verifying computations: if the sum of squared coefficients doesn't match the integral of $|f|^2$, something went wrong in the decomposition.
+
+\subsection{Physical Application to Cosmology}
+
+\subsubsection{Mapping Observations to SFB Coordinates}
+
+In cosmological surveys, observations naturally live in spherical coordinates centered on the observer (Earth). For each observed galaxy or mass tracer:
+\begin{itemize}
+    \item \textbf{Angular position}: Characterized by spherical coordinates $(\theta, \phi)$ on the celestial sphere. Telescopes measure these angles to high precision (arcminutes or better).
+    \item \textbf{Radial distance}: Inferred from redshift $z$ via
+    \begin{equation}
+    r(z) = \int_0^z \frac{dz'}{H(z')/H_0}
+    \end{equation}
+    where $r(z)$ is the comoving distance, $H(z)$ is the Hubble parameter (which depends on the cosmological model), and $H_0$ is the present-day Hubble constant. This relates observed redshift to physical distance.
+\end{itemize}
+
+Thus, survey data comes naturally in the form of positions $(\theta, \phi, z)$, which directly translates to spherical coordinates $(r, \theta, \phi)$ where $r = r(z)$ is the comoving distance. The SFB decomposition is \textbf{perfectly adapted} to this observational geometry.
+
+\subsubsection{Physical Meaning of Different Fields}
+
+\paragraph{Galaxy Overdensity $\delta_g(\vec{r})$}
+
+The \textbf{galaxy overdensity} field is defined as:
+\begin{equation}
+\delta_g(\vec{r}) = \frac{n_g(\vec{r}) - \bar{n}_g}{\bar{n}_g}
+\end{equation}
+where:
+\begin{itemize}
+    \item $n_g(\vec{r})$ is the local galaxy number density (number of galaxies per unit volume at position $\vec{r}$).
+    \item $\bar{n}_g$ is the \textbf{cosmic mean} galaxy density, averaged over large scales.
+    \item $\delta_g = 0$ means the galaxy density equals the cosmic mean.
+    \item $\delta_g > 0$ means more galaxies than average (overdensity/cluster).
+    \item $\delta_g < 0$ means fewer galaxies than average (underdensity/void).
+\end{itemize}
+
+The SFB decomposition expands $\delta_g(\vec{r})$ into modes:
+\begin{equation}
+\delta_g(\vec{r}) = \sqrt{\frac{2}{\pi}} \sum_{\ell m} \int_0^\infty dk \, \delta_{g, \ell m}(k) \, k j_\ell(kr) Y_{\ell m}(\theta, \phi)
+\end{equation}
+
+The coefficient $\delta_{g, \ell m}(k)$ tells us: ``What is the amplitude of the $(\ell, m, k)$ mode in the galaxy overdensity field?''
+
+\paragraph{Matter Overdensity $\delta_m(\vec{r})$}
+
+Similarly, the \textbf{matter overdensity} is defined as:
+\begin{equation}
+\delta_m(\vec{r}) = \frac{\rho_m(\vec{r}) - \bar{\rho}_m}{\bar{\rho}_m}
+\end{equation}
+where $\rho_m$ is the total (baryonic + dark) matter density. This is more fundamental than galaxy overdensity because it describes the underlying distribution of all matter, not just the galaxies we can observe.
+
+In cosmological structure formation, the matter overdensity obeys evolution equations derived from general relativity and fluid mechanics. The SFB decomposition allows one to track the evolution of each mode independently, which is powerful for understanding structure formation.
+
+\paragraph{Relationship Between Galaxy and Matter Overdensities: Galaxy Bias}
+
+In practice, galaxies are not perfect tracers of matter. There is a \textbf{galaxy bias} relation:
+\begin{equation}
+\delta_g(\vec{r}) = b(k, \ell, \vec{r}) \delta_m(\vec{r}) + \text{stochastic noise}
+\end{equation}
+
+At the simplest level, $b$ is a constant (linear bias), meaning galaxies trace matter with an amplification factor $b$. But in general:
+\begin{itemize}
+    \item Bias can depend on scale ($k$), so different wavenumbers are affected differently.
+    \item Bias can depend on environment, introducing angular dependence (affecting $\ell$ dependence).
+    \item There is inherent stochasticity (randomness) in galaxy formation, so galaxy and matter densities don't correlate perfectly.
+\end{itemize}
+
+Understanding bias is crucial for interpreting galaxy survey data and extracting cosmological information.
+
+\subsubsection{Physical Meaning of Spherical Harmonics}
+
+\paragraph{Multipole Decomposition as Anisotropy Analysis}
+
+The multipole order $\ell$ in spherical harmonics corresponds to different types of angular anisotropy:
+
+\begin{itemize}
+    \item \textbf{$\ell = 0$ (monopole)}: The monopole $Y_{00}$ is spatially constant. The coefficient $\delta_{g, 0 m}(k)$ tells us the mean overdensity at each scale $k$, averaged over all directions. It captures isotropic structure.
+    
+    \item \textbf{$\ell = 1$ (dipole)}: Dipole modes $Y_{1m}$ have a preferred direction (they vanish along one axis and are maximum along another). A non-zero dipole indicates a directional asymmetry in the galaxy distribution, e.g., one hemisphere of the sky has a different mean density than the other. This is often due to observer motion or survey geometry artifacts.
+    
+    \item \textbf{$\ell = 2$ (quadrupole)}: Quadrupole modes have a four-lobed pattern. Physically, quadrupoles arise from redshift-space distortions (RSD), where the peculiar motions of galaxies along our line of sight distort the distance measurements, inducing anisotropy in the mapped distribution.
+    
+    \item \textbf{Higher $\ell$}: Higher multipoles capture increasingly complex anisotropic patterns. In cosmological surveys, anisotropy usually comes from RSD or Alcock-Paczynski effects (geometric distortions from wrong cosmological assumptions), so higher multipoles often carry less information than the monopole and quadrupole.
+\end{itemize}
+
+\paragraph{Redshift-Space Distortions (RSD)}
+
+An important physical effect is \textbf{redshift-space distortions}. Galaxies have peculiar velocities (random motions relative to the Hubble flow) in addition to the cosmic expansion. These velocities affect the observed redshifts:
+
+\begin{equation}
+z_{\text{obs}} = z_{\text{true}} + \frac{v_r}{c}
+\end{equation}
+
+where $v_r$ is the radial peculiar velocity component and $c$ is the speed of light. This affects the inferred distance and creates apparent anisotropies in the galaxy distribution. The quadrupole and higher multipoles encode RSD information, which is valuable for measuring the growth rate of structure and testing general relativity.
+
+\subsubsection{Physical Meaning of Wavenumber $k$ and Baryon Acoustic Oscillations (BAOs)}
+
+\paragraph{Wavenumber as Scale Identifier}
+
+The wavenumber $k$ characterizes the spatial scale at which we examine the field. Different scales probe different physics:
+
+\begin{itemize}
+    \item \textbf{Very large scales} ($k \sim 0.01 \text{ Mpc}^{-1}$, $\lambda \sim 600 \text{ Mpc}$): Dominated by linear perturbation theory. Modes are seeded by inflation and grow under gravity.
+    
+    \item \textbf{Linear scales} ($k \sim 0.1 \text{ Mpc}^{-1}$, $\lambda \sim 60 \text{ Mpc}$): Still in the linear regime where perturbations grow predictably. This is where baryon acoustic oscillations (BAOs) are prominent.
+    
+    \item \textbf{Mildly nonlinear scales} ($k \sim 0.5 \text{ Mpc}^{-1}$, $\lambda \sim 10 \text{ Mpc}$): Nonlinearities become important, requiring N-body simulations or renormalization techniques to predict accurately.
+    
+    \item \textbf{Highly nonlinear scales} ($k > 1 \text{ Mpc}^{-1}$, $\lambda < 6 \text{ Mpc}$): Dominated by virialized structures (galaxy clusters, filaments). Theoretical predictions are difficult without full simulations.
+\end{itemize}
+
+\paragraph{Baryon Acoustic Oscillations}
+
+\textbf{BAOs} are oscillations in the matter power spectrum at scales $\lambda_{\text{BAO}} \approx 150 \text{ Mpc}$ (or $k_{\text{BAO}} \approx 0.04 \text{ Mpc}^{-1}$). They arise from the physics of the baryon-photon fluid before recombination:
+
+\begin{itemize}
+    \item Before recombination ($z \gtrsim 1000$), baryons and photons are tightly coupled by Thomson scattering. This forms a coupled fluid that oscillates under the competing forces of gravitational attraction and radiation pressure.
+    
+    \item Dark matter is not coupled to radiation, so it simply falls into gravitational potential wells created by density fluctuations.
+    
+    \item At recombination ($z \approx 1100$), photons decouple from baryons and stream freely (becoming the cosmic microwave background, CMB). The baryon-photon oscillations freeze in.
+    
+    \item The characteristic scale of these oscillations is the \textbf{sound horizon}: the distance that a sound wave could travel in the baryon-photon fluid, given by
+    \begin{equation}
+    r_s = \int_0^{z_{\text{rec}}} \frac{c_s(z') dz'}{H(z')}
+    \end{equation}
+    where $c_s(z)$ is the sound speed in the plasma.
+\end{itemize}
+
+Because the BAO scale is set by fundamental physics (sound speed and age of the universe at recombination), it is a ``standard ruler'' that we can use to measure cosmic expansion at different epochs. The position of BAO features in the galaxy power spectrum tells us about the expansion history and dark energy.
+
+\textbf{BAOs in SFB space:} When the galaxy field is decomposed into SFB modes, each $(k, \ell)$ mode has a power spectrum $C_\ell(k)$ that shows BAO wiggles—oscillations in $C_\ell(k)$ as a function of $k$ near the BAO scale. The radialisation result means that for an isotropic field, all $\ell$ show the same BAO pattern (same wiggles at the same $k$), which validates the SFB approach for BAO studies.
+
+\subsubsection{Finite Survey Selection Functions}
+
+In practice, surveys do not measure the entire universe. They have a \textbf{selection function} $\phi(r, \theta, \phi)$ that describes the probability of observing an object at position $(r, \theta, \phi)$:
+
+\begin{equation}
+\phi(r, \theta, \phi) = \begin{cases}
+1 & \text{if observed region} \\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+or more realistically, $\phi$ varies smoothly due to:
+\begin{itemize}
+    \item \textbf{Radial selection}: Survey depth varies with redshift due to magnitude limits (brighter galaxies detected farther away).
+    \item \textbf{Angular selection}: Survey coverage is not uniform across the sky; some regions are excluded.
+\end{itemize}
+
+The observed field is then $f_{\text{obs}}(\vec{r}) = \phi(\vec{r}) f_{\text{true}}(\vec{r})$. The selection function $\phi$ breaks statistical homogeneity (different distances have different $\phi$ values), which violates the SIH condition and causes deviations from perfect radialisation (this is addressed in Section 2.2 of the paper).
+
+\subsection{Recapitulation and Conceptual Summary}
+
+\subsubsection{The Big Picture}
+
+Section 2.1 establishes the mathematical and physical foundation of the Spherical Fourier-Bessel decomposition, which is the central tool of the paper. Let's summarize the key concepts:
+
+\begin{enumerate}
+    \item \textbf{Spherical Decomposition Basis}: Any 3D field defined on a sphere with radial extent can be written as a superposition of basis functions $k j_\ell(kr) Y_{\ell m}(\theta, \phi)$, characterized by three quantum numbers: radial wavenumber $k$ (continuous), multipole order $\ell$ (discrete), and azimuthal number $m$ (discrete).
+    
+    \item \textbf{Forward and Inverse Transforms}: The decomposition is invertible (Eqs. \eqref{eq:sfb_forward} and \eqref{eq:sfb_inverse}), allowing us to map between real-space fields and SFB coefficients. This is analogous to Fourier analysis in Cartesian coordinates.
+    
+    \item \textbf{Power Spectrum Definition}: The statistical strength of each mode is characterized by the power spectrum $C_\ell(k) = \langle |f_{\ell m}(k)|^2 \rangle$, which quantifies the mean-square amplitude of modes with given quantum numbers.
+    
+    \item \textbf{Radialisation Theorem}: For fields satisfying the SIH condition (statistical isotropy and homogeneity), the power spectrum is independent of $\ell$: $C_\ell(k) = P(k)$. This is a profound simplification showing that despite the apparent complexity of the SFB decomposition, isotropic fields have a simple radial power spectrum.
+    
+    \item \textbf{Orthonormality and Completeness}: The SFB basis is rigorously orthonormal and complete, ensuring that the decomposition is exact and invertible, with no loss of information.
+    
+    \item \textbf{Natural Adaptation to Observations}: Survey data naturally comes in spherical coordinates $(r, \theta, \phi)$, making the SFB basis perfectly suited for observational cosmology.
+\end{enumerate}
+
+\subsubsection{Why This Matters for BAO Studies}
+
+The reason this section is foundational for understanding the rest of the paper is:
+
+\begin{itemize}
+    \item \textbf{Sections 2.2--2.3} will relax the ideal SIH assumptions and consider realistic effects (finite survey volume, selection functions, galaxy bias, evolution). Understanding when and why radialisation holds is essential for understanding how and why it breaks in practice.
+    
+    \item \textbf{Section 3} will focus on BAOs specifically: studying how the characteristic BAO scale manifests in the SFB power spectrum $C_\ell(k)$, and how the radialisation of BAOs compares to the radialisation of the full power spectrum.
+    
+    \item \textbf{The key insight} is that BAOs, being oscillations at a specific scale, may exhibit radialisation even more strongly than the full power spectrum, especially for moderately shallow surveys. This is the main finding that makes SFB analysis so powerful for BAO studies.
+\end{itemize}
+
+\subsubsection{Connection to Practical Analysis}
+
+In practical data analysis, the concepts from this section translate to:
+
+\begin{itemize}
+    \item \textbf{Estimating power spectra}: Given survey data (list of galaxy positions), compute the SFB coefficients via Eq. \eqref{eq:sfb_inverse}, then estimate power via ensemble or modal averaging.
+    
+    \item \textbf{Searching for BAOs}: Look for oscillatory features (BAO wiggles) in the measured power spectrum $C_\ell(k)$ as a function of $k$. Use the position of the wiggles to measure the effective BAO scale, which constrains cosmology.
+    
+    \item \textbf{Understanding systematics}: Deviations of $C_\ell(k)$ from the simple form $P(k)$ (i.e., $\ell$-dependence where none is expected) indicate violations of SIH assumptions (survey geometry, selection effects, or physical processes) that must be accounted for.
+    
+    \item \textbf{Combining multiple multipoles}: When BAOs radialise, measurements at different $\ell$ are correlated (they measure the same underlying feature), so one can combine them to improve statistical constraints.
+\end{itemize}
+
+\subsubsection{Mathematical Structure Going Forward}
+
+The subsequent sections of the paper will build on this foundation as follows:
+
+\begin{itemize}
+    \item \textbf{Section 2.2 (Finite Surveys)}: Introduces the radial selection function $\phi(r)$ that describes varying survey depth. This breaks the homogeneity condition and causes $C_\ell(k)$ to become $\ell$-dependent in principle, but the paper will show radialisation is still a good approximation in practice.
+    
+    \item \textbf{Section 2.3 (Galaxy Bias and Evolution)}: Considers how galaxy bias and cosmological evolution of the field affect the decomposition. Again, the question is how much radialisation is broken, and whether it remains a useful approximation.
+    
+    \item \textbf{Section 3 (BAO Radialisation)}: Focuses specifically on the BAO feature and shows that BAOs radialise \emph{faster and more completely} than the full power spectrum, because the BAO signal is concentrated at a specific scale.
+    
+    \item \textbf{Section 4 (Conclusions)}: Summarizes the practical implications: for surveys of current depth (like SDSS or 2dF), the first BAO peak becomes essentially radial out to $\ell \sim 10$, and even higher multipoles start radialisating. This validates the SFB approach as a powerful tool for BAO studies.
+\end{itemize}

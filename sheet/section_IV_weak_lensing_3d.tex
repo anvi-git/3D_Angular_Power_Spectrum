@@ -1,0 +1,382 @@
+\section{Weak Lensing 3D Power Spectra}
+
+Section IV develops the foundational framework for computing weak lensing power spectra in three dimensions. Weak gravitational lensing—the small-angle bending of light by the tidal gravitational fields of large-scale structure—is one of the most powerful cosmological probes. This section connects the 3D gravitational potential field to the observable lensing fields (shear $\gamma$ and convergence $\kappa$) through their power spectra, developing both full-sky and flat-sky formalisms that are essential for interpreting real observations.
+
+\subsection{Conceptual Framework and Lensing Potentials}
+
+Weak lensing is described through the \emph{lensing potential} $\varphi(\mathbf{r})$, which is a 2D projection of the 3D gravitational potential field. Unlike the 3D gravitational potential $\Phi(\mathbf{r})$, which is a fully 3D quantity describing the spacetime curvature at each point, the lensing potential is constructed by integrating the gravitational potential along the line of sight from the observer to a distant source. This fundamental distinction leads to an asymmetry: while the gravitational potential is statistically homogeneous and isotropic in 3D space, the lensing potential maintains 2D isotropy on the sky but breaks homogeneity in the radial direction.
+
+The key physical insight is that lensing potential power spectra cannot be directly expressed as simple 3D power spectra $P(k)$ independent of multipole $\ell$. Instead, they depend on both radial wavenumbers $k_1$ and $k_2$, creating a 2D ``power spectrum matrix'' $C_\ell^{\varphi\varphi}(k_1, k_2)$ that must be understood and computed carefully.
+
+\subsection{Full-Sky Formulation: Part A}
+
+\subsubsection{3D Spectral Decomposition and Power Spectra}
+
+The full-sky treatment begins with a 3D spectral decomposition of a statistically homogeneous and isotropic field $f(\mathbf{r}; \bar{r})$ with spherical harmonic and Bessel function basis:
+
+\begin{equation}
+f(\mathbf{r}; \bar{r}) = \sum_{\ell=0}^\infty \sum_{m=-\ell}^\ell \int_0^\infty dk \, f_{\ell m}(k; \bar{r}) j_\ell(kr) Y_{\ell m}(\theta, \phi)
+\label{eq:3d_spectral_decomp}
+\end{equation}
+
+where $\bar{r}$ represents a fixed time instant (encoded as comoving distance), $j_\ell(kr)$ are spherical Bessel functions, and $Y_{\ell m}(\theta, \phi)$ are spherical harmonics. The notation $\bar{r}$ versus $r$ is crucial: $\bar{r}$ labels a specific epoch or redshift shell, while $r$ is the radial coordinate in the decomposition.
+
+For a homogeneous and isotropic field, the two-point correlation function in Fourier space is:
+
+\begin{equation}
+\left\langle f_{\ell m}(k; \bar{r}) f_{\ell' m'}^*(k'; \bar{r}) \right\rangle = C_\ell(k; \bar{r}) \delta_D(k - k') \delta_{\ell\ell'} \delta_{m m'}
+\label{eq:full_sky_corr_def}
+\end{equation}
+
+where $\delta_D$ denotes the Dirac delta function. The key property of homogeneity and isotropy is that $C_\ell(k; \bar{r})$ is \emph{independent of the multipole index} $\ell$. This means:
+
+\begin{equation}
+C_\ell(k; \bar{r}) = P(k; \bar{r})
+\label{eq:isotropy_independence}
+\end{equation}
+
+where $P(k; \bar{r})$ is simply the standard 3D power spectrum in Fourier space, defined via:
+
+\begin{equation}
+\left\langle f(\mathbf{k}; \bar{r}) f^*(\mathbf{k}'; \bar{r}) \right\rangle = (2\pi)^3 P(k; \bar{r}) \delta_D^3(\mathbf{k} - \mathbf{k}')
+\label{eq:3d_fourier_power}
+\end{equation}
+
+\subsubsection{Equivalence Between Spherical and Cartesian Decompositions}
+
+A fundamental result establishes the mathematical equivalence between the spherical harmonic expansion (Equation \ref{eq:3d_spectral_decomp}) and the 3D Cartesian Fourier expansion:
+
+\begin{equation}
+f(\mathbf{r}; \bar{r}) = \frac{1}{(2\pi)^3} \int d^3\mathbf{k} \, f(\mathbf{k}; \bar{r}) e^{i\mathbf{k} \cdot \mathbf{r}}
+\label{eq:3d_fourier_expansion}
+\end{equation}
+
+This equivalence relies on the plane-wave expansion identity:
+
+\begin{equation}
+e^{i\mathbf{k} \cdot \mathbf{r}} = 4\pi \sum_{\ell=0}^\infty \sum_{m=-\ell}^\ell i^\ell j_\ell(kr) Y_{\ell m}(\theta_k, \phi_k) Y_{\ell m}^*(\theta_r, \phi_r)
+\label{eq:plane_wave_expansion}
+\end{equation}
+
+where $(\theta_k, \phi_k)$ are the angular coordinates of the wavenumber vector $\mathbf{k}$, and $(\theta_r, \phi_r)$ are the angular coordinates of the position vector $\mathbf{r}$. Using this identity with the volume element $d^3\mathbf{k} = k^2 \, dk \, d\Omega_k$ and applying spherical harmonic orthogonality relations:
+
+\begin{equation}
+\int d\Omega \, Y_{\ell m}(\Omega) Y_{\ell' m'}^*(\Omega) = \delta_{\ell\ell'} \delta_{m m'}
+\label{eq:sh_orthogonality}
+\end{equation}
+
+as well as Bessel function orthogonality:
+
+\begin{equation}
+\int_0^\infty k^2 \, dk \, j_\ell(kr) j_\ell(k'r) = \frac{\pi}{2k^2} \delta_D(k - k')
+\label{eq:bessel_orthogonality}
+\end{equation}
+
+one establishes the relationship between Cartesian Fourier coefficients $f(\mathbf{k}; \bar{r})$ and spherical coefficients $f_{\ell m}(k; \bar{r})$:
+
+\begin{equation}
+f_{\ell m}(k; \bar{r}) = \frac{1}{\sqrt{8\pi^3}} k i^\ell \int d\Omega_k \, f(\mathbf{k}; \bar{r}) Y_{\ell m}^*(\theta_k, \phi_k)
+\label{eq:cartesian_to_spherical}
+\end{equation}
+
+By substituting these relations into the correlation definition (Equation \ref{eq:full_sky_corr_def}) and using the Fourier-space power spectrum (Equation \ref{eq:3d_fourier_power}), one proves that $C_\ell(k; \bar{r}) = P(k; \bar{r})$. The proof crucially employs the delta function representation $\delta_D^3(\mathbf{k} - \mathbf{k}') = \frac{1}{(2\pi)^3} \int d^3\mathbf{x} \, e^{i(\mathbf{k} - \mathbf{k}') \cdot \mathbf{x}}$, which when combined with Equation \ref{eq:plane_wave_expansion} yields the required orthogonality.
+
+\subsubsection{Cross-Power Spectra and Different Time Slices}
+
+For fields observed at different distances (or equivalently, at different cosmic times), the cross-power spectrum is defined:
+
+\begin{equation}
+\left\langle f_{\ell m}(k; \bar{r}) f_{\ell' m'}^*(k'; \bar{r}') \right\rangle = C_\ell(k; \bar{r}, \bar{r}') \delta_D(k - k') \delta_{\ell\ell'} \delta_{m m'}
+\label{eq:cross_power_def}
+\end{equation}
+
+The homogeneity and isotropy argument still holds (applied separately to each time slice), yielding:
+
+\begin{equation}
+C_\ell(k; \bar{r}, \bar{r}') = P(k; \bar{r}, \bar{r}')
+\label{eq:cross_power_result}
+\end{equation}
+
+where $P(k; \bar{r}, \bar{r}')$ is the cross-power spectrum of the field at the two different epochs. This result is essential for weak lensing calculations, where the gravitational potential at different redshifts contributes to the observed lensing signal.
+
+\subsubsection{The Lensing Potential: Breaking 3D Isotropy}
+
+A crucial distinction must be drawn between the 3D gravitational potential $\Phi(\mathbf{r})$, which is homogeneous and isotropic in 3D, and the 3D lensing potential $\varphi(\mathbf{r})$, which is the line-of-sight integral of the gravitational potential. The lensing potential is defined as:
+
+\begin{equation}
+\varphi(\mathbf{r}; \bar{r}) = 2 \int_0^{\bar{r}} d\bar{r}' \frac{\bar{r} - \bar{r}'}{\bar{r}} \Phi(\mathbf{r}', \bar{r}')
+\label{eq:lensing_potential}
+\end{equation}
+
+This definition captures the fact that light from a source at distance $\bar{r}$ is deflected by the integrated gravitational potential along the line of sight from $\bar{r}' = 0$ (observer) to $\bar{r}' = \bar{r}$ (source). The geometric factor $(\bar{r} - \bar{r}')/\bar{r}$ is the lensing efficiency, encoding how effectively structures at distance $\bar{r}'$ lens light reaching distance $\bar{r}$.
+
+Crucially, the lensing potential is \emph{not} a homogeneous and isotropic field in 3D. It possesses 2D isotropy on the sky (due to the isotropy of $\Phi$), but isotropy in the radial direction is violated because of the line-of-sight integral. Therefore, the simple relation $C_\ell(k; \bar{r}, \bar{r}') = P(k; \bar{r}, \bar{r}')$ no longer applies.
+
+Instead, the two-point correlation function of the lensing potential coefficients is:
+
+\begin{equation}
+\left\langle \varphi_{\ell m}(k) \varphi_{\ell' m'}^*(k') \right\rangle = C_\ell^{\varphi\varphi}(k, k') \delta_{\ell\ell'} \delta_{m m'}
+\label{eq:lensing_potential_corr}
+\end{equation}
+
+The observed lensing potential power spectrum $C_\ell^{\varphi\varphi}(k, k')$ depends explicitly on both wavenumbers $k$ and $k'$, not just on $k$ alone. This is the fundamental consequence of the line-of-sight integration.
+
+\subsubsection{Shear Power Spectra}
+
+The weak lensing shear field $\gamma(\mathbf{r})$ is related to the lensing potential through the second derivatives of the potential. In spherical coordinates, the shear tensor components are expressed via spin-weighted basis functions. The expansion of the shear (using the $\pm 2$ spin-weighted decomposition of Equation 37 in the paper) yields:
+
+\begin{equation}
+C_\ell^{\gamma\gamma}(k_1, k_2) = \frac{1}{4} \frac{(\ell + 2)!}{(\ell - 2)!} C_\ell^{\varphi\varphi}(k_1, k_2)
+\label{eq:shear_power_spectrum}
+\end{equation}
+
+The factorial ratio $(\ell + 2)!/(\ell - 2)! = \ell(\ell+1)(\ell+2)(\ell+3)$ grows rapidly with $\ell$ and represents the geometric projection factor converting the lensing potential to the shear. All other shear power spectra can be expressed in terms of $C_\ell^{\gamma\gamma}(k_1, k_2)$.
+
+For alternative shear decompositions, such as the E-B decomposition (scalar and pseudoscalar components), one obtains:
+
+\begin{equation}
+C_\ell^{EE}(k_1, k_2) = C_\ell^{\gamma\gamma}(k_1, k_2)
+\label{eq:e_mode_power}
+\end{equation}
+
+\begin{equation}
+C_\ell^{BB}(k_1, k_2) = 0
+\label{eq:b_mode_power}
+\end{equation}
+
+The vanishing of the B-mode power spectrum reflects the fact that weak lensing produces only curl-free (E-mode) shear patterns, not divergence-free (B-mode) patterns. B-modes would indicate intrinsic galaxy alignments, vector perturbations, or other non-lensing contributions.
+
+For the Cartesian decomposition into $\gamma_1$ and $\gamma_2$ components:
+
+\begin{equation}
+C_\ell^{\gamma_1\gamma_1}(k_1, k_2) = C_\ell^{\gamma_2\gamma_2}(k_1, k_2) = C_\ell^{\gamma\gamma}(k_1, k_2)
+\label{eq:cartesian_shear_powers}
+\end{equation}
+
+\begin{equation}
+C_\ell^{\gamma_1\gamma_2}(k_1, k_2) = 0
+\label{eq:shear_cross_term}
+\end{equation}
+
+The equal power in the two Cartesian components and their zero cross-correlation reflect the isotropy of the lensing field on the sky.
+
+\subsubsection{Convergence Power Spectra}
+
+The weak lensing convergence field $\kappa(\mathbf{r})$ represents the local magnification of sources and is computed from the trace of the lensing Jacobian matrix. The convergence is related to the second radial derivative of the lensing potential. Its power spectrum is:
+
+\begin{equation}
+C_\ell^{\kappa\kappa}(k_1, k_2) = \frac{\ell^2(\ell+1)^2}{4} C_\ell^{\varphi\varphi}(k_1, k_2)
+\label{eq:convergence_power_spectrum}
+\end{equation}
+
+The factor $[\ell(\ell+1)/2]^2$ again represents a geometric projection. Comparing Equations \ref{eq:shear_power_spectrum} and \ref{eq:convergence_power_spectrum}, we see that:
+
+\begin{equation}
+\frac{C_\ell^{\kappa\kappa}(k_1, k_2)}{C_\ell^{\gamma\gamma}(k_1, k_2)} = \frac{\ell^2(\ell+1)^2}{(\ell + 2)!(\ell - 2)!}
+\label{eq:convergence_shear_ratio}
+\end{equation}
+
+At low multipoles $\ell$, the convergence is suppressed relative to the shear because the second-order operators have different angular structures.
+
+\subsubsection{Relating Lensing Potentials to Gravitational Potentials}
+
+The culmination of Part A is connecting the observable lensing potential power spectrum to the underlying gravitational potential:
+
+\begin{equation}
+C_\ell^{\varphi\varphi}(k_1, k_2) = \frac{16}{\pi^2 c^4} \int_0^\infty dk \, k^2 \, I_\ell(k_1, k) \, I_\ell(k_2, k)
+\label{eq:lensing_potential_from_gravity}
+\end{equation}
+
+where the key kernel is:
+
+\begin{equation}
+I_\ell(k_i, k) \equiv k_i \int_0^\infty d\bar{r} \, \bar{r} \, j_\ell(k_i \bar{r}) \int_0^{\bar{r}} d\bar{r}' \sqrt{\frac{\bar{r} - \bar{r}'}{\bar{r}'}} j_\ell(k \bar{r}') P^{\Phi\Phi}(k; \bar{r}')
+\label{eq:gravity_kernel}
+\end{equation}
+
+Here $P^{\Phi\Phi}(k; \bar{r}')$ is the 3D power spectrum of the gravitational potential field. This kernel encodes the line-of-sight integration geometry: the outer integral over $\bar{r}$ accounts for the lensing efficiency at distance $\bar{r}$, while the inner integral over $\bar{r}'$ sums the contributions from all distances $\bar{r}' < \bar{r}$.
+
+\subsubsection{The Gravitational Potential Power Spectrum}
+
+The gravitational potential power spectrum is related to the matter density contrast through Poisson's equation:
+
+\begin{equation}
+\Phi(k; \bar{r}) = -\frac{3\Omega_m H_0^2}{2a(t) k^2} \delta(k; \bar{r})
+\label{eq:poisson_equation}
+\end{equation}
+
+where $a(t)$ is the scale factor and $\delta(k; \bar{r})$ is the Fourier-space matter density contrast. The two-point correlation of the potential fields involves a 6D integration:
+
+\begin{equation}
+\left\langle \Phi(\mathbf{k}; \bar{r}) \Phi^*(\mathbf{k}'; \bar{r}') \right\rangle = \left(\frac{3\Omega_m H_0^2}{2}\right)^2 \int d^3\mathbf{r} \, d^3\mathbf{r}' \, \frac{\left\langle \delta(\mathbf{k}; \bar{r}) \delta^*(\mathbf{k}'; \bar{r}') \right\rangle}{a(t)a(t') k^2 k'^2} e^{i(\mathbf{k} \cdot \mathbf{r} - \mathbf{k}' \cdot \mathbf{r}')}
+\label{eq:potential_corr_integral}
+\end{equation}
+
+\subsubsection{Factorization Approximation for Potential Correlations}
+
+A key approximation simplifies the computation: the gravitational potential correlations at different times are assumed to be separable:
+
+\begin{equation}
+P^{\Phi\Phi}(k; \bar{r}, \bar{r}') \approx \sqrt{P^{\Phi\Phi}(k; \bar{r}) P^{\Phi\Phi}(k; \bar{r}')}
+\label{eq:factorization_approx}
+\end{equation}
+
+This approximation is justified because the matter power spectrum has significant correlations only over distances much smaller than the Hubble distance (roughly 3000 Mpc), where the lookback time is small. Within such small scales, we can approximate $\bar{r} \approx \bar{r}'$, and the two power spectra are approximately equal. Using the geometric mean as in Equation \ref{eq:factorization_approx} provides a balanced treatment.
+
+Furthermore, Bessel function arguments of the form $j_\ell(kr)$ suppress contributions from wavenumbers satisfying $k \lesssim \ell/r_{\max}$, where $r_{\max}$ is the survey depth. This natural cutoff ensures that only modes within the survey's sensitivity are included in the calculation.
+
+\subsubsection{Nonlinearity and Accuracy Considerations}
+
+The weak lensing power spectrum computation depends crucially on accurate knowledge of the nonlinear gravitational potential power spectrum. Unlike the linear matter power spectrum (which can be computed analytically at early times), the nonlinear power spectrum at small scales requires either N-body simulations or empirical fitting functions.
+
+Several accurate fitting functions for the nonlinear matter power spectrum exist in the literature, which can be converted to gravitational potential spectra via Poisson's equation. However, the accuracy needed for high-precision dark energy measurements (such as determination of the equation-of-state parameter $w$) must be validated against simulations, particularly at the wavenumber scales where weak lensing measurements are most sensitive.
+
+\subsection{Flat-Sky Formulation: Part B}
+
+\subsubsection{Flat-Sky Decomposition}
+
+The flat-sky approximation is valid when observations are restricted to small angles around a fixed direction (pole) of the sky. In this regime, the spherical coordinate system can be locally approximated as Cartesian. The 3D field at position $\mathbf{r} \equiv (r, \boldsymbol{\theta})$ (where $\boldsymbol{\theta}$ is the 2D angular vector) can be expanded as:
+
+\begin{equation}
+f(r, \boldsymbol{\theta}) = \int_0^\infty dk \, k \int d^2\ell \, \frac{1}{(2\pi)^2} f(k, \boldsymbol{\ell}) \, j_\ell(kr) \, e^{i\boldsymbol{\ell} \cdot \boldsymbol{\theta}}
+\label{eq:flat_sky_expansion_forward}
+\end{equation}
+
+where $\boldsymbol{\ell}$ is the 2D wavenumber vector in Fourier space on the sky. The inverse transformation is:
+
+\begin{equation}
+f(k, \boldsymbol{\ell}) = \int_0^\infty r^2 \, dr \int d^2\boldsymbol{\theta} \, f(r, \boldsymbol{\theta}) \, k \, j_\ell(kr) \, e^{-i\boldsymbol{\ell} \cdot \boldsymbol{\theta}}
+\label{eq:flat_sky_expansion_inverse}
+\end{equation}
+
+These expansions maintain a direct correspondence with the full-sky formulation while exploiting the small-angle approximation in the angular directions only.
+
+\subsubsection{Full-Sky to Flat-Sky Correspondence}
+
+The relationship between full-sky coefficients $f_{\ell m}(k)$ and flat-sky coefficients $f(k, \boldsymbol{\ell})$ emerges from the small-angle expansion of plane waves. For small angles $\theta \to 0$ around the pole, the spherical harmonic can be approximated as:
+
+\begin{equation}
+e^{i\boldsymbol{\ell} \cdot \boldsymbol{\theta}} \approx \sqrt{2\pi} \sum_{\ell, m} i^m Y_{\ell m}(\theta, \phi) e^{-im\phi_\ell}
+\label{eq:small_angle_approx}
+\end{equation}
+
+where $\boldsymbol{\ell} = (\ell \cos\phi_\ell, \ell \sin\phi_\ell)$ in polar coordinates. The relation between the two coefficient sets is obtained by replacing the discrete sum over $\ell$ with a continuous distribution and integrating over the azimuthal direction $\phi_\ell$. This yields:
+
+\begin{equation}
+f_{\ell m}(k) = i^m \sqrt{\frac{2\pi}{\ell}} \int_0^{2\pi} \frac{d\phi_\ell}{2\pi} \, e^{-im\phi_\ell} \, f(k, \boldsymbol{\ell})
+\label{eq:full_to_flat_relation}
+\end{equation}
+
+The inverse relation is:
+
+\begin{equation}
+f(k, \boldsymbol{\ell}) = \sqrt{2\pi} \sum_{\ell, m} i^{-m} f_{\ell m}(k) e^{im\phi_\ell}
+\label{eq:flat_to_full_relation}
+\end{equation}
+
+This establishes the formal equivalence: the spherical expansion converges to the flat-sky expansion in the small-angle limit.
+
+\subsubsection{Recovery of High-$\ell$ Limit}
+
+A key consistency check is that the flat-sky power spectra should reproduce the full-sky results in the high-$\ell$ limit. For a fully 3D homogeneous and isotropic field (such as the gravitational potential):
+
+\begin{equation}
+C^{\Phi\Phi}(k, \ell; \bar{r}) \xrightarrow{\ell \to \infty} C_\ell^{\Phi\Phi}(k; \bar{r}) = P^{\Phi\Phi}(k; \bar{r})
+\label{eq:high_ell_full_iso}
+\end{equation}
+
+where the flat-sky power spectrum is defined via:
+
+\begin{equation}
+\left\langle \Phi(k, \boldsymbol{\ell}) \Phi^*(k', \boldsymbol{\ell}') \right\rangle = (2\pi)^2 C^{\Phi\Phi}(k, \ell) \delta_D(k - k') \delta_D^2(\boldsymbol{\ell} - \boldsymbol{\ell}')
+\label{eq:flat_sky_power_def}
+\end{equation}
+
+For fields with 2D isotropy on the sky but radial inhomogeneity (such as the lensing potential):
+
+\begin{equation}
+C^{\varphi\varphi}(k_1, k_2, \ell) \xrightarrow{\ell \to \infty} C_\ell^{\varphi\varphi}(k_1, k_2)
+\label{eq:high_ell_partial_iso}
+\end{equation}
+
+\subsubsection{Flat-Sky Shear and Convergence Power Spectra}
+
+In the flat-sky limit, the shear and convergence power spectra take on particularly elegant forms:
+
+\begin{equation}
+C^{\gamma\gamma}(k_1, k_2, \ell) = \frac{\ell^4}{4} C^{\varphi\varphi}(k_1, k_2, \ell)
+\label{eq:flat_sky_shear_power}
+\end{equation}
+
+\begin{equation}
+C^{\kappa\kappa}(k_1, k_2, \ell) = \frac{\ell^4}{4} C^{\varphi\varphi}(k_1, k_2, \ell)
+\label{eq:flat_sky_convergence_power}
+\end{equation}
+
+Notably, in the flat-sky limit, the shear and convergence power spectra have \emph{identical} $\ell$-dependence (both proportional to $\ell^4$), differing only in normalization. This is in contrast to the full-sky case where they differ due to the different angular dependence of the spin-2 and spin-0 fields.
+
+The flat-sky lensing potential power spectrum is given by the same kernel as in the full-sky case:
+
+\begin{equation}
+C^{\varphi\varphi}(k_1, k_2, \ell) = \frac{16}{\pi^2 c^4} \int_0^\infty dk \, k^2 \, I(k_1, k) \, I(k_2, k)
+\label{eq:flat_sky_lens_potential}
+\end{equation}
+
+where the kernel $I(k_i, k)$ is as defined in Equation \ref{eq:gravity_kernel}, now interpreted in the flat-sky context where $\ell$ labels the 2D angular multipole order.
+
+\subsubsection{Physical Interpretation of Flat-Sky Results}
+
+The flat-sky approximation simplifies the geometry significantly. The harmonic expansion decouples into independent 1D Bessel function expansions in the radial direction and 2D plane-wave Fourier expansions in the angular directions. This separation allows for more efficient numerical implementation and clearer physical understanding of the different contributions to the lensing signal.
+
+However, the flat-sky approximation breaks down for large surveys covering significant fractions of the sky. Full-sky calculations are essential for all-sky surveys or surveys with large angular extent (more than a few tens of square degrees at high significance). The choice between flat-sky and full-sky depends on both the survey geometry and the required accuracy for the scientific goals.
+
+\subsubsection{Connection to 2D Angular Power Spectra}
+
+The flat-sky results naturally connect to conventional 2D weak lensing analysis. If one marginalizes (integrates) over the radial wavenumber pair $(k_1, k_2)$, the 3D flat-sky power spectrum reduces to 2D angular power spectra:
+
+\begin{equation}
+C_\ell^{\gamma\gamma, 2D} = \int_0^\infty dk_1 \, k_1^2 \int_0^\infty dk_2 \, k_2^2 \, W(k_1) \, W(k_2) \, C^{\gamma\gamma}(k_1, k_2, \ell)
+\label{eq:2d_from_3d}
+\end{equation}
+
+where $W(k_i)$ are redshift-space window functions encoding the source redshift distribution. This reduction shows that 2D analyses are not separate from 3D analyses, but rather represent specific projections or marginalizations of the full 3D information.
+
+\subsection{Cosmological Applications and Signal Features}
+
+\subsubsection{Power Spectrum Structure}
+
+The 3D shear power spectra $C^{\gamma\gamma}(k_1, k_2, \ell)$ exhibit rich structure in 3D wavenumber space. The amplitude depends sensitively on:
+
+\begin{itemize}
+\item \textbf{Dark energy properties:} The equation-of-state parameter $w$ of dark energy affects the growth rate of structure and the expansion history, altering the lensing efficiency factors and power spectrum evolution.
+\item \textbf{Matter density:} $\Omega_m$ controls the normalization and shape of the matter power spectrum via the matter-radiation equality epoch.
+\item \textbf{Neutrino properties:} The sum of neutrino masses suppresses power on small scales through free-streaming effects.
+\item \textbf{Primordial scalar index:} The spectral index $n_s$ affects the tilt of the power spectrum across scales.
+\end{itemize}
+
+\subsubsection{Sensitivity to Equation of State}
+
+The paper illustrates (in Figures 1-4) how the 3D shear power spectrum varies with the dark energy equation-of-state parameter $w$. For a fiducial $\Lambda$CDM model with $\Omega_\Lambda = 0.73$, $\Omega_m = 0.27$, $\Omega_b = 0.04$, and $H_0 = 71$ km/s/Mpc, the power spectrum shows measurable sensitivity to variations in $w$.
+
+The key insight is that while changes in $w$ produce subtle shifts in any single power spectrum, the 3D nature of the analysis provides access to many independent multipoles $\ell$. Each $\ell$ mode probes a different scale and redshift combination, and collectively they enhance sensitivity to cosmological parameters beyond what 2D analysis can achieve.
+
+\subsubsection{Practical Implementation Issues}
+
+Several practical considerations affect real-world applications:
+
+\begin{itemize}
+\item \textbf{Photometric redshift errors:} Real surveys rely on photometric redshifts with photo-$z$ errors of order $\Delta z \sim 0.05(1 + z)$ or worse. These errors blur the radial structure and couple multipoles.
+\item \textbf{Source selection effects:} Non-uniform source selection as a function of magnitude, color, or other properties introduces coupling between different regions of wavenumber space.
+\item \textbf{Noise and systematics:} Shot noise from the finite number of galaxies and systematic uncertainties (PSF effects, shear calibration) must be carefully characterized and marginalized.
+\item \textbf{Weighting schemes:} Optimal weighting of galaxies can reduce the impact of noise and systematics.
+\item \textbf{Fiducial model assumptions:} Converting photometric redshifts to comoving distances requires a fiducial cosmological model, introducing small model-dependence in the results.
+\end{itemize}
+
+These issues are addressed in companion papers and are essential for extracting robust cosmological constraints from observations.
+
+\subsubsection{Future Prospects}
+
+The 3D weak lensing framework opens pathways to unprecedented cosmological sensitivity. Future surveys (LSST, Euclid, ROMAN) will observe billions of galaxies across the sky, providing both unprecedentedly large sky coverage and deep redshift information through photometric surveys. The 3D weak lensing analysis described in this section enables exploitation of all three dimensions of information: two angular dimensions plus the radial dimension encoded in redshift.
+
+By capturing both radial BAO features and 3D growth of structure imprints on lensing, future surveys can simultaneously constrain dark energy properties, neutrino masses, and modifications to gravity—making weak lensing a cornerstone of dark energy investigations.
+
