@@ -1,0 +1,451 @@
+% Cross-Correlation of SFB Coefficients without Isotropy Assumption
+% A rigorous step-by-step derivation of the two-point correlation function
+% for general 3D power spectra P^{AB}(\vec{k}, \vec{k}')
+
+\section{Cross-Correlation of SFB Coefficients for Two Projected Fields}
+\label{sec:sfb_cross_corr_general}
+
+\subsection{Goal and Notation}
+
+We seek to derive the two-point correlation function:
+
+\begin{equation}
+    \langle \tilde{f}_{A,lm}(k) \, \tilde{f}_{B,l'm'}^*(k') \rangle
+\label{eq:goal}
+\end{equation}
+
+\textbf{Key points}:
+\begin{itemize}
+    \item $\tilde{f}_{A,lm}(k)$ is the SFB coefficient for projected field $A$ at multipole $(l, m)$ and radial wavenumber $k$
+    \item $\tilde{f}_{B,l'm'}^*(k')$ is the complex conjugate of the SFB coefficient for field $B$ at multipole $(l', m')$ and radial wavenumber $k'$
+    \item The expectation value $\langle \cdot \rangle$ is an ensemble average over many realisations of the universe
+    \item We do **not** assume isotropy, so the power spectrum $P^{AB}$ can depend on the full 3D vectors $\vec{\mathbf{k}}$ and $\vec{\mathbf{k}}'$ separately, not just their magnitudes
+\end{itemize}
+
+\subsection{Step 1: Define the Projected Fields}
+
+The line-of-sight projected fields are defined by integrating the 3D fields along the radial direction, weighted by selection kernels:
+
+\begin{equation}
+    \tilde{f}_A(\hat{\mathbf{n}}) = \int_0^{\infty} dr \, W_i^A(r) \, f_A(r \hat{\mathbf{n}})
+\label{eq:proj_field_A}
+\end{equation}
+
+\begin{equation}
+    \tilde{f}_B(\hat{\mathbf{n}}) = \int_0^{\infty} dr \, W_j^B(r) \, f_B(r \hat{\mathbf{n}})
+\label{eq:proj_field_B}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $\hat{\mathbf{n}} = (\theta, \phi)$ is a direction on the sky (unit vector)
+    \item $r$ is the comoving radial coordinate
+    \item $r\hat{\mathbf{n}}$ is a position vector in 3D space
+    \item $W_i^A(r)$ and $W_j^B(r)$ are radial selection kernels specific to each probe
+\end{itemize}
+
+The projected fields $\tilde{f}_A(\hat{\mathbf{n}})$ and $\tilde{f}_B(\hat{\mathbf{n}})$ are 2D functions on the sphere.
+
+\subsection{Step 2: Decompose Projected Fields into Spherical Harmonics}
+
+Since the projected fields depend only on sky direction $\hat{\mathbf{n}}$, they can be expanded in spherical harmonics:
+
+\begin{equation}
+    \tilde{f}_A(\hat{\mathbf{n}}) = \sum_{l,m} \tilde{f}_{A,lm} \, Y_{lm}(\hat{\mathbf{n}})
+\label{eq:sh_decomp_A}
+\end{equation}
+
+\begin{equation}
+    \tilde{f}_B(\hat{\mathbf{n}}) = \sum_{l,m} \tilde{f}_{B,lm} \, Y_{lm}(\hat{\mathbf{n}})
+\label{eq:sh_decomp_B}
+\end{equation}
+
+where the spherical harmonic coefficients are:
+
+\begin{equation}
+    \tilde{f}_{A,lm} = \int d\Omega_{\hat{\mathbf{n}}} \, \tilde{f}_A(\hat{\mathbf{n}}) \, Y_{lm}^*(\hat{\mathbf{n}})
+\label{eq:sh_coeff_A}
+\end{equation}
+
+\begin{equation}
+    \tilde{f}_{B,lm} = \int d\Omega_{\hat{\mathbf{n}}} \, \tilde{f}_B(\hat{\mathbf{n}}) \, Y_{lm}^*(\hat{\mathbf{n}})
+\label{eq:sh_coeff_B}
+\end{equation}
+
+\subsection{Step 3: Express SFB Coefficients in Terms of 3D Fourier Modes}
+
+Substitute the definition of the projected field (Eq.~\ref{eq:proj_field_A}) into the spherical harmonic coefficient (Eq.~\ref{eq:sh_coeff_A}):
+
+\begin{equation}
+    \tilde{f}_{A,lm} = \int d\Omega_{\hat{\mathbf{n}}} \, Y_{lm}^*(\hat{\mathbf{n}}) \int_0^{\infty} dr \, W_i^A(r) \, f_A(r\hat{\mathbf{n}})
+\label{eq:sh_coeff_A_expanded}
+\end{equation}
+
+Swap the order of integration:
+
+\begin{equation}
+    \tilde{f}_{A,lm} = \int_0^{\infty} dr \, W_i^A(r) \int d\Omega_{\hat{\mathbf{n}}} \, Y_{lm}^*(\hat{\mathbf{n}}) \, f_A(r\hat{\mathbf{n}})
+\label{eq:sh_coeff_A_reordered}
+\end{equation}
+
+Now expand the 3D field $f_A(r\hat{\mathbf{n}})$ in 3D Fourier modes:
+
+\begin{equation}
+    f_A(r\hat{\mathbf{n}}) = \int \frac{d^3k}{(2\pi)^3} \, \hat{f}_A(\vec{\mathbf{k}}) \, e^{i\vec{\mathbf{k}} \cdot r\hat{\mathbf{n}}}
+\label{eq:fourier_decomp_A}
+\end{equation}
+
+where $\hat{f}_A(\vec{\mathbf{k}})$ is the Fourier transform of field $A$, and $\vec{\mathbf{k}}$ is a 3D wavevector. Substitute:
+
+\begin{equation}
+    \tilde{f}_{A,lm} = \int_0^{\infty} dr \, W_i^A(r) \int d\Omega_{\hat{\mathbf{n}}} \, Y_{lm}^*(\hat{\mathbf{n}}) \int \frac{d^3k}{(2\pi)^3} \, \hat{f}_A(\vec{\mathbf{k}}) \, e^{i\vec{\mathbf{k}} \cdot r\hat{\mathbf{n}}}
+\label{eq:sh_coeff_A_fourier}
+\end{equation}
+
+\subsubsection{Apply Rayleigh Expansion}
+
+Decompose the plane wave $e^{i\vec{\mathbf{k}} \cdot r\hat{\mathbf{n}}}$ using the Rayleigh expansion:
+
+\begin{equation}
+    e^{i\vec{\mathbf{k}} \cdot r\hat{\mathbf{n}}} = 4\pi \sum_{\lambda=0}^{\infty} \sum_{\mu=-\lambda}^{\lambda} i^{\lambda} \, j_{\lambda}(kr) \, Y_{\lambda\mu}^*(\hat{\mathbf{k}}) \, Y_{\lambda\mu}(\hat{\mathbf{n}})
+\label{eq:rayleigh}
+\end{equation}
+
+where we use different indices $\lambda, \mu$ to distinguish from the $l, m$ indices in the spherical harmonic expansion. Substitute:
+
+\begin{equation}
+    \tilde{f}_{A,lm} = 4\pi \sum_{\lambda,\mu} i^{\lambda} \int_0^{\infty} dr \, W_i^A(r) \, j_{\lambda}(kr) \int d\Omega_{\hat{\mathbf{n}}} \, Y_{lm}^*(\hat{\mathbf{n}}) \, Y_{\lambda\mu}(\hat{\mathbf{n}}) \int \frac{d^3k}{(2\pi)^3} \, \hat{f}_A(\vec{\mathbf{k}}) \, Y_{\lambda\mu}^*(\hat{\mathbf{k}})
+\label{eq:sh_coeff_A_rayleigh}
+\end{equation}
+
+\subsubsection{Apply Spherical Harmonic Orthonormality}
+
+Use the orthonormality relation $\int d\Omega_{\hat{\mathbf{n}}} \, Y_{lm}(\hat{\mathbf{n}}) \, Y_{\lambda\mu}^*(\hat{\mathbf{n}}) = \delta_{l\lambda} \delta_{m\mu}$:
+
+\begin{equation}
+    \tilde{f}_{A,lm} = 4\pi i^{l} \int_0^{\infty} dr \, W_i^A(r) \, j_{l}(kr) \int \frac{d^3k}{(2\pi)^3} \, \hat{f}_A(\vec{\mathbf{k}}) \, Y_{lm}^*(\hat{\mathbf{k}})
+\label{eq:sh_coeff_A_final}
+\end{equation}
+
+Similarly, for field $B$:
+
+\begin{equation}
+    \tilde{f}_{B,lm} = 4\pi i^{l} \int_0^{\infty} dr \, W_j^B(r) \, j_{l}(kr) \int \frac{d^3k}{(2\pi)^3} \, \hat{f}_B(\vec{\mathbf{k}}) \, Y_{lm}^*(\hat{\mathbf{k}})
+\label{eq:sh_coeff_B_final}
+\end{equation}
+
+\subsection{Step 4: Recognize Wavenumber Dependence}
+
+The above formulas are for the spherical harmonic coefficients $\tilde{f}_{A,lm}$ and $\tilde{f}_{B,lm}$ integrated over all wavenumbers. To introduce explicit wavenumber dependence, we separate out the $k$ integral. 
+
+Define the SFB coefficient with explicit wavenumber dependence as:
+
+\begin{equation}
+    \tilde{f}_{A,lm}(k) = 4\pi i^{l} \int_0^{\infty} dr \, W_i^A(r) \, j_{l}(kr) \int d\Omega_k \, \hat{f}_A(\vec{\mathbf{k}}) \, Y_{lm}^*(\hat{\mathbf{k}})
+\label{eq:sfb_coeff_A_with_k}
+\end{equation}
+
+where $d\Omega_k$ is the solid angle element for the direction of $\vec{\mathbf{k}}$ (i.e., $\hat{\mathbf{k}} = \vec{\mathbf{k}}/k$), and the magnitude $k = |\vec{\mathbf{k}}|$ appears explicitly.
+
+More precisely, in spherical coordinates $\vec{\mathbf{k}} = (k, \theta_k, \phi_k)$ where $(\theta_k, \phi_k)$ define the direction $\hat{\mathbf{k}}$. Then:
+
+\begin{equation}
+    \int \frac{d^3k}{(2\pi)^3} \hat{f}_A(\vec{\mathbf{k}}) Y_{lm}^*(\hat{\mathbf{k}}) = \int_0^{\infty} \frac{k^2 dk}{(2\pi)^3} \int d\Omega_k \, \hat{f}_A(\vec{\mathbf{k}}) \, Y_{lm}^*(\hat{\mathbf{k}})
+\label{eq:fourier_spherical}
+\end{equation}
+
+So:
+
+\begin{equation}
+    \tilde{f}_{A,lm}(k) \, k^2 dk = 4\pi i^{l} \int_0^{\infty} dr \, W_i^A(r) \, j_{l}(kr) \int d\Omega_k \, \hat{f}_A(\vec{\mathbf{k}}) \, Y_{lm}^*(\hat{\mathbf{k}}) \, k^2 dk
+\label{eq:sfb_coeff_A_element}
+\end{equation}
+
+Let's define it more carefully. We will think of $\tilde{f}_{A,lm}(k)$ as the SFB amplitude at wavenumber magnitude $k$:
+
+\begin{equation}
+    \tilde{f}_{A,lm}(k) = 4\pi i^{l} k^2 \int_0^{\infty} dr \, W_i^A(r) \, j_{l}(kr) \int d\Omega_k \, \hat{f}_A(\vec{\mathbf{k}}) \, Y_{lm}^*(\hat{\mathbf{k}}) / k^2
+\label{eq:sfb_coeff_A_definition}
+\end{equation}
+
+Actually, let me be more careful. The standard definition is:
+
+\begin{equation}
+    \tilde{f}_{A,lm}(k) dk = 4\pi i^{l} \int_0^{\infty} dr \, W_i^A(r) \, j_{l}(kr) \int d\Omega_k \, \hat{f}_A(\vec{\mathbf{k}}) \, Y_{lm}^*(\hat{\mathbf{k}}) \, k^2 dk / (2\pi)^3
+\label{eq:sfb_coeff_normalized}
+\end{equation}
+
+So:
+
+\begin{equation}
+    \tilde{f}_{A,lm}(k) = \frac{4\pi i^{l} k^2}{(2\pi)^3} \int_0^{\infty} dr \, W_i^A(r) \, j_{l}(kr) \int d\Omega_k \, \hat{f}_A(\vec{\mathbf{k}}) \, Y_{lm}^*(\hat{\mathbf{k}})
+\label{eq:sfb_coeff_A_k}
+\end{equation}
+
+Similarly for field $B$:
+
+\begin{equation}
+    \tilde{f}_{B,l'm'}(k') = \frac{4\pi i^{l'} (k')^2}{(2\pi)^3} \int_0^{\infty} dr' \, W_j^B(r') \, j_{l'}(k'r') \int d\Omega_{k'} \, \hat{f}_B(\vec{\mathbf{k}}') \, Y_{l'm'}^*(\hat{\mathbf{k}}')
+\label{eq:sfb_coeff_B_k}
+\end{equation}
+
+\subsection{Step 5: Compute the Two-Point Correlation}
+
+Now we compute the ensemble average:
+
+\begin{equation}
+    \langle \tilde{f}_{A,lm}(k) \, \tilde{f}_{B,l'm'}^*(k') \rangle
+\label{eq:correlation_to_compute}
+\end{equation}
+
+Substitute the definitions from Eqs.~(\ref{eq:sfb_coeff_A_k}) and (\ref{eq:sfb_coeff_B_k}):
+
+\begin{equation}
+    \langle \tilde{f}_{A,lm}(k) \, \tilde{f}_{B,l'm'}^*(k') \rangle = \frac{(4\pi)^2 i^{l} (-i)^{l'} k^2 (k')^2}{(2\pi)^6}
+\end{equation}
+
+\begin{equation}
+    \times \int_0^{\infty} dr \, W_i^A(r) j_{l}(kr) \int_0^{\infty} dr' \, W_j^B(r') j_{l'}(k'r')
+\end{equation}
+
+\begin{equation}
+    \times \left\langle \int d\Omega_k \, \hat{f}_A(\vec{\mathbf{k}}) \, Y_{lm}^*(\hat{\mathbf{k}}) \int d\Omega_{k'} \, \hat{f}_B^*(\vec{\mathbf{k}}') \, Y_{l'm'}(\hat{\mathbf{k}}') \right\rangle
+\label{eq:correlation_expanded}
+\end{equation}
+
+\subsection{Step 6: Exchange Order of Expectation and Integration}
+
+Assuming the ensemble average and spatial integrals commute (valid for a linear, stationary process):
+
+\begin{equation}
+    \langle \tilde{f}_{A,lm}(k) \, \tilde{f}_{B,l'm'}^*(k') \rangle = \frac{(4\pi)^2 i^{l} (-i)^{l'} k^2 (k')^2}{(2\pi)^6}
+\end{equation}
+
+\begin{equation}
+    \times \int_0^{\infty} dr \, W_i^A(r) j_{l}(kr) \int_0^{\infty} dr' \, W_j^B(r') j_{l'}(k'r')
+\end{equation}
+
+\begin{equation}
+    \times \int d\Omega_k \int d\Omega_{k'} \, Y_{lm}^*(\hat{\mathbf{k}}) \, Y_{l'm'}(\hat{\mathbf{k}}') \left\langle \hat{f}_A(\vec{\mathbf{k}}) \, \hat{f}_B^*(\vec{\mathbf{k}}') \right\rangle
+\label{eq:correlation_with_expectation}
+\end{equation}
+
+\subsection{Step 7: Introduce the General 3D Power Spectrum (No Isotropy Assumption)}
+
+The 3D two-point correlation function of Fourier modes is defined as:
+
+\begin{equation}
+    \langle \hat{f}_A(\vec{\mathbf{k}}) \, \hat{f}_B^*(\vec{\mathbf{k}}') \rangle = P^{AB}(\vec{\mathbf{k}}, \vec{\mathbf{k}}')
+\label{eq:general_power_spectrum_def}
+\end{equation}
+
+\textbf{Important}: We make **no isotropy assumption** here. The power spectrum $P^{AB}$ is allowed to depend on the full 3D wavevectors $\vec{\mathbf{k}}$ and $\vec{\mathbf{k}}'$ independently, not just their magnitudes. This is the most general form.
+
+If the universe were isotropic, we would have $P^{AB}(\vec{\mathbf{k}}, \vec{\mathbf{k}}') = P^{AB}(k) \delta^3(\vec{\mathbf{k}} - \vec{\mathbf{k}}')$ where $k = |\vec{\mathbf{k}}|$. But we do not make this assumption yet.
+
+Substitute Eq.~(\ref{eq:general_power_spectrum_def}) into Eq.~(\ref{eq:correlation_with_expectation}):
+
+\begin{equation}
+    \langle \tilde{f}_{A,lm}(k) \, \tilde{f}_{B,l'm'}^*(k') \rangle = \frac{(4\pi)^2 i^{l} (-i)^{l'} k^2 (k')^2}{(2\pi)^6}
+\end{equation}
+
+\begin{equation}
+    \times \int_0^{\infty} dr \, W_i^A(r) j_{l}(kr) \int_0^{\infty} dr' \, W_j^B(r') j_{l'}(k'r')
+\end{equation}
+
+\begin{equation}
+    \times \int d\Omega_k \int d\Omega_{k'} \, Y_{lm}^*(\hat{\mathbf{k}}) \, Y_{l'm'}(\hat{\mathbf{k}}') \, P^{AB}(\vec{\mathbf{k}}, \vec{\mathbf{k}}')
+\label{eq:with_general_power}
+\end{equation}
+
+\subsection{Step 8: Rewrite Power Spectrum Integration}
+
+The 3D wavevectors can be written in spherical coordinates. For $\vec{\mathbf{k}}$ with magnitude $k$ and direction $\hat{\mathbf{k}}$:
+
+\begin{equation}
+    P^{AB}(\vec{\mathbf{k}}, \vec{\mathbf{k}}') = P^{AB}(k \hat{\mathbf{k}}, k' \hat{\mathbf{k}}') = \tilde{P}^{AB}(k, \hat{\mathbf{k}}, k', \hat{\mathbf{k}}')
+\label{eq:power_spectrum_separable}
+\end{equation}
+
+where we write the power spectrum as a function of the magnitudes $k, k'$ and directions $\hat{\mathbf{k}}, \hat{\mathbf{k}}'$.
+
+The angular integrals over $\hat{\mathbf{k}}$ and $\hat{\mathbf{k}}'$ are:
+
+\begin{equation}
+    \int d\Omega_k \int d\Omega_{k'} \, Y_{lm}^*(\hat{\mathbf{k}}) \, Y_{l'm'}(\hat{\mathbf{k}}') \, \tilde{P}^{AB}(k, \hat{\mathbf{k}}, k', \hat{\mathbf{k}}')
+\label{eq:angular_integral}
+\end{equation}
+
+\textbf{Note}: Without additional structure (such as isotropy or symmetries), this double angular integral depends on both $(l,m)$ and $(l',m')$ and cannot generally be simplified further using orthonormality alone, because the power spectrum depends on the angular directions $\hat{\mathbf{k}}$ and $\hat{\mathbf{k}}'$.
+
+\subsection{Step 9: Assume Isotropy and Rotational Symmetries}
+
+We now assume that the universe is **isotropic** and **rotationally symmetric**. Under these assumptions, the correlation of Fourier modes depends only on:
+\begin{itemize}
+    \item The magnitude of the wavevectors: $k = |\vec{\mathbf{k}}|$ and $k' = |\vec{\mathbf{k}}'|$
+    \item Whether the vectors coincide (enforced by a delta function constraint)
+\end{itemize}
+
+\textbf{Key point}: There is no preferred direction in the universe, so the power spectrum cannot depend on the angular directions $\hat{\mathbf{k}}$ and $\hat{\mathbf{k}}'$ separately.
+
+Under isotropy, the Fourier mode correlation becomes:
+
+\begin{equation}
+    \langle \hat{f}_A(\vec{\mathbf{k}}) \, \hat{f}_B^*(\vec{\mathbf{k}}') \rangle = (2\pi)^3 P^{AB}(k) \, \delta^3(\vec{\mathbf{k}} - \vec{\mathbf{k}}')
+\label{eq:isotropic_power_spectrum}
+\end{equation}
+
+where $P^{AB}(k)$ is the **reduced (isotropic) power spectrum**, a function of wavenumber magnitude only.
+
+\subsection{Step 10: Apply Delta Function to Angular Coordinates}
+
+The delta function $\delta^3(\vec{\mathbf{k}} - \vec{\mathbf{k}}')$ in spherical coordinates constrains both wavenumber magnitude and direction:
+
+\begin{equation}
+    \delta^3(\vec{\mathbf{k}} - \vec{\mathbf{k}}') \rightarrow \delta(k - k') \, \delta^2(\hat{\mathbf{k}} - \hat{\mathbf{k}}')
+\label{eq:delta_spherical}
+\end{equation}
+
+where $\delta^2(\hat{\mathbf{k}} - \hat{\mathbf{k}}')$ acts on the solid angles $\Omega_k = (\theta_k, \phi_k)$.
+
+In the angular integral from Eq.~(\ref{eq:correlation_with_expectation}), this means:
+
+\begin{equation}
+    \int d\Omega_k \int d\Omega_{k'} \, Y_{lm}^*(\hat{\mathbf{k}}) \, Y_{l'm'}(\hat{\mathbf{k}}') \, \delta^3(\vec{\mathbf{k}} - \vec{\mathbf{k}}') \, P^{AB}(k) (2\pi)^3
+\label{eq:angular_with_delta}
+\end{equation}
+
+The delta function forces $\hat{\mathbf{k}}' = \hat{\mathbf{k}}$ in the second spherical harmonic:
+
+\begin{equation}
+    = (2\pi)^3 P^{AB}(k) \delta(k - k') \int d\Omega_k \, Y_{lm}^*(\hat{\mathbf{k}}) \, Y_{l'm'}(\hat{\mathbf{k}})
+\label{eq:angular_after_delta}
+\end{equation}
+
+\subsection{Step 11: Apply Spherical Harmonic Orthonormality}
+
+The spherical harmonics are orthonormal on the sphere:
+
+\begin{equation}
+    \int d\Omega \, Y_{lm}(\hat{\mathbf{n}}) \, Y_{l'm'}^*(\hat{\mathbf{n}}) = \delta_{ll'} \delta_{mm'}
+\label{eq:sh_orthonorm}
+\end{equation}
+
+Applying this to Eq.~(\ref{eq:angular_after_delta}):
+
+\begin{equation}
+    \int d\Omega_k \, Y_{lm}^*(\hat{\mathbf{k}}) \, Y_{l'm'}(\hat{\mathbf{k}}) = \delta_{ll'} \delta_{mm'}
+\label{eq:angular_result}
+\end{equation}
+
+\textbf{Physical interpretation}: Different multipole pairs $(l,m)$ and $(l',m')$ are **decoupled under isotropy**. No cross-correlation exists for $l \neq l'$ or $m \neq m'$.
+
+\subsection{Step 12: Simplify the Two-Point Correlation Under Isotropy}
+
+Substitute Eqs.~(\ref{eq:isotropic_power_spectrum}), (\ref{eq:angular_after_delta}), and (\ref{eq:angular_result}) into Eq.~(\ref{eq:correlation_with_expectation}):
+
+\begin{equation}
+    \langle \tilde{f}_{A,lm}(k) \, \tilde{f}_{B,l'm'}^*(k') \rangle = \delta_{ll'} \delta_{mm'} \, \delta(k - k') \times
+\label{eq:iso_correlation}
+\end{equation}
+
+\begin{equation}
+    \frac{(4\pi)^2 i^{l} (-i)^{l} k^2 (k')^2 (2\pi)^3}{(2\pi)^6} \, P^{AB}(k) \times
+\end{equation}
+
+\begin{equation}
+    \int_0^{\infty} dr \, W_i^A(r) j_{l}(kr) \int_0^{\infty} dr' \, W_j^B(r') j_{l}(k'r')
+\end{equation}
+
+\textbf{Simplify phase factors}: Note that $i^l (-i)^l = i^l \cdot (-1)^l \cdot i^l = (-1)^l i^{2l} = (-1)^l \cdot (-1)^l = 1$ (using $i^2 = -1$).
+
+\begin{equation}
+    \frac{(4\pi)^2}{(2\pi)^3} = \frac{16\pi^2}{8\pi^3} = \frac{2}{\pi}
+\label{eq:phase_simplification}
+\end{equation}
+
+Therefore, the result simplifies to:
+
+\begin{equation}
+    \langle \tilde{f}_{A,lm}(k) \, \tilde{f}_{B,lm}^*(k') \rangle = \delta(k - k') \, \frac{2}{\pi} P^{AB}(k) \times
+\label{eq:iso_simplified}
+\end{equation}
+
+\begin{equation}
+    \int_0^{\infty} dr \, W_i^A(r) j_{l}(kr) \int_0^{\infty} dr' \, W_j^B(r') j_{l}(kr')
+\end{equation}
+
+\subsection{Step 13: Define Radial Window Functions}
+
+Define the **radial window function** for each probe:
+
+\begin{equation}
+    \mathcal{W}_l^i(k) = \int_0^{\infty} dr \, W_i(r) \, j_l(kr)
+\label{eq:window_func_def}
+\end{equation}
+
+Then Eq.~(\ref{eq:iso_simplified}) becomes:
+
+\begin{equation}
+    \langle \tilde{f}_{A,lm}(k) \, \tilde{f}_{B,lm}^*(k') \rangle = \delta(k - k') \, \frac{2}{\pi} \, P^{AB}(k) \, \mathcal{W}_l^i(k) \, \mathcal{W}_l^j(k)
+\label{eq:iso_window}
+\end{equation}
+
+\textbf{Interpretation}:
+\begin{itemize}
+    \item Each multipole $(l,m)$ is independent (delta functions $\delta_{ll'} \delta_{mm'}$)
+    \item Each wavenumber mode is independent (delta function $\delta(k - k')$)
+    \item The correlation factorizes into a product of:
+    \begin{enumerate}
+        \item The isotropic power spectrum $P^{AB}(k)$
+        \item The radial window function for probe $A$: $\mathcal{W}_l^i(k)$
+        \item The radial window function for probe $B$: $\mathcal{W}_l^j(k)$
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Step 14: Compute the Angular Power Spectrum}
+
+The observable quantity is the **angular power spectrum** $C_l^{AB}$, obtained by integrating over all radial wavenumbers:
+
+\begin{equation}
+    C_l^{AB} = \int_0^{\infty} \frac{dk \, k^2}{2\pi^2} \, P^{AB}(k) \, \left[\mathcal{W}_l^i(k)\right]^2
+\label{eq:cl_def}
+\end{equation}
+
+(For a cross-correlation of distinct probes $i \neq j$, replace $\left[\mathcal{W}_l^i(k)\right]^2$ with $\mathcal{W}_l^i(k) \mathcal{W}_l^j(k)$.)
+
+This is the **fundamental observable** in weak lensing and clustering experiments: the correlation of angular modes at multipole $l$.
+
+\subsection{Step 15: Connection to the Limber Approximation}
+
+The **Limber approximation** is valid when the power spectrum is concentrated at scales where $k \approx l/\chi_{\mathrm{eff}}(z)$, where $\chi_{\mathrm{eff}}(z)$ is the effective comoving distance. In this limit:
+
+\begin{equation}
+    C_l^{AB} \approx \int dz \, \frac{dn^A}{dz}(z) \, \frac{dn^B}{dz}(z) \, P^{AB}\left(\frac{l + 1/2}{\chi(z)}\right)
+\label{eq:limber_approx}
+\end{equation}
+
+where $\frac{dn^i}{dz}$ is the normalized selection function for probe $i$.
+
+The full SFB formulation (Eq.~\ref{eq:iso_window}) provides the exact treatment **beyond Limber**, capturing all contributions including those where $k \ll l/\chi(z)$ or $k \gg l/\chi(z)$.
+
+\subsection{Summary: Isotropic Result}
+
+Under isotropy and rotational symmetry, the general two-point correlation (Eq.~\ref{eq:general_result_final}) simplifies to a **product of independent factors**:
+
+\begin{equation}
+    \boxed{\langle \tilde{f}_{A,lm}(k) \, \tilde{f}_{B,lm}^*(k') \rangle = \delta(k - k') \, \delta_{ll'} \delta_{mm'} \times \frac{2}{\pi} P^{AB}(k) \, \mathcal{W}_l^i(k) \, \mathcal{W}_l^j(k)}
+\label{eq:isotropic_final_result}
+\end{equation}
+
+\textbf{Key simplifications}:
+\begin{itemize}
+    \item \textbf{Multipole decoupling}: $\delta_{ll'} \delta_{mm'}$ eliminates cross-correlation between different $(l,m)$ modes
+    \item \textbf{Wavenumber localization}: $\delta(k - k')$ means each wavenumber contributes independently
+    \item \textbf{Factorization}: The result is a product of three terms: power spectrum + two radial window functions
+    \item \textbf{Observable quantity}: Integration over $k$ yields the angular power spectrum $C_l^{AB}$, the key cosmological observable
+\end{itemize}
+
+This result validates the standard weak lensing framework and explains why the angular power spectrum $C_l$ is so powerful: it automatically separates different angular modes, each carrying independent information about the power spectrum and the selection functions of the survey.
+
+\end{document}

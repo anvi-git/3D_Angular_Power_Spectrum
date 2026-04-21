@@ -1,0 +1,218 @@
+\section{Angular Power Spectrum}
+A scalar quantity (it is ok for now to consider scalar quantities, such as matter overdensity $\delta(x)$), can be expressed in terms of spherical harmonics \cite{Chiarenza_et_al_2024}. \\
+A scalar quantity $\tilde{A}(\hat{n})$ with $\hat{n}$ describes the unit vector which is in direction of the sky can be related to a 3D quantity $A(\textbf{r},z)$ through a projection kernel $W_i(z)$:
+\begin{equation}
+    \tilde{A}(\hat{n}) = \int dz W_i(z) A(\chi(z) \hat{n}; z)
+\label{eq1_blast}
+\end{equation}
+where:
+\begin{itemize}
+    \item $\tilde{A}(\hat{n})$ is the quantity we observe in the sky, and is a function of the unit vector $\hat{n}$ (\textbf{\textit{Domanda: it is a 2D vector, is it not?}}). It seems to me that this is a 2D field on the sphere: for every direction $\hat{n}$, we have a single number; 
+    \item $\int dz $ is the integral on all the redshifts - that is, from $z = 0$ up to the depth our survey reaches; 
+    \item $W_i(z)$ is called \textit{projection kernel}, and weighs how much of the 3D field contributes to the observation, at every redshift. For example, for galaxy clustering, $W_i(z)$ has a peak near the redshift of our galaxy sample, because we are interested only in galaxies at certain redshifts; instead for weak lensing the $W_i(z)$ peaks at intermediate redshifts, because we are interested in structures between distant galaxies and our local universe;
+    \item $A(\textbf{r},z)$ is our 3D cosmological field; it can be for example the density contrast $\delta_m(r)$. It is defined at physical coordinates $\vec{r} = \chi(z)\hat{n}$, and at redshift $z$;
+    \item $\chi$ is the comoving distance;
+\end{itemize}
+This quantity can be decomposed in its "constituent frequencies": following the definition of Fourier transform \ref{fourier_transforms}, one can do the same for the quantity $A({\textbf{r}}; z) = A((\chi(z)\hat{\textbf{n}}),z)$:
+\begin{equation}
+    A(\chi(z) \hat{\textbf{n}}; z) = \int_{-\infty}^{\infty} \frac{d^3k}{(2\pi)^3} A(\vec{\textbf{k}}, z) e^{i\vec{\textbf{k}}\cdot\hat{\textbf{n}}\chi(z)} 
+\label{eq2_blast}
+\end{equation}
+where we decompose the field $A(\chi(z) \hat{\textbf{n}}; z)$ in simple plane waves\footnote{where 
+\begin{itemize}
+    \item $A(\chi(z) \hat{\textbf{n}}; z)$ is the field in the real space at position $\chi(z) \hat{\textbf{n}}$; 
+    \item $\frac{1}{(2\pi)^3}$ is a normalization factor coming from Parseval's theorem; 
+    \item $A(\vec{\textbf{k}}; z)$ is the amplitude of Fourier's modes: is a complex number, and represents the amplitude and the phase of every plane wave. Here $\vec{\textbf{k}}$ is a 3D wavevector, and represents the wavelength and the oscillation direction. Here small $|{\vec{\textbf{k}}}|$ describe large scales, and large $|{\vec{\textbf{k}}}|$ describe small scales;
+    \item $e^{i\vec{\textbf{k}}\cdot\hat{\textbf{n}}\chi(z)}$ is the plane wave with wavevector ${\vec{\textbf{k}}}$;
+\end{itemize}
+}, where every plane wave has a wavevector $\vec{\textbf{k}}$ and contains a specific amplitude, $A(\vec{\textbf{k}}; z)$:
+The idea will be to further decompose the plan waves in spherical harmonics, in order to isolate angular scales on the sky. \\
+The plane wave can be decomposed then in spherical harmonics converting the cartesian coordinates in spherical coordinates, using Rayleigh expansion \footnote{
+\begin{equation}
+\label{eq3_blast}
+    e^{i\vec{\textbf{k}}\cdot\hat{\textbf{n}}r} = 4\pi \sum_{l,m} i^l j_l(kr) Y^{*}_{lm}(\hat{\textbf{k}}) Y_{lm}(\hat{\textbf{n}})
+\end{equation}
+where:
+\begin{itemize}
+    \item $e^{i\vec{\textbf{k}}\cdot\hat{\textbf{n}}r}$ is the plane wave with direction $\hat{\textbf{n}}$ and distance $r = \chi(z)$;
+    \item 4$\pi$ is a normalization factor;
+    \item $\sum_{l,m}$ is the sum on all the modes of the multipole. Here $l = 0, 1, ..., \infty$ and $m = -l, ... 0, ..., l$. The order of multipole $l$ is related to the angular scales on the sky by  \textit{resolution} $\approx 180°/l$, while the $m$ describes the azimuthal modes, that encode the rotational dependency around a symmetry axis;
+    \item $i^l$ is a phase convention;
+    \item $j_{lm}$ is the spherical Bessel function; is the oscillation radial profile for every angular mode $l$. It oscillates with frequency $k$, and peaks near $r \approx l/k$. This means that modes with greater $l$ are concentrated to bigger radii;
+    \item $Y^{*}_{lm}(\hat{\textbf{k}}) Y_{lm}(\hat{\textbf{n}})$ are the spherical harmonics; $Y^{*}_{lm}(\hat{\textbf{k}})$ projects the direction $\hat{\textbf{k}}$ on the multipole $(l,m)$, while $Y_{lm}(\hat{\textbf{n}})$ does the same for direction $\hat{\textbf{n}}$, They are analogue to sines and cosines;
+\end{itemize}
+} one separates the plane wave in independent angular modes, each with a different radial profile. \\
+This means that angular scales (different $l$) are decoupled: this allows the computation of $C_l$ separately for each $l$. A plane wave with high $k$ contains the contributes of all $l$: by measuring different modes $l$, one can sample the same structure at different angular scales (\textbf{\textit{Domanda: is it like shooting the same subject with different lenses, i.e. a fisheye, a portrait mode, a landscape, a wide-angle lens?}}). \\ 
+Combining \ref{eq2_blast} and \ref{eq3_blast} one gets:
+\begin{equation}
+    A(\chi(z) \hat{\textbf{n}}; z) = 4\pi \sum_{l,m} i^l \int \frac{d^3k}{(2\pi)^3} A(\vec{\textbf{k}}, z) j_l(k\chi(z)) Y^{*}_{lm}(\hat{\textbf{k}}) Y_{lm}(\hat{\textbf{n}}) 
+\label{eq4_blast}
+\end{equation}
+and combining \ref{eq1_blast} with \ref{eq4_blast} one gets:
+\begin{equation}
+    \tilde{A}(\hat{n}) = 4\pi \sum_{l,m} i^l \int dz W_i(z) \int \frac{d^3k}{(2\pi)^3} A(\vec{\textbf{k}}, z) j_l(k\chi(z)) Y^{*}_{lm}(\hat{\textbf{k}}) Y_{lm}(\hat{\textbf{n}})
+\label{eq5_blast}
+\end{equation}
+with:
+\begin{equation}
+    A_{l,m} = 4\pi i^l \sum_{l,m} \int dz W_i(z) \int \frac{d^3k}{(2\pi)^3} A(\vec{\textbf{k}}, z) j_l(k\chi(z)) Y^{*}_{lm}(\hat{\textbf{k}})
+\label{eq6_blast}
+\end{equation}
+coefficients of the spherical harmonics decomposition\footnote{
+where:
+\begin{itemize}
+    \item $A_{l,m}$ is a single complex number representing the amplitude of the multipole mode ($l,m$). One extracts the amplitude of the spherical harmonics from the 3D field;
+    \item $\int dz W_i(z)$ weighs every redshift with the kernel function, that selects which "slice" of the Universe contributes;
+    \item $\int \frac{d^3k}{(2\pi)^3} A(\vec{\textbf{k}}, z)$ is the integration on all the Fourier's modes $k$;
+    \item $j_l(k\chi(z))$ connects Fourier's wavenumber $k$ to the multipole $l$ through the Bessel function, at distance $\chi(z)$. The Bessel function automatically encode the link between the Fourier scales and the angular scales;
+    \item $Y^{*}_{lm}(\hat{\textbf{k}})$ projects the direction of Fourier's wavevector $\vec(\textbf{k})$ on the selected multipole ($l,m$). The spherical harmonics select which angular scales are of interest;
+    \end{itemize}
+}. \\
+This is how one describes a single scalar field $\tilde{A}(\hat{\textbf{n}})$. Defining a second scalar field $\tilde{B}(\hat{\textbf{n}})$, one can compute the \textbf{cross-correlation power spectrum}\footnote{
+where:
+\begin{itemize}
+    \item $C_{AB}(l)$ is the covariance of the two fields. That is, the variance of the $l$-th angular mode in the cross-correlation of fields $A$ and $B$;
+    \item $\frac{2}{\pi}$ is a normalization that comes when combining $\frac{(4\pi)(4\pi)(2\pi)^3}{(2\pi)^3)(2\pi)^3)}$;
+    \item $\int dz W_i(z) \int dz' W_j(z')$ are the integrations on the redshifts for the two fields. $dz$ and $dz'$ link different "times", while $W_i(z)$ and $W_j(z')$ project the 3D fields in the tomographic bins of redshifts $z$ and $z'$;
+    \item $ \int dk$ is the integration on the wavenumbers;
+    \item $P_{AB}(k,z,z')$ is the correlation of the Fourier modes at different redshifts $z, z'$. If $A=B=cluster$, this represents the squared matter power spectrum; if the fields represent the cluster and shear probes, then it represents the cross-correlation of those different physical quantities;
+    \item $j_l(k\chi(z)) j_l(k\chi(z'))$ is a pair of spherical Bessel functions that couple the Fourier scale $k$ to the angular scale $l$, for the probes at redshifts $z$ and $z'$. The product of the two Bessel functions is non-zero when both $k\chi(z)$ and $k\chi(z')$ are near $(l+\frac{1}{2})$, that is the peak of $j_l$. This determines which wavenumbers and distances contribute the most at each $l$. These functions operate the angular projection from 3D to 2D;
+    \end{itemize}
+}:
+\begin{equation}
+    C_{AB}(l) = \langle A_{l,m} B_{l,m}^*\rangle = \frac{2}{\pi} \int dz W_i(z) \int dz' W_j(z') \int dk k^2 P_{AB}(k,z,z') j_l(k\chi(z)) j_l(k\chi(z'))
+\label{eq7_blast}
+\end{equation}
+The window functions $W_i(z)$ and $W_j(z')$ depend on the specific probe - that is, in our case, cluster or shear. \\
+Moreover, one can operate a change of variables for the integral in $z$ and $z'$, to $\chi$ and $\chi'$. This leads to the final form of the angular power spectrum\footnote{
+where:
+\begin{itemize}
+    \item $C_{AB}(l)$ is the angular power spectrum with tomographic bins $i,j$;
+    \item $N(l)$ is a normalization which depends on $l$ and on the probe used;
+    \item $\int d\chi_1 \int d\chi' \int dk$ is the triple integration, the reason to have an approximation, and the culprit of it all;
+    \item $W_i^A(\chi_1)$ and $W_j^B(\chi_2)$ are the new kernel functions. $W_i^A(\chi_1)$ represents the weight for the field $A$, in the $i$-th bin, at distance $\chi_1$. The shape of the kernels depends on the probe:
+    \begin{itemize}
+        \item for clustering: \begin{equation}
+                                W_i^g(\chi) = H(z)n_i(z)b_g(z)
+                                \label{kernel_cl}
+                              \end{equation}
+        where $H(z)$ is the Hubble factor, $n_i(z)$ is the galaxy number density, and $b_g(z)$ is the galaxy bias;
+        \item for weak-lensing: \begin{equation}
+                                W_i^s(\chi) = \frac{3H_0^2\Omega_m}{2a}\chi\int_{z}^{\infty}dz'n_i(z')\frac{\chi(z')-\chi(z)}{\chi(z')}
+                                \label{kernel_sh}
+                              \end{equation}
+    \end{itemize}
+    \item $P^{AB}(k, \chi_1, \chi_2)$ is the 3D matter power spectrum;
+    \item $j_l(k\chi_1)$ and $j_l(k\chi_2)$ are the two spherical Bessel functions;
+    \item $(k\chi_1)^\alpha$ and $(k\chi_2)^\beta$ are the prefactors depending on the probes: for clustering, there are no radial dependencies other that the Bessel functions, and $\alpha = \beta = 0$, whereas for shear $\alpha = \beta = 2$ - this is due to the weak-lensing convergence which is a projected quantity;
+    \end{itemize}
+}:
+\begin{equation}
+    C_{ij}^{AB}(l) = N(l) \int d\chi_1 W_i^A(\chi_1) \int d\chi_2 W_j^B(\chi_2) \int dk k^2 P_{AB}(k,\chi_1,\chi_2) \frac{j_l(k\chi_1) j_l(k\chi_2)}{(k\chi_1)^\alpha(k\chi_2)^\beta}
+\label{eq8_blast}
+\end{equation}
+which is the challenging integral to compute. \\
+Let's write the three angular power spectra for the possible combination of probes. \\
+For galaxy clustering ($gg$), the power spectra is:
+\begin{equation}
+    C_{ij}^{gg}(l) = \frac{2}{\pi} \int_0^{\infty} d\chi_1 W_i^g(\chi_1) \int_0^{\infty} d\chi_2 W_j^g(\chi_2) \int_0^{\infty} dk k^2 P_{AB}(k,\chi_1,\chi_2) j_l(k\chi_1) j_l(k\chi_2)
+\label{eq15_blast}    
+\end{equation}
+where $P^{gg}(k,\chi_1, \chi_2)$ is the matter power spectrum and describes the amplitudes of density fluctuations at wavenumber $k \approx 1/l$. \\ 
+The matter power spectrum $P^{gg}(k,\chi)$ relates to the density fluctuations through the linear galaxy bias $b_g(\chi)$, viz: $P^{gg}(k,\chi) = b_g(\chi)^2 P_{\delta}(k, \chi)$. \\
+For weak lensing ($ss$), the power spectra is:
+\begin{equation}
+        C_{ij}^{ss}(l) = \frac{2(l+2)!}{\pi(l-2)!} \int_0^{\infty} d\chi_1 W_i^s(\chi_1) \int_0^{\infty} d\chi_2 W_j^s(\chi_2) \int_0^{\infty} dk k^2 P_{AB}(k,\chi_1,\chi_2) \frac{j_l(k\chi_1) j_l(k\chi_2)}{(k\chi_1)^2(k\chi_2)^2}
+\label{eq17_blast}    
+\end{equation}
+where in \ref{kernel_sh} the fraction outside the integral is related to the "strength" of the lens, $\chi$ is the comoving distance of the probe (far-away structures lens more), $P^{ss}(k,\chi_1, \chi_2)$ does not contain bias, like the galaxy power spectrum. \\ 
+The term $(k\chi)^2$ at the denominator in the integral comes from the spin-like nature of lensing: it's a second derivative of the lensing potential which returns $(ik)(ik) = -k^2$. \\
+It represents the fact that modes at large scales (small $l$) produce small shear, whereas modes at small scales (large $l$) produce large shear. \\
+For the cross-correlation ($gs$), the power spectra is:
+\begin{equation}
+        C_{ij}^{gs}(l) = \frac{2}{\pi} \sqrt\frac{(l+2)!}{(l-2)!} \int_0^{\infty} d\chi_1 W_i^g(\chi_1) \int_0^{\infty} d\chi_2 W_j^s(\chi_2) \int_0^{\infty} dk k^2 P_{AB}(k,\chi_1,\chi_2) \frac{j_l(k\chi_1)}{(k\chi_1)^2}j_l(k\chi_2)
+\label{eq19_blast}    
+\end{equation}
+The thing is: the oscillating integral is the inner one, the one in $k$. \\
+The other two, those in $\chi_1$ and $\chi_2$, are solvable with simple (and fast) quadrature rules. 
+The approach of the paper is to approximate the power spectrum through a decomposition with Chebyshev polynomials, obtaining\footnote{
+where: 
+    \begin{itemize}
+        \item $c_n(\chi_1, \chi_2; \theta)$ are the coefficients depending on the distance pairs $\chi_1$ and $\chi_2$, and $\theta$, which contain the cosmology parameters. These coefficients are computed only once;
+        \item $T_n(k)$ are the Chebyshev polynomials.
+    \end{itemize}
+The approximation used is the following: a function $f(x)$ can be approximated using interpolation at specific points, Chebyshev points, defined by: 
+\begin{equation}
+    t_n = cos(\frac{2n+1}{2N}\pi) 
+\label{eq25_blast}
+\end{equation}
+with $n = 0,1,...,N-1$. These points are defined in $[-1,1]$, and are denser near the edge of the interval. The interpolating polynomial $\hat{f}(x) \approx f(x)$ is:
+\begin{equation}
+    \hat{f}(x) = \sum_{n=0}^{N-1} c_n T_n(x)
+\label{eq26_blast}
+\end{equation}
+where $c_n$ can be obtained via a FFT transform:
+\begin{equation}
+    c_n = \sum_{j=0}^{N-1}f(x_j)e^{2i\pi j n/N}
+\label{eq29_blast}
+\end{equation}
+}:
+\begin{equation}
+    P(k,\chi_1, \chi_2;\theta) \approx \sum_{n = 0}^{n_{max}} c_n(\chi_1, \chi_2; \theta) T_n(k)
+\label{eq30_blast}
+\end{equation}
+The integral in $dk$ in \ref{eq8_blast} gets the approximation:
+\begin{equation}
+    w_l^{AB}(\chi_1,\chi_2;\theta) \equiv \sum_{n = 0}^{n_{max}} c_n(\chi_1, \chi_2; \theta) \tilde{T}_{n;l}^{AB}(\chi_1,\chi_2)
+\label{eq31_blast}
+\end{equation}
+where\footnote{
+where:
+\begin{equation}
+        f^{AB}(k) = \begin{cases} 
+                k^2 & AB = gg \\
+                1/k^2 & AB = ss \\
+                1 & AB = gs 
+                \end{cases}
+    \label{eq33_blast}
+    \end{equation}
+and $w_l^{AB}$ is the projected matter density. The $\tilde{T}_{n;l}^{AB}(\chi_1,\chi_2)$ is computed once for every pair $(n,l)$ and then stored. The cosmology is contained in the $\theta$ of the $c_n$, whereas the geometry is contained in $\tilde{T}_{n;l}^{AB}$.
+}
+\begin{equation}
+    \tilde{T}_{n;l}^{AB}(\chi_1,\chi_2) \equiv \int_{k_{min}}^{k_{max}} dk f^{AB}(k) T_n(k) j_l(k\chi_1) j_l(k\chi_2)
+\label{eq32_blast}
+\end{equation}
+The last thing one can do before translating in coding language the problem is to change the variables. One defines $R \equiv \chi_2/\chi_1$, obtaining a form for \ref{eq8_blast}:
+\begin{equation}
+    C_{ij}^{AB}(l) \approx \int d\chi_1 W_i^A(\chi_1) \int d\chi_2 {W}_j^B(\chi_2) w_l^{AB}(\chi_1,\chi_2;\theta) 
+\end{equation}
+that becomes after some work\footnote{
+The integral of the angular power spectrum can be symmetrized. Changing the notation for the kernel from $W_i(\chi)$ to $K_i(\chi_1)$ one gets:
+\begin{equation}
+\begin{split}
+    C_{ij}^{AB}(l) &=  \int_{0}^{\infty} d\chi_1 K_i^A(\chi_1) \int_{0}^{\infty} d\chi_2 K_j^B(\chi_1) w_{AB}(\chi_1,\chi_2) = \\
+                  &\quad \int_{0}^{\infty} d\chi_1 K_i^A(\chi_1) \int_{0}^{\chi_1} d\chi_2 K_j^B(\chi_2) w_{AB}(\chi_1,\chi_2) + 
+                  \int_{0}^{\infty} d\chi_2 K_j^B(\chi_2) \int_{0}^{\chi_2} d\chi_1 K_i^A(\chi_1) w_{AB}(\chi_2,\chi_1)
+\end{split}
+\label{eqA1_blast}
+\end{equation}
+in the first integral we are investigating the situation where $\chi_2 \leq \chi_1$, and we place $\chi_1 = \chi$, $R = \chi_2/\chi_1$. By computing the Jacobian, one gets that $d\chi_1 d\chi_2 = \chi d\chi dR$. In the second integral the situation is symmetric: $\chi_2 \geq \chi_1$, and we place $\chi_2 = \chi$, $R = \chi_1/\chi_2$. The Jacobian is the same. Inserting those relations into \ref{eqA1_blast}, one gets:
+\begin{equation}
+    C_{ij}^{AB}(l) =  \int_{0}^{\infty} d\chi \int_{0}^{1} dR \chi [\mathcal{K}_i^A(\chi) \mathcal{K}_j^B(R\chi) + \mathcal{K}_j^B(\chi) \mathcal{K}_i^A(R\chi)] 
+                        w_l^{AB}(\chi,R\chi) = \int_{0}^{\infty} d\chi \int_{0}^{1} dR \chi \tilde{\mathcal{K}}_i^{AB}(\chi, R\chi)w_{AB}(\chi,R\chi)
+\label{eqA2_blast}
+\end{equation}
+where $\mathcal{K}_i^A(\chi)$ is \ref{eq35_blast}
+}:
+\begin{equation}
+    C_{ij}^{AB}(l) = \int_{0}^{\infty} d\chi \int_{0}^{1} dR \chi [\mathcal{K}_i^A(\chi) \mathcal{K}_j^B(R\chi) + \mathcal{K}_j^B(\chi) \mathcal{K}_i^A(R\chi)] w_l^{AB}(\chi,R\chi) 
+\label{eq34_blast}
+\end{equation}
+with
+\begin{equation}
+    \mathcal{K}_i^A(\chi) = \begin{cases} 
+    K_i^A(\chi) & clustering \\
+    K_i^A(\chi)/\chi^2 & lensing
+                \end{cases}
+\label{eq35_blast}
+\end{equation}

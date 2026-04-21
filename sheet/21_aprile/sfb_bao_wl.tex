@@ -1,0 +1,83 @@
+\section{Spherical Fourier Bessel decomposition}
+From \cite{Rassat_Refregier_2012} and \cite{Castro_et_al_2005}. A scalar field 3D $f(\vec{\textbf{r}})$ defined at time $t$ (through a comoving distance $\chi$, for example), can be expressed in polar spherical coordinates through a vector $\vec{\textbf{r}}$ such $\vec{\textbf{r}} = (r, \theta, \phi)$. \\
+We assume a geometry spatially flat. \\
+Every field $f(\vec{\textbf{r}})$ can be written in this geometry in the following fashion\footnote{
+where:
+\begin{itemize}
+    \item $\sqrt{\frac{2}{\pi}}$ is a normalization coefficient;
+    \item the integral is computed on k, radial wavenumber, to include all the scales;
+    \item $f_{lm}(k)$ is the amplitude of the product of the spherical Bessel functions and the spherical harmonics $Y_{lm}(\theta, \phi)$. One interpretation: if the $|f_{lm}(k)|$ is large, the pattern is prominent, whereas it is negligible when $|f_{lm}(k)|$ is small. If null, the field has no component related to those mode $(l,m)$.
+    \item $j_l(kr)$ are the spherical Bessel functions. See [\ref{fourier_transforms_appendix}] for more details.
+    \item $Y_{lm}(\theta, \phi)$ are the spherical harmonics. See [\ref{SFB_appendix}] for more details.
+    \end{itemize}
+}:
+\begin{equation}
+\label{eq1_sfb_bao}
+    f(\vec{\textbf{r}}) = \sqrt{\frac{2}{\pi}} \sum_{l,m} \int_{0}^{\infty} dk f_{lm}(k) k j_l(kr) Y_{lm}(\theta, \phi)
+\end{equation}
+with coefficients:
+\begin{equation}
+\label{eq2_sfb_bao}
+    f_{lm}(k) = \sqrt{\frac{2}{\pi}} \sum_{l,m} \int d^3r f(\vec{\textbf{r}}) k j_l(kr) Y^*_{lm}(\theta, \phi)
+\end{equation}
+\ref{eq2_sfb_bao} is a generalised Fourier analysis, like the Cartesian Fourier analysis \ref{fourier_transform_1}. \\
+In a statistically homogeneous and isotropic universe, the two-point correlation function of the SFB coefficients, $C_l(k)$, would be:
+\begin{equation}
+\label{eq5_sfb_bao}    
+\langle f_{lm}(k) f^*_{l'm'}(k')\rangle = C_l(k) \delta(k-k') \delta_{ll'}\delta_{mm'}
+\end{equation}
+For $l\ne l'$, or $m \ne m'$, or yet $k \ne k'$, the modes are not correlated, and this quantity goes to zero. \\
+For correlated modes, one gets:
+\begin{equation}
+\langle |f_{lm}(k)|^2 \rangle = C_l(k)
+\end{equation}
+\ref{eq5_sfb_bao} is analogue to:
+\begin{equation}
+\label{eq6_sfb_bao}    
+\langle \hat{f}(\vec{\textbf{k}}) \hat{f}^*(\vec{\textbf{k}'}) \rangle = (2\pi)^3 P(k) \delta^3(\vec{\textbf{k}}-\vec{\textbf{k}'})
+\end{equation}
+with the difference that $P(k)$ depends on a 3D vector, $\vec{\mathbf{k}}$, or on a 1D scalar, $k = |\vec{\mathbf{k}}|$, when isotropic; whereas $C_l(k)$ depends on $l$ for the angular structure and on $k$ for the radial structure. \\
+When the filed is statistically homogeneous and isotropic, it stands the $radialisation$ theorem\footnote{
+one could try to prove this by writing something similar to Eq. (\ref{fourier_transform_2}):
+\begin{equation}
+    f(\vec{r}; \chi) = \frac{1}{(2\pi)^3} \int d^3\vec{\mathbf{k}} f(\vec{\mathbf{k}};\chi) e^{i\vec{\mathbf{k}}\cdot\vec{\mathbf{r}}}
+\end{equation}
+using \ref{eq3_blast} with $\hat{\mathbf{n}} = (\theta, \phi)$, with $d^3\vec{\mathbf{k}} = k^2 dk d\Omega_k$, and using the orthonormality condition for the spherical Bessel functions and the spherical harmonics, one gets:
+\begin{equation}
+    f_{lm}(k; \chi) = \frac{1}{\sqrt{(2\pi)^3}} k i^l \int d\Omega_k f(\vec{\mathbf{k}};\chi) Y_{lm}^*(\theta_k, \phi_k)
+\end{equation}
+Using this with Eq.(\ref{eq5_sfb_bao}), and Eq.(\ref{eq6_sfb_bao}), one gets the result.
+}, which states:
+\begin{equation}
+\label{eq7_sfb_bao}    
+C_l(k) = P(k)
+\end{equation}
+Isotropic here means that its statistical properties are the same in all dimensions, whereas homogeneous means that the power spectrum only depends on the separation between two probes. But in reality we do have variations of the isotropy, such as limited volume survey, radial selection functions, RSDs, and galaxy bias. \\
+To deal with this, one has to define:
+\begin{equation}
+\label{eq8_sfb_bao}   
+    f_{obs}(\vec{\textbf{r}}) = \phi(r) f(\vec{\textbf{r}})
+\end{equation}
+where $\phi(r)$ is a selection function (or window function) that can be decomposed into a \textit{radial} selection function $\phi_r(r)$ that addresses the effects related to redshift, such as flux limits and surface brightness limits; and a \textit{tangential} selection function $\phi_t(\theta,\phi)$, addressing the effects of incomplete sky coverage. [\cite{Rassat_Refregier_2012} work with $\phi_t(\theta,\phi) = 1$, assuming full-sky coverage]. \\
+$\phi(r)$ is normalised so that:
+\begin{equation}
+\label{eq19_sfb_bao}
+    \int d^3\vec{\mathbf{r}} \phi(\vec{\mathbf{r}}) = V
+\end{equation}
+with $V$ survey volume, so that $\phi \to 1$ when $V \to \infty$. \\
+The two-point correlation function in Fourier space becomes:
+\begin{equation}
+\label{eq11_sfb_bao}
+\langle f^{obs}_{lm}(k) f^{obs, *}_{l'm'}(k')\rangle = C^{obs}_l(k,k') \delta_{ll'}\delta_{mm'}
+\end{equation}
+where now is easy to see that the observed SFB power spectrum $C^{obs}_l(k,k')$ depends on $k$ and $k'$, not just on $|k-k'|$. \\
+One can obtain the observed SFB power spectrum $C^{obs}_l(k,k')$ using the 3D matter power spectrum $P(k)$:
+\begin{equation}
+\label{eq12_sfb_bao}
+    C^{obs}_l(k,k') = (\frac{2}{\pi})^2 \int dk'' k''^2 P(k')W_l(k,k'')W_l(k',k'')
+\end{equation}
+where $W_l(k,k'')$ is the window function:
+\begin{equation}
+    W_l(k,k'') = \int_{0}^{\infty} dr r^2 \phi(r) k j_l(kr) j_l(k'r)
+\end{equation}
+The window function is symmetric. 
