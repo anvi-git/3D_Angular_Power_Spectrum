@@ -1,0 +1,52 @@
+\subsection{Numerical Integration Schemes}\label{subsec:num_integration}
+
+This section reviews the primary numerical integration methods used for computing observables.
+
+\subsubsection{Quadrature-based integration}
+
+For 1D integrals of the form:
+
+\begin{equation}
+I = \int_a^b f(x) dx
+\end{equation}
+
+approximate as weighted sum of function values:
+
+\begin{equation}
+I \approx \sum_{i=1}^n w_i f(x_i)
+\end{equation}
+
+where $x_i$ are quadrature nodes and $w_i$ are weights.
+
+\subsubsection{Common quadrature rules}
+
+\begin{description}
+    \item[Gauss-Legendre]: Optimal for smooth functions; weights/nodes determined by orthogonal polynomials
+    \item[Gauss-Laguerre]: For integrals $\int_0^\infty e^{-x} f(x) dx$ (natural exponential decay)
+    \item[Adaptive (QuadGK)]: Subdivides domain; refines where error is large
+    \item[Clenshaw-Curtis]: Uses Chebyshev nodes; fast FFT-based evaluation
+\end{description}
+
+\subsubsection{Composite integration}
+
+For integrals with multiple peaks or wide dynamic range:
+
+\begin{equation}
+I = \sum_k \int_{a_k}^{b_k} f(x) dx \approx \sum_k Q_k[f]
+\end{equation}
+
+Apply quadrature to each sub-domain $[a_k, b_k]$, then sum.
+
+\subsubsection{Cosmological examples}
+
+Many cosmological integrals have special structure:
+
+\begin{itemize}
+    \item \textbf{Comoving distance}: $\chi(z) = \int_0^z \frac{dz'}{E(z')}$ → smooth, monotonic integrand
+    \item \textbf{Lensing kernels}: $W_\ell(k) = \int d\chi \, \phi(\chi) j_\ell(k\chi)$ → oscillatory Bessel function
+    \item \textbf{Power spectrum convolution}: $\int dk k^2 P(k) W(k)$ → power-law decay
+\end{itemize}
+
+Each requires adapted strategy (see next sections).
+
+See \cref{subsec:num_quadrature} for specific quadrature algorithms.

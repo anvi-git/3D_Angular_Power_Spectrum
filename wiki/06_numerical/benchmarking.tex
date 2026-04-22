@@ -1,0 +1,55 @@
+\subsection{Benchmarking and Validation}\label{subsec:num_benchmarking}
+
+This section discusses how to verify numerical calculations and compare against other methods.
+
+\subsubsection{Convergence tests}
+
+Vary integration tolerance and check convergence:
+
+\begin{equation}
+\left| C_\ell^{(\text{tol}_1)} - C_\ell^{(\text{tol}_2)} \right| < 0.01 \times C_\ell^{(\text{tol}_1)}
+\end{equation}
+
+If not satisfied, increase tolerance (reduce error).
+
+\subsubsection{Limber limit validation}
+
+For large $\ell$ (high multipoles), the Limber approximation should match full 3D calculation:
+
+\begin{equation}
+\left| \frac{C_\ell^{(\text{Limber})} - C_\ell^{(3D)}}{C_\ell^{(\text{Limber})}} \right| < 0.01 \quad \text{for } \ell > 100
+\end{equation}
+
+Deviations indicate numerical issues or incorrect kernel implementation.
+
+\subsubsection{Comparison with literature benchmarks}
+
+- BLAST paper provides reference $C_\ell$ values for specific cosmologies
+- LSST DESC produces public forecasts (available online)
+- N-body simulations (e.g., Illustris, EAGLE) provide ground-truth power spectra
+
+\subsubsection{Unit tests}
+
+\textbf{Example}: Test that spherical Bessel orthonormality integral equals expected value
+
+\begin{equation}
+\text{Result} = \int_0^\infty r^2 j_\ell(kr) j_\ell(k'r) dr
+\end{equation}
+
+Should equal $\frac{\pi}{2k^2} \delta(k-k')$ (or close for numerical $k, k'$).
+
+\subsubsection{Profiling and timing}
+
+Use `@time` or `@benchmark` (BenchmarkTools.jl) to identify bottlenecks:
+
+\begin{itemize}
+    \item Profile entire pipeline (Bessel → kernel → convolution)
+    \item Typical timings: Bessel evaluation (60\%), integration (30\%), overhead (10\%)
+    \item Goal: < 1 second per $C_\ell$ calculation on modern hardware
+\end{itemize}
+
+\remark{
+Consistent timing and convergence with tighter tolerances builds confidence in results. Always compare against a known-good method before trusting new code.
+}
+
+See \cref{ch:numerical} for more on numerical strategies and \cref{subsec:num_performance} for optimization.

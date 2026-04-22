@@ -1,0 +1,77 @@
+\subsection{Cosmological Model and Parameters}\label{subsec:background_model}
+
+This subsection introduces the standard cosmological model and key parameters that describe the expanding universe.
+
+The universe is assumed to be homogeneous and isotropic on large scales (above $\sim 100$ Mpc). Under the assumption of spatial flatness (consistent with observations), the metric is:
+
+\begin{equation}
+ds^2 = -dt^2 + a(t)^2 (dx^2 + dy^2 + dz^2)
+\end{equation}
+
+where $a(t)$ is the scale factor and $(x,y,z)$ are comoving coordinates.
+
+\subsubsection{Friedmann Equations}
+
+The evolution of $a(t)$ is governed by Einstein's field equations in the form of the Friedmann equations:
+
+\begin{equation}
+H(a)^2 \equiv \left(\frac{1}{a}\frac{da}{dt}\right)^2 = \frac{8\pi G}{3} \rho_{\mathrm{tot}}(a)
+\end{equation}
+
+\begin{equation}
+\frac{1}{a}\frac{d^2a}{dt^2} = -\frac{4\pi G}{3}(\rho + 3p)
+\end{equation}
+
+where $H(a)$ is the Hubble parameter, $\rho$ is density, and $p$ is pressure.
+
+\subsubsection{Density Parameters}
+
+For a flat universe, we define dimensionless density parameters:
+
+\begin{equation}
+\Om = \frac{\rho_m}{\rho_c}, \quad \OL = \frac{\rho_\Lambda}{\rho_c}, \quad \Ob = \frac{\rho_b}{\rho_c}
+\end{equation}
+
+where $\rho_c = 3H_0^2/(8\pi G)$ is the critical density today.
+
+Flatness requires $\Om + \OL + \Ok = 1$ (where $\Ok$ is curvature density).
+
+For the current epoch ($z=0$):
+\begin{itemize}
+    \item $\Om \approx 0.315$ (mostly dark matter)
+    \item $\OL \approx 0.685$ (dark energy, likely cosmological constant)
+    \item $\Ob \approx 0.049$ (baryons only)
+\end{itemize}
+
+\subsubsection{Normalized Hubble Parameter}
+
+It is convenient to work with the normalized Hubble parameter:
+
+\begin{equation}
+E(a) = \frac{H(a)}{H_0} = \sqrt{\Om a^{-3} + \OL + \Ok a^{-2}}
+\end{equation}
+
+or in terms of redshift $z = 1/a - 1$:
+
+\begin{equation}
+E(z) = \sqrt{\Om (1+z)^3 + \OL}
+\label{eq:Hz_standard}
+\end{equation}
+
+(assuming flatness, $\Ok=0$).
+
+\remark{
+The Hubble constant $H_0 \approx 67.4 \pm 0.5 \, \mathrm{km \, s^{-1} \, Mpc^{-1}}$ (Planck 2018). This is one of the most precisely measured quantities in cosmology, though recent measurements show tension with local measurements.
+}
+
+\subsubsection{Redshift Relation}
+
+Redshift is related to the scale factor by:
+
+\begin{equation}
+1 + z = \frac{1}{a}
+\end{equation}
+
+At present ($z=0$), $a=1$. At earlier times, $a < 1$ and $z > 0$. This provides a direct observational window into the universe's expansion history.
+
+See \nameref{subsec:background_evolution} for how $a(t)$ evolves with time.

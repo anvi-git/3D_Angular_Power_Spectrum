@@ -1,0 +1,36 @@
+\subsection{Redshift Binning and Photo-z Effects}\label{subsec:obs_redshift_binning}
+
+This section addresses how redshift information enters observables through photometric redshifts and redshift bins.
+
+\subsubsection{Redshift distribution}
+
+For a photometric survey, sources are divided into bins $i, j$ with distribution $\frac{dn_i}{dz}(z)$.
+
+The lensing kernel for bin $i$ is:
+
+\begin{equation}
+W^i(\chi) = \int dz \, \frac{dn_i}{dz}(z) \, W(\chi(z))
+\end{equation}
+
+where $W(\chi)$ is the lensing efficiency per unit distance.
+
+\subsubsection{Cross-spectrum between bins}
+
+Angular power spectra between different redshift bins are:
+
+\begin{equation}
+C_\ell^{ij} = \int_0^\infty \frac{dk}{2\pi^2} k^2 P(k) \left[\int d\chi \, \phi_i(\chi) j_\ell(k\chi)\right] \left[\int d\chi' \, \phi_j(\chi') j_\ell(k\chi')\right]
+\end{equation}
+
+If bins overlap in redshift, $C_\ell^{ij} \neq 0$ even for $i \neq j$ (correlation from common sources).
+
+\subsubsection{Photo-z uncertainties}
+
+Photometric redshifts have errors $\sigma_z \sim 0.01--0.05$ (relative). Effects:
+- Broadens effective $\phi_i(\chi)$
+- Causes bin-to-bin cross-contamination
+- Biases $C_\ell$ measurements at level $\sim \sigma_z^2$
+
+Must include photo-z covariance in analysis.
+
+See \cref{subsec:obs_cross_spectra} for more on bin combinations.

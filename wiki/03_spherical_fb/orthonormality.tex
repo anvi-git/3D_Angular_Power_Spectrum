@@ -1,0 +1,55 @@
+\subsection{Orthonormality and Completeness}\label{subsec:sfb_orthonormality}
+
+This section establishes that the SFB basis is orthonormal and complete, justifying its use for decomposing any field.
+
+\subsubsection{Orthonormality of Bessel functions}
+
+The spherical Bessel functions satisfy:
+
+\begin{equation}
+\int_0^\infty r^2 j_\ell(kr) j_\ell(k'r) dr = \frac{\pi}{2k^2} \delta(k - k')
+\label{eq:bessel_ortho}
+\end{equation}
+
+This relation is the analog of orthonormality for plane waves: $\int e^{ikx} e^{ik'x} dx \propto \delta(k-k')$.
+
+\subsubsection{Orthonormality of spherical harmonics}
+
+Standard spherical harmonics satisfy:
+
+\begin{equation}
+\int d\Omega \, Y_{\ell m}(\theta, \phi) Y^*_{\ell' m'}(\theta, \phi) = \delta_{\ell\ell'} \delta_{mm'}
+\label{eq:harmonic_ortho}
+\end{equation}
+
+where $d\Omega = \sin\theta \, d\theta \, d\phi$.
+
+\subsubsection{Combined orthonormality of SFB basis}
+
+Multiplying \cref{eq:bessel_ortho} by \cref{eq:harmonic_ortho}, the full SFB basis is orthonormal:
+
+\begin{equation}
+\int_0^\infty dr \, r^2 \int d\Omega \, 
+j_\ell(kr) Y_{\ell m}(\theta, \phi) \, j_{\ell'}(k'r) Y^*_{\ell' m'}(\theta, \phi)
+= \frac{\pi}{2k^2} \delta(k-k') \delta_{\ell\ell'} \delta_{mm'}
+\label{eq:sfb_ortho_full}
+\end{equation}
+
+The normalization factors $\sqrt{2/\pi}$ and $k$ in the expansion \cref{eq:sfb_synthesis} ensure unit norm.
+
+\subsubsection{Completeness}
+
+The SFB functions form a complete set on the domain $r \in [0, \infty), \theta \in [0, \pi], \phi \in [0, 2\pi)$. Any square-integrable function can be expanded:
+
+\begin{equation}
+f(\mathbf{r}) = \sqrt{\frac{2}{\pi}} \int_0^\infty dk \sum_{\ell m} f_{\ell m}(k) k j_\ell(kr) Y_{\ell m}(\theta, \phi)
+\label{eq:sfb_complete}
+\end{equation}
+
+with convergence in the $L^2$ norm (mean-square sense).
+
+\remark{
+These orthonormality relations are the foundation for all SFB computations. Any inner product of two fields can be reduced to a simple product of their coefficients, eliminating integrals over $\mathbf{r}$.
+}
+
+See \cref{subsec:sfb_expansion} for how to compute SFB coefficients and \cref{ch:3d_ps} for power spectrum applications.

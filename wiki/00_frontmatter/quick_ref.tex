@@ -1,0 +1,133 @@
+\section{Quick Reference: Key Equations}\label{sec:quick_ref}
+
+This section collects the most frequently used equations and formulas for quick lookup.
+
+\subsection{Cosmological Background}\label{subsec:qr_background}
+
+\begin{equation}
+E(z) = \frac{H(z)}{H_0} = \left[\Om (1+z)^3 + \OL\right]^{1/2}
+\label{eq:qr_Hz}
+\end{equation}
+
+\begin{equation}
+\chi(z) = \int_0^z \frac{dz'}{H(z')/H_0} = \int_0^z \frac{dz'}{E(z')}
+\label{eq:qr_chi}
+\end{equation}
+
+\begin{equation}
+D_A(z) = \frac{\chi(z)}{1+z}
+\label{eq:qr_Da}
+\end{equation}
+
+\subsection{Power Spectrum: Cartesian Fourier}\label{subsec:qr_pk}
+
+\begin{equation}
+\langle \tilde{\delta}(\mathbf{k}) \tilde{\delta}^*(\mathbf{k}') \rangle = (2\pi)^3 P(k) \delta^3(\mathbf{k} - \mathbf{k}')
+\label{eq:qr_power}
+\end{equation}
+
+\begin{equation}
+\xi(r) = \frac{1}{2\pi^2} \int_0^\infty dk \, k^2 P(k) j_0(kr)
+\label{eq:qr_corrfunc}
+\end{equation}
+
+\subsection{Spherical Decomposition}\label{subsec:qr_spherical}
+
+\begin{equation}
+f(\mathbf{r}) = \sqrt{\frac{2}{\pi}} \int_0^\infty dk \sum_{\ell m} f_{\ell m}(k) k j_\ell(kr) Y_{\ell m}(\theta, \phi)
+\label{eq:qr_sfb_expansion}
+\end{equation}
+
+\begin{equation}
+f_{\ell m}(k) = \sqrt{\frac{2}{\pi}} \int_0^\infty dr \, r^2 \int d\Omega \, f(\mathbf{r}) k j_\ell(kr) Y^*_{\ell m}(\theta, \phi)
+\label{eq:qr_sfb_inverse}
+\end{equation}
+
+\begin{equation}
+\int_0^\infty j_\ell(kr) j_\ell(k'r) r^2 dr = \frac{\pi}{2k^2} \delta(k - k')
+\label{eq:qr_bessel_ortho}
+\end{equation}
+
+\subsection{3D Power Spectrum in SFB}\label{subsec:qr_3dps}
+
+\begin{equation}
+\langle f_{\ell m}(k) f^*_{\ell' m'}(k') \rangle = C_\ell(k) \delta(k - k') \delta_{\ell\ell'} \delta_{mm'}
+\label{eq:qr_sfb_power}
+\end{equation}
+
+Under \SIH:
+\begin{equation}
+C_\ell(k) = P(k) \quad \text{(independent of $\ell, m$)}
+\label{eq:qr_isotropy}
+\end{equation}
+
+\subsection{Angular Power Spectrum (Limber)}\label{subsec:qr_limber}
+
+\begin{equation}
+C_\ell^{AB} = \int_0^\infty \frac{d\chi}{\chi^2} W_A(\chi) W_B(\chi) P(k = (\ell + 1/2)/\chi, \chi)
+\label{eq:qr_limber_cl}
+\end{equation}
+
+where $W_A(\chi), W_B(\chi)$ are lensing kernels for tracers A, B.
+
+\subsection{Weak Lensing Fields}\label{subsec:qr_lensing}
+
+Convergence from potential:
+\begin{equation}
+\kappa_{\ell m} = \frac{\ell(\ell+1)}{2} \varphi_{\ell m}
+\label{eq:qr_kappa_phi}
+\end{equation}
+
+Convergence power spectrum:
+\begin{equation}
+P_\kappa(k) = \left(\int dz \frac{dn}{dz} W^\kappa(z)\right)^2 P(k)
+\label{eq:qr_pkappa}
+\end{equation}
+
+Convergence kernel:
+\begin{equation}
+W^\kappa(z) = \frac{3}{2} H_0^2 \Om (1+z) D_+(z) \int_z^\infty dz' \frac{dn}{dz'} \frac{\chi(z') - \chi(z)}{\chi(z')}
+\label{eq:qr_wkappa}
+\end{equation}
+
+\subsection{Numerical Integration Formulas}\label{subsec:qr_numerical}
+
+Gauss-Legendre quadrature (adaptive):
+\begin{equation}
+\int_a^b f(x) dx \approx \sum_{i=1}^n w_i f(x_i)
+\label{eq:qr_quadgk}
+\end{equation}
+
+Where $x_i$ and $w_i$ are quadrature nodes and weights, $n$ is order.
+
+Spherical Bessel recurrence:
+\begin{equation}
+j_{\ell-1}(x) + j_{\ell+1}(x) = \frac{2\ell+1}{x} j_\ell(x)
+\label{eq:qr_bessel_recur}
+\end{equation}
+
+\subsection{Commonly Used Numbers}\label{subsec:qr_numbers}
+
+\begin{itemize}
+    \item $H_0 \approx 67.4 \pm 0.5 \, \mathrm{km \, s^{-1} \, Mpc^{-1}}$ (Planck 2018)
+    \item $\Om \approx 0.315$ (matter density today)
+    \item $\OL \approx 0.685$ (dark energy today)
+    \item $\Ob \approx 0.049$ (baryon density today)
+    \item $D_+ \approx a$ at late times (scale factor approximation)
+    \item $z \sim 0.5$--$2.0$ typical for galaxy surveys
+    \item $k \sim 0.01$--$1 \, h \, \mathrm{Mpc}^{-1}$ typical for cosmological scales
+\end{itemize}
+
+\subsection{Quick Conversions}\label{subsec:qr_conversions}
+
+\begin{itemize}
+    \item Wavenumber to scale: $\lambda = 2\pi / k$
+    \item Angular scale to multipole: $\ell \approx \pi / \theta$ (for small $\theta$ in radians)
+    \item Redshift to scale factor: $a = 1 / (1 + z)$
+    \item $h = H_0 / (100 \, \mathrm{km \, s^{-1} \, Mpc^{-1}})$ (reduced Hubble)
+\end{itemize}
+
+---
+
+\noindent
+\textbf{Tip}: Bookmark this page for reference while reading the main content. Use \texttt{Ctrl+F} to search for specific equations.

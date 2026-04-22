@@ -1,0 +1,132 @@
+\section{Introduction}\label{sec:intro}
+
+This wiki is a comprehensive, rigorously written exposition of the theory and methods underlying 3D power spectrum computations in cosmology, with emphasis on the **Spherical Fourier-Bessel (SFB) framework** for weak lensing and large-scale structure.
+
+\subsection{Motivation and Scope}\label{subsec:intro_motivation}
+
+Modern cosmological surveys measure the distribution of matter and galaxies across large volumes of the universe, as a function of both angular position on the sky and distance (through redshift). Traditional \hyperlink{sec:limber}{Limber approximation} approaches reduce these 3D measurements to 2D angular power spectra, sacrificing information about the full 3D structure.
+
+This wiki develops the complete mathematical and computational framework for:
+
+\begin{itemize}
+    \item Computing **full 3D power spectra** without the Limber flat-sky approximation
+    \item Decomposing 3D fields on the \sfb\ basis, which naturally respects spherical geometry
+    \item Connecting 3D power spectra to observable **weak lensing convergence and shear**
+    \item Implementing efficient numerical integration schemes for cosmological observables
+    \item Validating results against Limber benchmarks and physical consistency checks
+\end{itemize}
+
+\subsection{Who Should Read This Wiki?}\label{subsec:intro_audience}
+
+\begin{description}
+    \item[Cosmology students] seeking a rigorous exposition of power spectrum theory beyond textbooks
+    \item[Researchers] working on large-scale structure or weak lensing with 3D information
+    \item[Developers] implementing numerical codes for cosmological computations
+    \item[Internship participants] in this project, needing a single reference for all theory
+\end{description}
+
+\subsection{Organization and How to Use This Wiki}\label{subsec:intro_organization}
+
+The wiki is organized into **seven chapters**:
+
+\begin{enumerate}
+    \item \textbf{\cref{ch:background}} (\nameref{ch:background}): Cosmological background evolution, distances, and expansion history
+    \item \textbf{\cref{ch:power_spectrum}} (\nameref{ch:power_spectrum}): Power spectrum foundations in Cartesian Fourier space, statistical ensembles, and the matter fluctuation field
+    \item \textbf{\cref{ch:sfb}} (\nameref{ch:sfb}): Introduction to spherical harmonics, spherical Bessel functions, and the \sfb\ basis expansion
+    \item \textbf{\cref{ch:3d_ps}} (\nameref{ch:3d_ps}): 3D power spectrum decomposed in \sfb\ coordinates; relates to Limber and angular power spectra
+    \item \textbf{\cref{ch:weak_lensing}} (\nameref{ch:weak_lensing}): Weak gravitational lensing geometry, convergence/shear fields, and their 3D power spectra
+    \item \textbf{\cref{ch:observables}} (\nameref{ch:observables}): Observable angular power spectra from 3D fields; redshift binning; cross-spectra between tracers
+    \item \textbf{\cref{ch:numerical}} (\nameref{ch:numerical}): Numerical integration strategies, quadrature rules, and performance considerations
+\end{enumerate}
+
+\subsection{How to Navigate}\label{subsec:intro_navigate}
+
+\begin{itemize}
+    \item **Start here**: Read \nameref{sec:intro} (this section), then \nameref{sec:notation}
+    \item **Quick reference**: See \nameref{sec:quick_ref} for common equations and formulas
+    \item **Concept index**: \nameref{sec:concept_index} lists all major concepts with page references
+    \item **Cross-links**: All sections are linked via clickable hyperlinks (blue text) and \texttt{\textbackslash autoref} references like ``\autoref{sec:intro}''
+    \item **PDF search**: Use your PDF viewer's search to find specific terms (all concepts are indexed)
+\end{itemize}
+
+\subsection{Prerequisites}\label{subsec:intro_prereq}
+
+Readers should be familiar with:
+
+\begin{itemize}
+    \item Basic cosmology: Friedmann equations, scale factor, comoving coordinates
+    \item Fourier analysis: plane waves, Fourier transforms, convolutions
+    \item Spherical harmonics and orthonormal function spaces
+    \item Perturbation theory and correlation functions
+    \item Linear algebra and tensor notation
+\end{itemize}
+
+For those needing a refresher, references to standard textbooks appear throughout.
+
+\subsection{Notation and Conventions}\label{subsec:intro_notation}
+
+Mathematical notation follows standard cosmology conventions (see \nameref{sec:notation} for complete reference):
+
+\begin{itemize}
+    \item $k$ denotes wavenumber in the Fourier domain
+    \item $\ell$ is the angular multipole order (related to angular scales)
+    \item $z$ or $a$ denotes redshift or scale factor
+    \item $\chi$ is comoving distance
+    \item $P(k)$ is the 3D isotropic power spectrum
+    \item $C_\ell$ is the angular power spectrum
+    \item All integrals are in natural units where $\hbar = c = 1$ unless otherwise stated
+\end{itemize}
+
+\subsection{Structure of Each Section}\label{subsec:intro_structure}
+
+Each topic is organized as follows:
+
+\begin{enumerate}
+    \item \textbf{Conceptual introduction}: Physical meaning and intuition
+    \item \textbf{Mathematical definitions}: Rigorous equations with all terms explained
+    \item \textbf{Examples}: Concrete applications or numerical illustrations
+    \item \textbf{Links to related concepts}: Cross-references to prerequisites and dependent topics
+    \item \textbf{Remarks}: Physical interpretation, limitations, and extensions
+\end{enumerate}
+
+\subsection{On Maintaining This Wiki}\label{subsec:intro_maintain}
+
+This wiki is designed to be maintained and extended daily. See \texttt{README\_WIKI.md} for detailed maintenance instructions:
+
+\begin{itemize}
+    \item Each concept lives in a separate \texttt{.tex} file
+    \item All cross-references use \texttt{\textbackslash label} and \texttt{\textbackslash autoref}
+    \item New sections are added to appropriate folders without modifying other files
+    \item The master document (\texttt{wiki\_main.tex}) includes all sections in a fixed order
+\end{itemize}
+
+To add a new concept:
+\begin{enumerate}
+    \item Create \texttt{SECTION/my\_concept.tex}
+    \item Write with structure: \texttt{\textbackslash section\{...\}\textbackslash label\{sec:...\}}
+    \item Include in \texttt{wiki\_main.tex}
+    \item Add entry to \texttt{index\_concepts.tex}
+    \item Link from related concepts using \texttt{\textbackslash autoref\{\}}
+\end{enumerate}
+
+\subsection{Key References}\label{subsec:intro_references}
+
+This wiki draws on:
+
+\begin{itemize}
+    \item BLAST survey paper: \cite{BLAST2024}
+    \item Standard cosmology texts: Dodelson \& Schmidt, Peebles, Liddle \& Lyth
+    \item Spherical Fourier-Bessel methods: \cite{SFB_methods}
+    \item Weak lensing theory: \cite{WeakLensingReview}
+\end{itemize}
+
+All citations appear in the References section at the end.
+
+\subsection{Questions and Feedback}\label{subsec:intro_feedback}
+
+This wiki is a living document. Issues, clarifications, and additional examples are welcomed. Please refer to the repository documentation for contribution guidelines.
+
+---
+
+\noindent
+\textbf{Ready to dive in?} Start with \nameref{sec:notation}, then proceed to \cref{ch:background}.

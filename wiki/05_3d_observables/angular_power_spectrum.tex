@@ -1,0 +1,37 @@
+\subsection{Angular Power Spectrum from 3D Power}\label{subsec:obs_angular_ps}
+
+This section shows how to compute the observable 2D angular power spectra from 3D power spectra.
+
+\subsubsection{Projection integral}
+
+From a 3D field at fixed redshift $z$, the angular power spectrum is:
+
+\begin{equation}
+C_\ell = \int_0^\infty \frac{dk}{2\pi^2} k^2 C_\ell(k) W^2_\ell(k)
+\end{equation}
+
+where $W_\ell(k)$ is a window function encoding the survey selection in that redshift bin.
+
+\subsubsection{Limber approximation}
+
+For large $\ell$ and smooth selection functions, the Limber approximation simplifies:
+
+\begin{equation}
+C_\ell^{\text{Limber}} \approx \int_0^\infty \frac{d\chi}{\chi^2} W(\chi) P\left(k = \frac{\ell + 1/2}{\chi}, \chi\right)
+\end{equation}
+
+This replaces the integral over wavenumbers with an evaluation at effective wavenumber $k \approx \ell/\chi$.
+
+**Validity**: $\ell \gg 1$ and $\Delta\chi \ll \chi$ (smooth selection in redshift).
+
+\subsubsection{Beyond Limber}
+
+For accurate treatment at all $\ell$, must compute full convolution:
+
+\begin{equation}
+C_\ell = \int_0^\infty \frac{dk}{2\pi^2} k^2 P(k) \left[\int_0^\infty d\chi \, \phi(\chi) j_\ell(k\chi)\right]^2
+\end{equation}
+
+This captures the full 3D structure, not just the diagonal $k = \ell/\chi$ modes.
+
+See \cref{subsec:obs_redshift_binning} for multi-bin cross-spectra.

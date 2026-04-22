@@ -1,0 +1,49 @@
+\subsection{Cross-Spectra Between Observables}\label{subsec:obs_cross_spectra}
+
+This section discusses cross-correlations between different tracers (convergence × convergence, convergence × clustering, etc.).
+
+\subsubsection{Auto vs cross-spectra}
+
+- **Auto-spectrum** ($i = j$): $C_\ell^{ii} = C_\ell^{AA \times AA}$ (self-correlation)
+- **Cross-spectrum** ($i \neq j$): $C_\ell^{ij}$ (correlation between different tracers or bins)
+
+\subsubsection{Convergence × convergence}
+
+Angular power spectrum of weak lensing convergence:
+
+\begin{equation}
+C_\ell^{\kappa\kappa} = \int_0^\infty \frac{dk}{2\pi^2} k^2 P(k) \left[\int d\chi \, W^\kappa(\chi) j_\ell(k\chi)\right]^2
+\end{equation}
+
+Measured by galaxy shape distortions (cosmic shear).
+
+\subsubsection{Clustering × clustering}
+
+Angular power spectrum of galaxy positions:
+
+\begin{equation}
+C_\ell^{\delta\delta} = \int_0^\infty \frac{dk}{2\pi^2} k^2 P(k) \left[\int d\chi \, W^\delta(\chi) j_\ell(k\chi)\right]^2
+\end{equation}
+
+where $W^\delta(\chi) = n(\chi) b(\chi) D_+(\chi)$.
+
+Measured by galaxy clustering (photometric or spectroscopic).
+
+\subsubsection{Convergence × clustering (cross-signal)}
+
+Cross-correlation between lensing convergence and galaxy clustering:
+
+\begin{equation}
+C_\ell^{\kappa\delta} = \int_0^\infty \frac{dk}{2\pi^2} k^2 P(k) \left[\int d\chi \, W^\kappa(\chi) j_\ell(k\chi)\right] \left[\int d\chi \, W^\delta(\chi) j_\ell(k\chi)\right]
+\end{equation}
+
+This cross-signal is powerful for cosmology because:
+- Independent source of 3D information
+- Cross-covariance with auto-spectra is typically small
+- Breaks degeneracies in bias and growth
+
+\remark{
+Cross-correlations are often cleaner than individual auto-spectra because many systematics (shot noise, PSF effects) don't correlate between independent measurements.
+}
+
+See \cref{subsec:obs_redshift_binning} for how bins combine in cross-spectra.

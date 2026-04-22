@@ -1,0 +1,37 @@
+\subsection{Spin-Weight Spherical Harmonics}\label{subsec:wl_spin_harmonics}
+
+This section introduces spin-weighted harmonics needed to decompose tensor fields like shear.
+
+\subsubsection{Spin weight concept}
+
+A quantity with spin weight $s$ transforms as $e^{is\alpha}$ under a rotation by angle $\alpha$ about the radial axis.
+
+- Scalars (convergence): $s = 0$ → use standard $Y_{\ell m}$
+- Shear (tidal distortion): $s = \pm 2$ → use ${}_{\pm 2}Y_{\ell m}$
+
+\subsubsection{E/B decomposition}
+
+Shear expands as:
+
+\begin{equation}
+\gamma = \sum_{\ell m} \left[\gamma^E_{\ell m} {}_{-2}Y_{\ell m} + \gamma^B_{\ell m} {}_{+2}Y_{\ell m}\right]
+\end{equation}
+
+**E-modes** ($\gamma^E$): Curl-free; sourced by lensing potential  
+**B-modes** ($\gamma^B$): Curl-like; zero for pure gravity (systematics indicator)
+
+\subsubsection{Harmonics from lensing potential}
+
+In harmonic space:
+
+\begin{equation}
+\kappa_{\ell m} = \frac{\ell(\ell+1)}{2} \psi_{\ell m}
+\end{equation}
+
+\begin{equation}
+\gamma^E_{\ell m} = \frac{(\ell-1)(\ell+2)}{2} \psi_{\ell m}
+\end{equation}
+
+These algebraic relations follow from Laplacian (→ $\ell(\ell+1)$) and higher derivatives on the sphere.
+
+See \cref{subsec:wl_convergence_shear} for definitions of $\kappa$ and $\gamma$.

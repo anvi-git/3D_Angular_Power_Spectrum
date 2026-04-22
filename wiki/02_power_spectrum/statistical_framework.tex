@@ -1,0 +1,51 @@
+\subsection{Statistical Framework: Ensemble Averages and Power Spectra}\label{subsec:ps_statistical}
+
+This subsection formalizes the statistical framework for power spectra using ensemble averaging over possible universe realizations.
+
+\subsubsection{Ensemble average and ergodicity}
+
+For a random field like cosmic density fluctuations, we define ensemble averages over all possible realizations of the universe (even though we observe only one). Under the cosmological principle (isotropy and homogeneity), ensemble statistics are equivalent to spatial averages for stationary fields:
+
+\begin{equation}
+\langle f(\mathbf{x}) g(\mathbf{x}') \rangle = \text{Ensemble average}
+\end{equation}
+
+For homogeneous fields, the two-point correlation function depends only on separation $\mathbf{r} = \mathbf{x} - \mathbf{x}'$:
+
+\begin{equation}
+\xi(r) = \langle f(\mathbf{x}) f(\mathbf{x} + \mathbf{r}) \rangle - \langle f \rangle^2
+\end{equation}
+
+\subsubsection{Definition of power spectrum}
+
+The power spectrum is the Fourier transform of the correlation function (Wiener-Khinchin theorem):
+
+\begin{equation}
+P(k) = \int d^3\mathbf{r} \, \xi(r) \, e^{i\mathbf{k} \cdot \mathbf{r}}
+\end{equation}
+
+Equivalently, in terms of Fourier coefficients:
+
+\begin{equation}
+\langle \tilde{f}(\mathbf{k}) \tilde{f}^*(\mathbf{k}') \rangle = (2\pi)^3 P(k) \delta^3(\mathbf{k} - \mathbf{k}')
+\label{eq:power_spectrum_def}
+\end{equation}
+
+For isotropic fields, $P(k)$ depends only on wavenumber magnitude $k = |\mathbf{k}|$.
+
+\remark{
+The delta function enforces that different wavenumber modes are uncorrelated (by isotropy). The factor $(2\pi)^3$ is a normalization convention arising from Fourier conventions.
+}
+
+\subsubsection{Dimensional analysis}
+
+In 3D Fourier space:
+- $P(k)$ has dimensions of $[\text{length}]^3$ (volume in Fourier space)
+- $P(k) \, dk$ represents the contribution to total variance from modes in the range $[k, k+dk]$
+
+The total variance is:
+\begin{equation}
+\sigma^2 = \int_0^\infty \frac{dk}{2\pi^2} k^2 P(k)
+\end{equation}
+
+See \cref{subsec:ps_cartesian} for Cartesian Fourier conventions and \nameref{subsec:ps_spherical} for spherical decompositions.

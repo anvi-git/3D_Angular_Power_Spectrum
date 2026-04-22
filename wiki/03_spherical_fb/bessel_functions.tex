@@ -1,0 +1,40 @@
+\subsection{Spherical Bessel Functions}\label{subsec:sfb_bessel}
+
+This section introduces spherical Bessel functions, which form the radial basis for 3D field decompositions in spherical coordinates.
+
+\subsubsection{Definition and properties}
+
+The spherical Bessel function of order $\ell$ is defined by:
+
+\begin{equation}
+j_\ell(x) = \sqrt{\frac{\pi}{2x}} J_{\ell+1/2}(x)
+\end{equation}
+
+where $J_\nu$ is the Cylindrical Bessel function. Alternatively, a recurrence relation defines them:
+
+\begin{equation}
+j_\ell(x) = \frac{\ell}{x} j_{\ell-1}(x) - j'_{\ell-1}(x)
+\end{equation}
+
+with initial conditions:
+\begin{align}
+j_0(x) &= \frac{\sin x}{x}\\
+j_1(x) &= \frac{\sin x}{x^2} - \frac{\cos x}{x}
+\end{align}
+
+\subsubsection{Asymptotic behavior}
+
+- **Small argument** ($x \ll \ell$): $j_\ell(x) \approx \frac{x^\ell}{(2\ell+1)!!}$
+- **Large argument** ($x \gg \ell$): $j_\ell(x) \approx \frac{\sin(x - \ell\pi/2)}{x}$
+
+\subsubsection{Zeros and roots}
+
+The $n$-th zero of $j_\ell(x)$ is denoted $x_{\ell,n}$. These are essential for defining SFB radial grids.
+
+\example{
+For $\ell=0$: $x_{0,1} = \pi, x_{0,2} = 2\pi, ...$
+
+For $\ell=1$: $x_{1,1} \approx 4.49, x_{1,2} \approx 7.73, ...$
+}
+
+See \cref{subsec:sfb_expansion} for use in defining the SFB radial grid.

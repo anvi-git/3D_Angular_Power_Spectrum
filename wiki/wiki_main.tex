@@ -1,0 +1,152 @@
+% ============================================================================
+% WIKI MASTER DOCUMENT
+% ============================================================================
+% This is the main file to compile. It includes all sections and sets up
+% the complete structure. Compile with: pdflatex wiki_main.tex
+% ============================================================================
+
+\input{_common/preamble.tex}
+
+% ============================================================================
+% INCLUDE CUSTOM COMMANDS
+% ============================================================================
+
+\input{_common/commands.tex}
+
+% ============================================================================
+% DOCUMENT BEGINS
+% ============================================================================
+
+\begin{document}
+
+% Title page
+\maketitle
+
+% ============================================================================
+% FRONTMATTER
+% ============================================================================
+
+\frontmatter
+
+\tableofcontents
+\newpage
+
+% Introduction & guide
+\input{00_frontmatter/intro.tex}
+\newpage
+
+\input{00_frontmatter/notation.tex}
+\newpage
+
+\input{00_frontmatter/reading_guide.tex}
+\newpage
+
+\input{00_frontmatter/quick_ref.tex}
+\newpage
+
+% Concept index
+\input{index_concepts.tex}
+\newpage
+
+% ============================================================================
+% MAIN CONTENT
+% ============================================================================
+
+\mainmatter
+
+% ============================================================================
+% CHAPTER 1: COSMOLOGICAL BACKGROUND
+% ============================================================================
+
+\chapter{Cosmological Background}\label{ch:background}
+\input{01_background/cosmological_model.tex}
+\newpage
+\input{01_background/background_evolution.tex}
+\newpage
+\input{01_background/distance_measures.tex}
+
+% ============================================================================
+% CHAPTER 2: POWER SPECTRUM FOUNDATIONS
+% ============================================================================
+
+\chapter{Power Spectrum: Fundamentals}\label{ch:power_spectrum}
+\input{02_power_spectrum/cartesian_fourier.tex}
+\newpage
+\input{02_power_spectrum/statistical_framework.tex}
+\newpage
+\input{02_power_spectrum/matter_perturbations.tex}
+\newpage
+\input{02_power_spectrum/spherical_decomposition.tex}
+
+% ============================================================================
+% CHAPTER 3: SPHERICAL FOURIER-BESSEL FRAMEWORK
+% ============================================================================
+
+\chapter{Spherical Fourier-Bessel Framework}\label{ch:sfb}
+\input{03_spherical_fb/bessel_functions.tex}
+\newpage
+\input{03_spherical_fb/sfb_basis.tex}
+\newpage
+\input{03_spherical_fb/sfb_expansion.tex}
+\newpage
+\input{03_spherical_fb/orthonormality.tex}
+
+% ============================================================================
+% CHAPTER 4: 3D POWER SPECTRUM IN SFB SPACE
+% ============================================================================
+
+\chapter{3D Power Spectrum via SFB}\label{ch:3d_ps}
+\input{02_power_spectrum/power_spectrum_sfb.tex}
+
+% ============================================================================
+% CHAPTER 5: WEAK LENSING THEORY
+% ============================================================================
+
+\chapter{Weak Lensing: 3D Full-Sky Analysis}\label{ch:weak_lensing}
+\input{04_weak_lensing/lensing_geometry.tex}
+\newpage
+\input{04_weak_lensing/convergence_shear.tex}
+\newpage
+\input{04_weak_lensing/spin_harmonics.tex}
+\newpage
+\input{04_weak_lensing/lensing_power_spectrum.tex}
+
+% ============================================================================
+% CHAPTER 6: 3D OBSERVABLES & APPLICATIONS
+% ============================================================================
+
+\chapter{3D Observables \& Applications}\label{ch:observables}
+\input{05_3d_observables/angular_power_spectrum.tex}
+\newpage
+\input{05_3d_observables/redshift_binning.tex}
+\newpage
+\input{05_3d_observables/sfb_kernels.tex}
+\newpage
+\input{05_3d_observables/cross_spectra.tex}
+
+% ============================================================================
+% CHAPTER 7: NUMERICAL METHODS
+% ============================================================================
+
+\chapter{Numerical Integration \& Methods}\label{ch:numerical}
+\input{06_numerical/integration_schemes.tex}
+\newpage
+\input{06_numerical/quadrature_strategies.tex}
+\newpage
+\input{06_numerical/performance.tex}
+\newpage
+\input{06_numerical/benchmarking.tex}
+
+% ============================================================================
+% BACKMATTER
+% ============================================================================
+
+\backmatter
+
+\printbibliography[title=References]
+
+\end{document}
+
+% ============================================================================
+% END WIKI MASTER DOCUMENT
+% ============================================================================

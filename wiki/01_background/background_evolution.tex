@@ -1,0 +1,47 @@
+\subsection{Background Evolution}\label{subsec:background_evolution}
+
+This subsection describes how the scale factor and Hubble parameter evolve with cosmic time, and introduces the concept of lookback time.
+
+\subsubsection{Scale Factor Evolution}
+
+For a flat ΛCDM universe with equation of state $w_i$ for each component, the scale factor satisfies:
+
+\begin{equation}
+\frac{da}{dt} = H_0 a \sqrt{\Om a^{-3} + \OL}
+\end{equation}
+
+This differential equation has no closed-form solution in general. However, several limiting cases are instructive:
+
+\textbf{Matter-dominated era} ($a \ll a_{\rm eq}$, early universe):
+\begin{equation}
+a(t) \propto t^{2/3}, \quad H(t) = \frac{2}{3t}
+\end{equation}
+
+\textbf{Dark energy-dominated era} ($a \gg a_{\rm eq}$, late universe):
+\begin{equation}
+a(t) \propto e^{H_0 \sqrt{\OL} \, t}, \quad H \to \sqrt{\OL} \, H_0 = \text{const}
+\end{equation}
+
+\subsubsection{Lookback Time}
+
+The lookback time to redshift $z$ (the time difference between now and when the universe was at redshift $z$) is:
+
+\begin{equation}
+t_{\rm lookback}(z) = \int_0^z \frac{dz'}{(1+z') H(z')}
+\end{equation}
+
+This is useful for understanding which epochs we observe at which redshifts.
+
+\remark{
+At $z \approx 0.5$ (accessible to many surveys), we look back $\approx 5$ Gyr. At $z \sim 2$ (high-redshift surveys), we look back $\approx 10$ Gyr, catching structure formation at earlier epochs.
+}
+
+\subsubsection{Age of the Universe}
+
+The age of the universe today is:
+
+\begin{equation}
+t_0 = \int_0^\infty \frac{dz}{(1+z) H(z)} \approx 13.8 \text{ Gyr}
+\end{equation}
+
+See \cref{subsec:background_model} for the definition of $E(z)$ that enters $H(z) = H_0 E(z)$.

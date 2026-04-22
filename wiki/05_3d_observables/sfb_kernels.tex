@@ -1,0 +1,43 @@
+\subsection{Integration Kernels for 3D Observables}\label{subsec:obs_sfb_kernels}
+
+This section develops the integration kernels that connect underlying matter power spectra to observable weak lensing and clustering.
+
+\subsubsection{Generic kernel structure}
+
+Observable power spectra take the form:
+
+\begin{equation}
+C_\ell = \int_0^\infty \frac{dk}{2\pi^2} k^2 P(k) I^2_\ell(k)
+\end{equation}
+
+where $I_\ell(k)$ is an integration kernel that encodes the survey geometry and physics.
+
+\subsubsection{Convergence kernel}
+
+For weak lensing convergence:
+
+\begin{equation}
+I^{\kappa}_\ell(k) = \int_0^\infty d\chi \, W^\kappa(\chi) j_\ell(k\chi)
+\end{equation}
+
+where $W^\kappa(\chi)$ is the convergence lensing efficiency (depends on source redshift distribution and angular diameter distances).
+
+\subsubsection{Density/clustering kernel}
+
+For galaxy clustering:
+
+\begin{equation}
+I^{\delta}_\ell(k) = \int_0^\infty d\chi \, n(\chi) b(\chi) D_+(\chi) j_\ell(k\chi)
+\end{equation}
+
+where $n(\chi)$ is galaxy number density, $b(\chi)$ is bias, and $D_+(\chi)$ is growth factor.
+
+\subsubsection{Numerical evaluation}
+
+For accurate predictions:
+1. Compute lensing/clustering weights: $W(\chi)$ or $n(\chi) b(\chi) D_+(\chi)$
+2. Evaluate Bessel functions $j_\ell(k\chi)$ using recurrence or SpecialFunctions.jl
+3. Integrate over $\chi$ using adaptive quadrature (QuadGK.jl)
+4. Convolve with power spectrum
+
+See \cref{ch:numerical} for integration algorithms.

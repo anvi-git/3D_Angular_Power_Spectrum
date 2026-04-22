@@ -1,0 +1,36 @@
+\subsection{SFB Field Expansion and Inversion}\label{subsec:sfb_expansion}
+
+This section shows how to decompose a 3D field in the SFB basis and recover the field from its coefficients.
+
+\subsubsection{Forward transformation: Field to coefficients}
+
+Any square-integrable field $f(\mathbf{r})$ in spherical coordinates can be decomposed as:
+
+\begin{equation}
+f_{\ell m}(k) = \sqrt{\frac{2}{\pi}} \int_0^\infty dr \, r^2 \int d\Omega \, f(\mathbf{r}) \, k j_\ell(kr) Y^*_{\ell m}(\theta, \phi)
+\label{eq:sfb_analysis}
+\end{equation}
+
+This extracts the SFB coefficient $f_{\ell m}(k)$ for each multipole $\ell$, azimuthal mode $m$, and radial wavenumber $k$.
+
+\subsubsection{Inverse transformation: Coefficients to field}
+
+The field is reconstructed from its coefficients by:
+
+\begin{equation}
+f(\mathbf{r}) = \sqrt{\frac{2}{\pi}} \int_0^\infty dk \sum_{\ell m} f_{\ell m}(k) k j_\ell(kr) Y_{\ell m}(\theta, \phi)
+\label{eq:sfb_synthesis}
+\end{equation}
+
+The factor $k \, dk$ in the measure accounts for the Jacobian of spherical Bessel function orthonormality.
+
+\subsubsection{Physical interpretation}
+
+- $f_{\ell m}(k)$ tells us the amplitude of the field at:
+  - Radial scale $\sim 1/k$ (wavenumber $k$)
+  - Angular scale corresponding to multipole $\ell$
+  - Azimuthal orientation $m$
+  
+- In cosmology: $f_{\ell m}(k)$ encodes how density fluctuations are distributed in redshift (via $k$) and angular multipole (via $\ell, m$)
+
+See \cref{subsec:sfb_orthonormality} for why these expansions are complete and orthonormal.
