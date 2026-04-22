@@ -1,0 +1,44 @@
+\section{SFBlasting}
+I start from the generalized BLAST form for the observable $A$ and $B$, in redshift bins $i$ and $j$. 
+\begin{equation}
+\label{clblast}    
+C^{AB}_{ij}(l) = \mathcal{N}_l^{AB} \int d\chi W_i(\chi) \int d\chi' W_j(\chi') \int dk k^2 P^{AB}(k,\chi,\chi') j_l(k\chi) j_l(k\chi')
+\end{equation}
+%%%%%%%%%%% general %%%%%%%%%%%
+I define the spherical analogue to the Fourier transforms
+\begin{equation}
+\label{sft}
+S^{AB}(l, k_1,k_2) = (\frac{2}{\pi})^2 \int_0^{\infty} d\chi \chi^2 \int_0^{\infty} d\chi' \chi'^2 C_l^{AB}(\chi,\chi') j_l(k_1\chi) j_l(k_2\chi')
+\end{equation}
+inserting \ref{clblast} into \ref{sft} I get:
+\begin{equation}
+\label{ssfb}
+S_l^{AB}(k_1,k_2) = (\frac{2}{\pi})^2 \mathcal{N}_l^{AB} \int dk k^2 P^{AB}(k,\chi,\chi') \int_0^{\infty} d\chi  \chi^2 W^A(\chi) j_l(k\chi) j_l(k_1 \chi) \int_0^{\infty} d\chi'  \chi'^2 W^A(\chi') j_l(k\chi')j_l(k_2 \chi')
+\end{equation}
+if I define
+\begin{equation}
+    \widetilde{W}^{A}(k,\chi) \equiv W^{A}(\chi) j_l(k \chi)
+\end{equation}
+[this results equal to Eq.(\ref{obs})]. By defining
+\begin{equation}
+    \mathcal{W}_l^{A}(k,k') \equiv \int_0^{\infty} d\chi  \widetilde{W}^{A}(k,\chi) j_l(k' \chi)
+\end{equation}
+then \ref{ssfb} becomes
+\begin{equation}
+S_l^{AB}(k_1,k_2) = (\frac{2}{\pi})^2 \mathcal{N}_l^{AB} \int dk k^2 P^{AB}(k,\chi,\chi') \mathcal{W}_l^A(k_1,k) \mathcal{W}_l^B(k_2,k)
+\end{equation}
+with
+Eq.(\ref{obs}):
+\begin{align}
+\label{obs}
+    W^{\rm den}_l(k,z)&=\frac{H(z)}c\,b(z)\,n(z)\,D(z)\,j_l[k\,r(z)]\;,\\
+    W^\gamma_l(k,z)&=-\sqrt{\frac{(l+2)!}{(l-2)!}}\,\frac32\,H_0^2\,\Omega_{{\rm m},0}\,(1+z)\,q_{3/5}(z)\,D(z)\,\frac{j_l[k\,r(z)]}{k^2\,r(z)}\;,\\
+    W^{\rm RSD}_l(k,z)&=\frac{H(z)}c\,f(z)\,n(z)\,D(z)\,\left\{\left[\frac{l\,(l-1)}{k^2\,r^2(z)}-1\right]\,j_l[k\,r(z)]+\frac2{k\,r(z)}\,j_{l+1}[k\,r(z)]\right\}\nonumber\\
+    &\equiv\frac{f(z)}{b(z)}\left\{\left[\frac{l\,(l-1)}{k^2\,r^2(z)}-1\right]\,W^{\rm den}_l(k,z)+\frac2{k\,r(z)}\,W^{\rm den}_{l+1}(k,z)\right\}\;,\\
+    W^{\rm mag}_l(k,z)&=-\sqrt{\frac{(l+2)!}{(l-2)!}}\,3\,H_0^2\,\Omega_{{\rm m},0}\,(1+z)\,q_s(z)\,D(z)\,\frac{j_l[k\,r(z)]}{k^2\,r(z)}\nonumber\\
+    &\equiv2\,\frac{q_s(z)}{q_{3/5}(z)}\,W^\gamma_l(k,z)\;,
+\end{align}
+where, given \(s\) the magnification bias, \(q_s(z)\) is the magnification-bias weighted lensing efficiency function,
+\begin{equation}
+    q_s(z)=\int_r^\infty\de x\,\frac{x-r}x\,n(x)\,[5\,s(x)-2]\;.
+\end{equation}
