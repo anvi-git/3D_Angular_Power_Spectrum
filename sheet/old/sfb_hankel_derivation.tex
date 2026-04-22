@@ -1,0 +1,298 @@
+\section{From $C_\ell^{AB}(r_1,r_2)$ to $S_\ell^{AB}(k_1,k_2)$ via Hankel transforms}
+
+This note derives the Spherical Fourier-Bessel (SFB) power spectrum in full
+generality for two projected fields $f_A$ and $f_B$, and then specializes the
+result to galaxy clustering, weak lensing shear, and their cross-correlation.
+Every step is written explicitly so that each transformation can be traced.
+
+\subsection{Notation and physical meaning}
+
+We define two observed fields on the light cone:
+\begin{equation}
+f_X(\hat{\mathbf n},r),\qquad X\in\{A,B\},
+\end{equation}
+where $r$ is comoving distance and $\hat{\mathbf n}$ is the sky direction.
+For each field, the radial dependence enters through a kernel $W^X(r)$.
+
+The symbols used below have the following roles:
+\begin{itemize}
+\item $\ell$: angular multipole, controlling angular scale on the sky.
+\item $j_\ell$: spherical Bessel function, coupling radial and angular modes.
+\item $q$: latent 3D Fourier mode over which the theory integrates.
+\item $k_1,k_2$: observed SFB radial wavenumbers.
+\item $P_{AB}(q)$: 3D power spectrum sourcing correlations between sectors $A,B$.
+\item $\alpha_A,\alpha_B$: probe-dependent powers (for example 0 or 2) encoding
+the operator structure of each observable.
+\item $\mathcal N_\ell^{AB}$: prefactor carrying normalization and spin factors.
+\end{itemize}
+
+\subsection{Step 1: Start from the general harmonic-space radial kernel}
+
+We assume the generalized BLAST-like form
+\begin{equation}
+C_\ell^{AB}(r_1,r_2)
+= \mathcal N_\ell^{AB}\,W^A(r_1)W^B(r_2)
+\int_0^{\infty} dq\,q^2\,P_{AB}(q)
+\frac{j_\ell(qr_1)}{(qr_1)^{\alpha_A}}
+\frac{j_\ell(qr_2)}{(qr_2)^{\alpha_B}}.
+\label{eq:gen_c_ell_rr}
+\end{equation}
+
+What this equation does:
+\begin{itemize}
+\item It correlates two radial shells $r_1,r_2$ for a fixed angular multipole $\ell$.
+\item The radial kernels $W^A,W^B$ encode survey selection and physics weights.
+\item The $q$-integral builds the covariance from all 3D modes.
+\item The factors $(qr)^{-\alpha_X}$ let one expression cover clustering,
+shear, and mixed probes.
+\end{itemize}
+
+\subsection{Step 2: Define the double spherical Hankel transform}
+
+To move from radial positions $(r_1,r_2)$ to radial frequencies $(k_1,k_2)$,
+define
+\begin{equation}
+S_\ell^{AB}(k_1,k_2)
+\equiv \left(\frac{2}{\pi}\right)^2
+\int_0^{\infty} dr_1\,r_1^2
+\int_0^{\infty} dr_2\,r_2^2\,
+C_\ell^{AB}(r_1,r_2)\,j_\ell(k_1r_1)\,j_\ell(k_2r_2).
+\label{eq:def_double_hankel_general}
+\end{equation}
+
+What this step does:
+\begin{itemize}
+\item It is the spherical analogue of a Fourier transform in each radial coordinate.
+\item It produces an SFB covariance matrix in $(k_1,k_2)$ at fixed $\ell$.
+\item It keeps off-diagonal couplings, so radial mode mixing is preserved.
+\end{itemize}
+
+\subsection{Step 3: Substitute Eq.~\eqref{eq:gen_c_ell_rr} into the transform}
+
+Inserting Eq.~\eqref{eq:gen_c_ell_rr} into Eq.~\eqref{eq:def_double_hankel_general},
+\begin{align}
+S_\ell^{AB}(k_1,k_2)
+&= \left(\frac{2}{\pi}\right)^2\mathcal N_\ell^{AB}
+\int_0^{\infty} dq\,q^2\,P_{AB}(q)
+\Biggl[\int_0^{\infty} dr_1\,r_1^2\,W^A(r_1)
+\frac{j_\ell(qr_1)}{(qr_1)^{\alpha_A}}j_\ell(k_1r_1)\Biggr]
+\nonumber\\
+&\hspace{1.5cm}\times
+\Biggl[\int_0^{\infty} dr_2\,r_2^2\,W^B(r_2)
+\frac{j_\ell(qr_2)}{(qr_2)^{\alpha_B}}j_\ell(k_2r_2)\Biggr].
+\label{eq:inserted_general}
+\end{align}
+
+What this step does:
+\begin{itemize}
+\item It factorizes the expression into one radial response for field $A$ and one
+radial response for field $B$.
+\item It isolates all cosmology dependence in $P_{AB}(q)$ and the kernels.
+\item It prepares the expression for a compact window-function form.
+\end{itemize}
+
+\subsection{Step 4: Define generalized radial response kernels}
+
+Define
+\begin{equation}
+\Psi_{\ell}^{A}(k,q)
+\equiv \int_0^{\infty} dr\,r^2\,W^A(r)
+\frac{j_\ell(qr)}{(qr)^{\alpha_A}}j_\ell(kr),
+\label{eq:psi_A_general}
+\end{equation}
+\begin{equation}
+\Psi_{\ell}^{B}(k,q)
+\equiv \int_0^{\infty} dr\,r^2\,W^B(r)
+\frac{j_\ell(qr)}{(qr)^{\alpha_B}}j_\ell(kr).
+\label{eq:psi_B_general}
+\end{equation}
+Then Eq.~\eqref{eq:inserted_general} becomes
+\begin{equation}
+S_\ell^{AB}(k_1,k_2)
+= \left(\frac{2}{\pi}\right)^2\mathcal N_\ell^{AB}
+\int_0^{\infty} dq\,q^2\,P_{AB}(q)
+\Psi_{\ell}^{A}(k_1,q)\,\Psi_{\ell}^{B}(k_2,q).
+\label{eq:sfb_general_psi_form}
+\end{equation}
+
+What this step does:
+\begin{itemize}
+\item $\Psi_\ell^X$ maps one latent mode $q$ into one observed SFB mode $k$ for
+field $X$.
+\item Physically, $\Psi_\ell^X$ is the response of the survey-weighted observable
+to radial mode $q$.
+\item Numerically, this isolates a reusable kernel that can be tabulated.
+\end{itemize}
+
+\subsection{Step 5: Window-function form}
+
+If one defines convention-dependent windows $\mathcal W_\ell^X(k,q)$ from
+$\Psi_\ell^X(k,q)$ (for example by absorbing factors of $2/\pi$, $q$, and $k$),
+the same spectrum is written as
+\begin{equation}
+S_\ell^{AB}(k_1,k_2)
+= \int_0^{\infty} dq\,P_{AB}(q)
+\mathcal W_\ell^A(k_1,q)\,\mathcal W_\ell^B(k_2,q)
+\times \mathcal F_\ell^{AB}(k_1,k_2,q),
+\label{eq:sfb_window_general}
+\end{equation}
+where $\mathcal F_\ell^{AB}$ tracks whichever prefactors are not absorbed into
+the window definition. In the common SuperFaB convention, all such prefactors
+are absorbed so that $\mathcal F_\ell^{AB}=1$.
+
+What this step does:
+\begin{itemize}
+\item It gives the compact estimator-friendly form used in SFB pipelines.
+\item It makes normalization choices explicit and easy to compare between codes.
+\item It separates physics content from convention choices.
+\end{itemize}
+
+\subsection{Why the single-Bessel transform is not sufficient}
+
+A single transform,
+\begin{equation}
+\widetilde W_\ell^X(k)=4\pi\int_0^{\infty}dr\,r^2W^X(r)j_\ell(kr),
+\end{equation}
+is useful but does not yet contain the coupling between observed mode $k$ and
+latent mode $q$. The full SFB covariance needs the two-Bessel object
+$\Psi_\ell^X(k,q)$, because each observed mode receives contributions from a
+continuum of latent $q$ modes once selection effects and projection are present.
+
+\subsection{Specialization I: Galaxy clustering ($gg$)}
+
+For galaxy clustering:
+\begin{equation}
+\alpha_g=0,
+\qquad
+\mathcal N_\ell^{gg}=\frac{2}{\pi},
+\qquad
+W^g(r)=b(r)n(r)D(r).
+\end{equation}
+Hence
+\begin{equation}
+C_\ell^{gg}(r_1,r_2)
+=\frac{2}{\pi}W^g(r_1)W^g(r_2)
+\int_0^{\infty}dq\,q^2P_{gg}(q)j_\ell(qr_1)j_\ell(qr_2),
+\end{equation}
+and
+\begin{equation}
+\Psi_\ell^g(k,q)=\int_0^{\infty}dr\,r^2W^g(r)j_\ell(kr)j_\ell(qr).
+\end{equation}
+Therefore
+\begin{equation}
+S_\ell^{gg}(k_1,k_2)
+=\left(\frac{2}{\pi}\right)^3
+\int_0^{\infty}dq\,q^2P_{gg}(q)
+\Psi_\ell^g(k_1,q)\Psi_\ell^g(k_2,q).
+\label{eq:sfb_gg_final}
+\end{equation}
+
+Interpretation for $gg$:
+\begin{itemize}
+\item $b(r)$ weights matter fluctuations into galaxy fluctuations.
+\item $n(r)$ encodes the survey radial distribution.
+\item $D(r)$ adds growth evolution.
+\item Off-diagonal $k_1\neq k_2$ terms quantify radial mode coupling induced by
+finite radial support and evolution.
+\end{itemize}
+
+\subsection{Specialization II: Shear ($ss$)}
+
+For shear in the beyond-Limber kernel form:
+\begin{equation}
+\alpha_s=2,
+\qquad
+\mathcal N_\ell^{ss}=\frac{2(\ell+2)!}{\pi(\ell-2)!},
+\end{equation}
+with $W^s(r)$ the lensing efficiency kernel (including geometric and background
+factors, such as $a^{-1}(r)$ and line-of-sight source weighting).
+
+Then
+\begin{equation}
+C_\ell^{ss}(r_1,r_2)
+=\mathcal N_\ell^{ss}W^s(r_1)W^s(r_2)
+\int_0^{\infty}dq\,q^2P_{mm}(q)
+\frac{j_\ell(qr_1)}{(qr_1)^2}
+\frac{j_\ell(qr_2)}{(qr_2)^2},
+\end{equation}
+and
+\begin{equation}
+\Psi_\ell^s(k,q)=\int_0^{\infty}dr\,r^2W^s(r)
+\frac{j_\ell(qr)}{(qr)^2}j_\ell(kr).
+\end{equation}
+Therefore
+\begin{equation}
+S_\ell^{ss}(k_1,k_2)
+=\left(\frac{2}{\pi}\right)^2\mathcal N_\ell^{ss}
+\int_0^{\infty}dq\,q^2P_{mm}(q)
+\Psi_\ell^s(k_1,q)\Psi_\ell^s(k_2,q).
+\label{eq:sfb_ss_final}
+\end{equation}
+
+Interpretation for $ss$:
+\begin{itemize}
+\item The $(qr)^{-2}$ factors encode the spin-2 and derivative structure of
+lensing observables in this kernel representation.
+\item The factorial prefactor boosts high-$\ell$ behavior consistently with
+spin-2 harmonic normalization.
+\end{itemize}
+
+\subsection{Specialization III: Cross-correlation ($gs$ or $sg$)}
+
+For galaxy-shear cross correlation:
+\begin{equation}
+\alpha_g=0,
+\qquad
+\alpha_s=2,
+\end{equation}
+with a normalization $\mathcal N_\ell^{gs}$ fixed by the exact convention used
+in the chosen theory pipeline.
+
+The radial kernel is
+\begin{equation}
+C_\ell^{gs}(r_1,r_2)
+=\mathcal N_\ell^{gs}W^g(r_1)W^s(r_2)
+\int_0^{\infty}dq\,q^2P_{gm}(q)
+j_\ell(qr_1)\frac{j_\ell(qr_2)}{(qr_2)^2},
+\end{equation}
+which yields
+\begin{equation}
+\Psi_\ell^g(k,q)=\int_0^{\infty}dr\,r^2W^g(r)j_\ell(kr)j_\ell(qr),
+\end{equation}
+\begin{equation}
+\Psi_\ell^s(k,q)=\int_0^{\infty}dr\,r^2W^s(r)\frac{j_\ell(qr)}{(qr)^2}j_\ell(kr),
+\end{equation}
+and
+\begin{equation}
+S_\ell^{gs}(k_1,k_2)
+=\left(\frac{2}{\pi}\right)^2\mathcal N_\ell^{gs}
+\int_0^{\infty}dq\,q^2P_{gm}(q)
+\Psi_\ell^g(k_1,q)\Psi_\ell^s(k_2,q).
+\label{eq:sfb_gs_final}
+\end{equation}
+
+Interpretation for $gs$:
+\begin{itemize}
+\item One leg probes biased galaxy density, the other probes projected tidal
+distortions from matter.
+\item Asymmetry between the two legs appears directly through
+$\alpha_g\neq\alpha_s$ and $W^g\neq W^s$.
+\item Swapping the probe order gives $S_\ell^{sg}(k_1,k_2)$ with the two response
+kernels exchanged.
+\end{itemize}
+
+\subsection{Practical summary for implementation}
+
+To compute any channel $AB$ in practice:
+\begin{enumerate}
+\item Choose $(\alpha_A,\alpha_B,\mathcal N_\ell^{AB})$ for that observable pair.
+\item Build $W^A(r)$ and $W^B(r)$ on the survey radial grid.
+\item Tabulate $\Psi_\ell^A(k,q)$ and $\Psi_\ell^B(k,q)$.
+\item Integrate Eq.~\eqref{eq:sfb_general_psi_form} over $q$ to obtain
+$S_\ell^{AB}(k_1,k_2)$.
+\item Optionally repackage into the compact window form
+Eq.~\eqref{eq:sfb_window_general}.
+\end{enumerate}
+
+This closes the general derivation and its direct specialization to
+$(gg)$, $(ss)$, and $(gs)$.
