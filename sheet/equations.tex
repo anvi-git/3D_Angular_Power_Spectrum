@@ -1,44 +1,52 @@
-\section{SFBlasting}
-I start from the generalized BLAST form for the observable $A$ and $B$, in redshift bins $i$ and $j$. 
+\section{sFBlasting}
+We start from the generalized BLAST form for the observable $A$ and $B$, in redshift bins $i$ and $j$. 
 \begin{equation}
 \label{clblast}    
-C^{AB}_{ij}(l) = \mathcal{N}_l^{AB} \int d\chi W_i(\chi) \int d\chi' W_j(\chi') \int dk k^2 P^{AB}(k,\chi,\chi') j_l(k\chi) j_l(k\chi')
+C^{AB}(l) = N_l^{AB} \int d\chi W(\chi) \int d\chi' W(\chi') \int dk k^2 P^{AB}(k,\chi,\chi') j_l(k\chi) j_l(k\chi')
 \end{equation}
+which is Eq.15 of \cite{Chiarenza_et_al_2024}, for $A = B =$ galaxy. 
 %%%%%%%%%%% general %%%%%%%%%%%
-I define the spherical analogue to the Fourier transforms
+We want to obtain the "generalised" version of the window function, integrating over the comoving distance and "weighting" by the spherical Bessel function $j_l(k\chi)$. \\
+So we take the window function, which is something like Eqs.(\ref{obs_i}-\ref{obs_f}):
 \begin{equation}
-\label{sft}
-S^{AB}(l, k_1,k_2) = (\frac{2}{\pi})^2 \int_0^{\infty} d\chi \chi^2 \int_0^{\infty} d\chi' \chi'^2 C_l^{AB}(\chi,\chi') j_l(k_1\chi) j_l(k_2\chi')
+    W^{\rm A}_l(k,\chi)  = f^{\rm A}(\chi) j_l(k\,r(\chi))
 \end{equation}
-inserting \ref{clblast} into \ref{sft} I get:
+where $j_l(k\,r(z))$ is already in the definition of the window function and $f(\chi)$ is a function of the comoving distance. For a galaxy probe:
+\begin{equation}
+    f^{\rm den}(\chi) = \frac{H(z)}c\,b(z)\,n(z)\,D(z)
+\end{equation}
+We define the Hankel transform of the window function as follows:
+\begin{equation}
+\label{eq_hankel_transform}
+\widetilde{W}_l^{A}(k,k',\chi) \equiv \int_0^{\infty} d\chi \chi^2 W_{l}^{A}(k,\chi) j_l(k' \chi)
+\end{equation}
+Inserting the rhs of Eq.(\ref{eq_hankel_transform}) inside Eq.(\ref{clblast}), changing from $C^{\rm AB}_l$ to $S^{\rm AB}_l$ to signal the "spherical" nature of such correlation function, we get:
 \begin{equation}
 \label{ssfb}
-S_l^{AB}(k_1,k_2) = (\frac{2}{\pi})^2 \mathcal{N}_l^{AB} \int dk k^2 P^{AB}(k,\chi,\chi') \int_0^{\infty} d\chi  \chi^2 W^A(\chi) j_l(k\chi) j_l(k_1 \chi) \int_0^{\infty} d\chi'  \chi'^2 W^A(\chi') j_l(k\chi')j_l(k_2 \chi')
+S_l^{AB}(k_1,k_2) = N_l^{AB} \int dk k^2 P^{AB}(k,\chi,\chi') \int_0^{\infty} d\chi  \chi^2 W_{l}^A(\chi) j_l(k\chi) j_l(k_1 \chi) \int_0^{\infty} d\chi'  \chi'^2 W_{l}^B(\chi') j_l(k\chi')j_l(k_2 \chi')
 \end{equation}
-if I define
+note that, with respect to Eq.(\ref{eq_hankel_transform}) the wavenumber $k$ is still $k$, while $k'$ becomes $k_1$ and $k_2$ for the probes A and B, respectively. \\
+Writing Eq.(\ref{ssfb}) using the lhs of Eq.(\ref{eq_hankel_transform}), and using $P^{AB}(k,\chi,\chi') = D(\chi) D(\chi') P_{lin}^{AB}(k)$
 \begin{equation}
-    \widetilde{W}^{A}(k,\chi) \equiv W^{A}(\chi) j_l(k \chi)
+\label{ssfb_new}
+S_l^{AB}(k_1,k_2) = N_l^{AB} \int dk k^2 P_{lin}^{AB}(k) \int_0^{\infty} d\chi  \chi^2 \widetilde{W}^A(k,k_1,\chi) \int_0^{\infty} d\chi'  \chi'^2 \widetilde{W}^B(k,k_2,\chi')
 \end{equation}
-[this results equal to Eq.(\ref{obs})]. By defining
+where the growth factors $D(\chi) D(\chi')$ are contained inside the $f^{\rm A}(\chi)$ and $f^{\rm B}(\chi')$, respectively. \\
+For $W^{den}$ from Eq(\ref{obs_i}) we obtain:
 \begin{equation}
-    \mathcal{W}_l^{A}(k,k') \equiv \int_0^{\infty} d\chi  \widetilde{W}^{A}(k,\chi) j_l(k' \chi)
+\begin{aligned}
+S_l^{den}(k_1,k_2) = 
+& N_l^{den} \int dk \, k^2 P_{lin}(k) \widetilde{W}_l^{den}(k_1,k) \widetilde{W}_l^{den}(k_2,k) = \\
+& N_l^{den} \int dk \, k^2 P_{lin}(k) \\
+& \times \int d\chi \chi^2 \frac{H(\chi)b(\chi)n(\chi)D(\chi)}{c} j_l(k\chi) j_l(k_1\chi) \\
+& \times \int d\chi' \chi^2 \frac{H(\chi')b(\chi')n(\chi')D(\chi')}{c} j_l(k\chi') j_l(k_2\chi')
+\end{aligned}
 \end{equation}
-then \ref{ssfb} becomes
+where 
 \begin{equation}
-S_l^{AB}(k_1,k_2) = (\frac{2}{\pi})^2 \mathcal{N}_l^{AB} \int dk k^2 P^{AB}(k,\chi,\chi') \mathcal{W}_l^A(k_1,k) \mathcal{W}_l^B(k_2,k)
+    \widetilde{W}_l^{den}(k_1,k) = \int_0^{\infty} d\chi \chi^2 \frac{H(\chi)b(\chi)n(\chi)D(\chi)}{c} j_l(k\chi) j_l(k_1 \chi)
 \end{equation}
-with
-Eq.(\ref{obs}):
-\begin{align}
-\label{obs}
-    W^{\rm den}_l(k,z)&=\frac{H(z)}c\,b(z)\,n(z)\,D(z)\,j_l[k\,r(z)]\;,\\
-    W^\gamma_l(k,z)&=-\sqrt{\frac{(l+2)!}{(l-2)!}}\,\frac32\,H_0^2\,\Omega_{{\rm m},0}\,(1+z)\,q_{3/5}(z)\,D(z)\,\frac{j_l[k\,r(z)]}{k^2\,r(z)}\;,\\
-    W^{\rm RSD}_l(k,z)&=\frac{H(z)}c\,f(z)\,n(z)\,D(z)\,\left\{\left[\frac{l\,(l-1)}{k^2\,r^2(z)}-1\right]\,j_l[k\,r(z)]+\frac2{k\,r(z)}\,j_{l+1}[k\,r(z)]\right\}\nonumber\\
-    &\equiv\frac{f(z)}{b(z)}\left\{\left[\frac{l\,(l-1)}{k^2\,r^2(z)}-1\right]\,W^{\rm den}_l(k,z)+\frac2{k\,r(z)}\,W^{\rm den}_{l+1}(k,z)\right\}\;,\\
-    W^{\rm mag}_l(k,z)&=-\sqrt{\frac{(l+2)!}{(l-2)!}}\,3\,H_0^2\,\Omega_{{\rm m},0}\,(1+z)\,q_s(z)\,D(z)\,\frac{j_l[k\,r(z)]}{k^2\,r(z)}\nonumber\\
-    &\equiv2\,\frac{q_s(z)}{q_{3/5}(z)}\,W^\gamma_l(k,z)\;,
-\end{align}
-where, given \(s\) the magnification bias, \(q_s(z)\) is the magnification-bias weighted lensing efficiency function,
+and 
 \begin{equation}
-    q_s(z)=\int_r^\infty\de x\,\frac{x-r}x\,n(x)\,[5\,s(x)-2]\;.
+    \widetilde{W}_l^{den}(k_2,k) = \int_0^{\infty} d\chi \chi^2 \frac{H(\chi)b(\chi)n(\chi)D(\chi)}{c} j_l(k\chi) j_l(k_2 \chi)
 \end{equation}
