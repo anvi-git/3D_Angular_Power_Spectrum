@@ -47,6 +47,7 @@ Compute normalized Hubble parameter E(z) = H(z)/H₀
 cosmo = CosmoParams(Ω_m=0.3, Ω_Λ=0.7)
 E_at_z1 = E(1.0, cosmo)  # Returns ≈ 1.8 for typical ΛCDM
 ```
+Note: For this function, use the existing implementation `compute_adimensional_hubble_factor` in blast_code/src/background.jl (it provides `E(z)` and related helpers).
 """
 function E(z::Float64, cosmo::CosmoParams)::Float64
     # (1) Compute scale factor
@@ -118,6 +119,7 @@ Compute comoving distance from observer to redshift z
 cosmo = CosmoParams(Ω_m=0.3)
 chi_z1 = comoving_distance(1.0, cosmo)  # ≈ 3286 Mpc
 ```
+Note: For this function, use the existing implementation `compute_χ` in blast_code/src/background.jl which computes χ(z) via `quadgk` and returns Mpc.
 """
 function comoving_distance(z::Float64, cosmo::CosmoParams)::Float64
     # Handle z ≈ 0 case
@@ -349,6 +351,7 @@ Compute spherical Bessel function j_ℓ(x)
 j_0_at_1 = spherical_bessel(0, 1.0)  # ≈ 0.8414
 j_1_at_1 = spherical_bessel(1, 1.0)  # ≈ 0.3011
 ```
+Note: There is no analogue in `blast_code/src` yet — create a new `spherical_bessel.jl` (see implementation examples in the IMPLEMENTATION_GUIDE).
 """
 function spherical_bessel(ell::Int, x::Float64)::Float64
     using SpecialFunctions
