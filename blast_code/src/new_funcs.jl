@@ -51,21 +51,19 @@ function compute_T̃_general(
 
     x = get_clencurt_grid(kmin, kmax, N)
     w = get_clencurt_weights(kmin, kmax, N)
-    T, Bessel1 = bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N)
-
-    J1 = SpecialFunctions.sphericalbesselj.(ℓ, k1 .* χ)
-    J2 = zeros(nχ, nR)
-    for (ridx, r) in enumerate(R)
-        J2[:, ridx] = SpecialFunctions.sphericalbesselj.(ℓ, k2 .* χ .* r)
-    end
+    T, Bessel1 = bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N) # k χ₁
 
     T_tilde = zeros(1, nχ, nR, n_cheb + 1)
 
     for (ridx, _) in enumerate(R)
-        Bessel2 = zeros(nχ, N)
+        Bessel2 = zeros(nχ, N)  # j_ℓ(k χ₂)
+        Bessel3 = zeros(nχ, N)  # j_ℓ(k' χ₁) 
+        Bessel4 = zeros(nχ, N)  # j_ℓ(k'' χ₂)
 
         Threads.@threads for i in 1:nχ
-            Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, R[ridx] * χ[i] * x)
+            Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, R[ridx] * χ[i] * x) # k χ₂
+            Bessel3[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, χ[i] * x)  # k' χ₁
+            Bessel4[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, R[ridx] * χ[i] * x)  # k'' χ₂
         end
 
         α = w .* (x .^ β) #β = 2 for CC, -2 for LL and 0 for CL.
@@ -73,9 +71,9 @@ function compute_T̃_general(
         for l in 1:n_cheb+1, i in 1:nχ
             Cij = zero(eltype(w))
             for k in 1:N
-                Cij += T[l,k] * Bessel1[i,k] * Bessel2[i,k] * α[k]
+                Cij += T[l,k] * Bessel1[i,k] * Bessel2[i,k] * Bessel3[i,k] * Bessel4[i,k] * α[k]
             end
-            T_tilde[1,i,ridx,l] = J1[i] * J2[i,ridx] * Cij
+            T_tilde[1,i,ridx,l] = Cij
         end
     end
 
