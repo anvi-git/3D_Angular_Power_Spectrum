@@ -71,7 +71,7 @@ function compute_T̃_general(
         for l in 1:n_cheb+1, i in 1:nχ
             Cij = zero(eltype(w))
             for k in 1:N
-                Cij += T[l,k] * Bessel1[i,k] * Bessel2[i,k] * Bessel3[i,k] * Bessel4[i,k] * α[k]
+                Cij += T[l,k] * Bessel1[i,k] * Bessel2[i,k] * Bessel3[i,k1] * Bessel4[i,k2] * α[k]
             end
             T_tilde[1,i,ridx,l] = Cij
         end
