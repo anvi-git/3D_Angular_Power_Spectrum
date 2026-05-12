@@ -18,6 +18,10 @@ function plan_fft(vals::AbstractArray{<:Number,N}) where {N}
     return p 
 end
 
+function new_plan_fft(vals::AbstractArray{<:Number,N}) where {N}
+    p = FFTW.plan_r2r(deepcopy(vals), FFTW.REDFT00, [1]; flags=FFTW.PATIENT, timelimit=Inf)
+    return p
+end
 
 """
     fast_chebcoefs(vals::AbstractArray{<:Number,N}, plan::FFTW.r2rFFTWPlan)
