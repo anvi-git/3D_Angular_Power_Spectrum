@@ -16,66 +16,86 @@ function generalized_window_function(k, χ; ell::Integer, weight, r = identity)
 end
 
 """
-    compute_T̃_general(ℓ::Number, χ::AbstractArray, R::AbstractArray, kmin::Number, kmax::Number, β::Number, k1::Number, k2::Number; n_cheb::Int = 119, N::Int = 2^(15)+1)
-Compute the generalized spherical kernel by reusing `compute_T̃` and dressing the result with the extra external Bessel factors.
+    compute_T̃_beyond(ℓ::Number, χ::AbstractArray, R::AbstractArray, kmin::Number, kmax::Number, β::Number; n_cheb::Int = 119, N::Int = 2^(15)+1)
+Compute integrals of the Bessel functions and the Chebyshev polynomials with four Bessel function arguments.
+This is the precomputation part of the code for the generalized BLAST formalism with Hankel-transformed window functions.
+
+Computes:
+    T̃ₙ;ℓᴬᴮ(χ₁, χ₂) ≡ ∫_{kmin}^{kmax} dk f^{AB}(k) T_n(k) j_ℓ(kχ₁) j_ℓ(kχ₂) j_ℓ(k'χ₁) j_ℓ(k''χ₂)
+
+where k', k'' are wavenumber arguments of the Hankel-transformed window functions W̃ᴬ(k',k) and W̃ᴮ(k'',k).
 
 # Arguments
-- `ℓ::Number`: Multipole order.
-- `χ::AbstractArray`: Array containing values of the comoving distance.
-- `R::AbstractArray`: Array containing values for the `R=χ₂/χ₁` variable.
+- `ℓ::Number`: Multipole order
+
+- `χ::AbstractArray`: Array containing values of the comoving distance. 
+
+- `R::AbstractArray`: Array containing values for the R=χ₁/χ₂ variable.
+
 - `kmin::Number` and `kmax::Number`: Integration range in k.
-- `β::Number`: Exponent of the k dependence of the integral.
-- `k1::Number`: External wavenumber associated with the first leg.
-- `k2::Number`: External wavenumber associated with the second leg.
-- `n_cheb::Int`: Number of Chebyshev polynomials used in the approximation of the power spectra.
+
+- `β::Number`: Exponent of the k dependence of the integral. This parameter depends on the combination of tracers: β=2,-2,0 for clustering, cosmic shear and the cross-correlation respectively.
+
+- `n_cheb::Int`: Number of chebyshev polynomials used in the approximation of the power spectra.
+
 - `N::Int`: Number of integration points in k.
 """
-function compute_T̃_general(
-    ℓ::Number,
-    χ::AbstractArray,
-    R::AbstractArray,
-    kmin::Number,
-    kmax::Number,
-    β::Number,
-    k1::Number,
-    k2::Number;
-    n_cheb::Int = 119,
-    N::Int = 2^(15)+1,
-)
-    if kmin >= kmax
-        throw(DomainError("The integration range is unphysical. Make sure kmin < kmax."))
+function compute_T̃_beyond(ℓ::Number, χ::AbstractArray, R::AbstractArray, kmin::Number, kmax::Number, β::Number; n_cheb::Int = 119, N::Int = 2^(15)+1)
+    if kmin >= kmax 
+        throw(DomainError("The integration range is unphysical. Make sure kmin < kmax.")) 
     end
-
+    
     nχ = length(χ)
     nR = length(R)
 
     x = get_clencurt_grid(kmin, kmax, N)
     w = get_clencurt_weights(kmin, kmax, N)
-    T, Bessel1 = bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N) # k χ₁
+    T, Bessel1 = bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N)
 
-    T_tilde = zeros(1, nχ, nR, n_cheb + 1)
-
-    for (ridx, _) in enumerate(R)
-        Bessel2 = zeros(nχ, N)  # j_ℓ(k χ₂)
-        Bessel3 = zeros(nχ, N)  # j_ℓ(k' χ₁) 
-        Bessel4 = zeros(nχ, N)  # j_ℓ(k'' χ₂)
-
+    # Output: T_tilde[1, i, ridx, l] where:
+    # i = index for χ
+    # ridx = index for R (which parametrizes k' and k'')
+    # l = Chebyshev polynomial index
+    T_tilde = zeros(1, nχ, nR, n_cheb+1)
+    
+    for (ridx, r) in enumerate(R)
+        # Bessel1[i,k] = jₗ(kχᵢ) - already computed
+        # Bessel2[i,k] = jₗ(k'χᵢ) where k' is parametrized by R
+        # Bessel3[i,k] = jₗ(k'χᵢ) - same as Bessel2 for the first χ₁ argument
+        # Bessel4[i,k] = jₗ(k''χᵢ) where k'' is parametrized by R
+        
+        Bessel2 = zeros(nχ, N)  # jₗ(k'χᵢ)
+        Bessel3 = zeros(nχ, N)  # jₗ(k'χᵢ) - for χ₁ in second window function
+        Bessel4 = zeros(nχ, N)  # jₗ(k''χᵢ) - for χ₂ in second window function
+        
         Threads.@threads for i in 1:nχ
-            Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, R[ridx] * χ[i] * x) # k χ₂
-            Bessel3[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, χ[i] * x)  # k' χ₁
-            Bessel4[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, R[ridx] * χ[i] * x)  # k'' χ₂
+            # For the Hankel-transformed window functions:
+            # W̃ᴬ(k',k) contributes: jₗ(kχ₁) jₗ(k'χ₁)  → Bessel1 and Bessel2
+            # W̃ᴮ(k'',k) contributes: jₗ(kχ₂) jₗ(k''χ₂) → Bessel1 (different χ) and Bessel4
+            # But since R = χ₁/χ₂, we parametrize as:
+            # k' → r*χ[i]  (for first window function)
+            # k'' → r*χ[i]  (for second window function, but different χ argument)
+            
+            Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, r*χ[i] * x)  # jₗ(k'χ₁)
+            Bessel3[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, r*χ[i] * x)  # jₗ(k'χ₁) for W̃ᴬ
+            Bessel4[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, r*χ[i] * x)  # jₗ(k''χ₂)
         end
 
-        α = w .* (x .^ β) #β = 2 for CC, -2 for LL and 0 for CL.
-
-        for l in 1:n_cheb+1, i in 1:nχ
-            Cij = zero(eltype(w))
-            for k in 1:N
-                Cij += T[l,k] * Bessel1[i,k] * Bessel2[i,k] * Bessel3[i,k1] * Bessel4[i,k2] * α[k]
-            end
-            T_tilde[1,i,ridx,l] = Cij
-        end
+        α = w .* (x .^ β)  # Integration weight: f^AB(k) = k^β * w
+        
+        # Single integration over k with four Bessel function terms
+        @tturbo l in 1:n_cheb+1, i in 1:nχ
+                Cij = zero(eltype(w))
+                for k in 1:N
+                    # ∫ dk f(k) Tₙ(k) jₗ(kχ₁) jₗ(kχ₂) jₗ(k'χ₁) jₗ(k''χ₂)
+                    # α[k] contains the k-dependent weight and integration measure
+                    # T[l,k] is the Chebyshev polynomial (or power spectrum approximation)
+                    # Bessel1[i,k], Bessel2[i,k], Bessel3[i,k], Bessel4[i,k] are the four Bessel terms
+                    Cij += α[k] * T[l,k] * Bessel1[i,k] * Bessel2[i,k] * Bessel3[i,k] * Bessel4[i,k]
+                end
+                T_tilde[1,i,ridx,l] = Cij
     end
 
     return T_tilde
+
 end
