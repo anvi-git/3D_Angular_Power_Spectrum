@@ -40,55 +40,61 @@ where k', k'' are wavenumber arguments of the Hankel-transformed window function
 
 - `N::Int`: Number of integration points in k.
 """
-function compute_T̃_beyond(ℓ::Number, χ::AbstractArray, R::AbstractArray, 
-                           kp::AbstractArray, kpp::AbstractArray,  # k' and k'' grids
-                           kmin::Number, kmax::Number, β::Number; 
-                           n_cheb::Int = 119, N::Int = 2^(15)+1)
-    
+
+function compute_T̃_beyond(ℓ::Number, χ::AbstractArray, R::AbstractArray,  
+                               kp::AbstractArray, kpp::AbstractArray, 
+                               kmin::Number, kmax::Number;  
+                               n_cheb::Int = 119, N::Int = 2^(15)+1)
     nχ = length(χ)
     nR = length(R)
     nkp = length(kp)
     nkpp = length(kpp)
 
-    x = Blast.get_clencurt_grid(kmin, kmax, N)
-    w = Blast.get_clencurt_weights(kmin, kmax, N)
+    x   = Blast.get_clencurt_grid(kmin, kmax, N)
+    w   = Blast.get_clencurt_weights(kmin, kmax, N)
     T, Bessel_k = Blast.bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N)
 
-    # kp and kpp are passed as arguments, already in linear space
-    # (not reassigned here - would cause log-space multiplication error)
-    # Output: (nχ, nR, nkp, nkpp, n_cheb+1)
-    T_tilde = zeros(nχ, nR, nkp, nkpp, n_cheb+1)
-    
-    α = w .* (x .^ β)
-    
-    for i in 1:nχ, ridx in 1:nR
-        χ₁ = χ[i]
-        χ₂ = χ₁ / R[ridx]  # or χ₁ * R[ridx], depending on convention
-        
-        # Bessel factors for k: j_ℓ(k·χ₁) and j_ℓ(k·χ₂)
-        Bessel_k_χ1 = @views Bessel_k[i, :]  # Pre-computed j_ℓ(k·χ₁)
+    # Precompute the three weight arrays once, outside all loops
+    α_m2 = w .* (x .^ (-2))   # β = -2  (LL)
+    α_0  = w                   # β =  0  (CL), x^0 = 1
+    α_p2 = w .* (x .^ 2)      # β = +2  (CC)
+
+    T_LL = zeros(nχ, nR, nkp, nkpp, n_cheb+1)
+    T_CL = zeros(nχ, nR, nkp, nkpp, n_cheb+1)
+    T_CC = zeros(nχ, nR, nkp, nkpp, n_cheb+1)
+
+    Threads.@threads for i in 1:nχ
         Bessel_k_χ2 = zeros(N)
-        Threads.@threads for n in 1:N
-            Bessel_k_χ2[n] = sphericalbesselj(ℓ, x[n] * χ₂)  # j_ℓ(k·χ₂)
-        end
-        
-        # Loop over fixed k' and k''
-        for kpi in 1:nkp, kppi in 1:nkpp
-            # These DON'T depend on k (fixed arguments)
-            bessel_kp_χ1 = sphericalbesselj(ℓ, kp[kpi] * χ₁)
-            bessel_kpp_χ2 = sphericalbesselj(ℓ, kpp[kppi] * χ₂)
-            
-            # Integrate over k with Chebyshev coefficients
-            for l in 1:n_cheb+1
-                integral = 0.0
-                @simd for n in 1:N
-                    integral += α[n] * T[l, n] * 
-                               Bessel_k_χ1[n] * Bessel_k_χ2[n] * bessel_kp_χ1 * bessel_kpp_χ2
+
+        for ridx in 1:nR
+            χ₁ = χ[i]
+            χ₂ = χ₁ / R[ridx]
+            Bessel_k_χ1 = @views Bessel_k[i, :]
+
+            for n in 1:N
+                Bessel_k_χ2[n] = sphericalbesselj(ℓ, x[n] * χ₂)
+            end
+
+            for kpi in 1:nkp, kppi in 1:nkpp
+                bessel_kp_χ1  = sphericalbesselj(ℓ, kp[kpi]  * χ₁)
+                bessel_kpp_χ2 = sphericalbesselj(ℓ, kpp[kppi] * χ₂)
+                const_factor  = bessel_kp_χ1 * bessel_kpp_χ2
+
+                for l in 1:n_cheb+1
+                    I_m2 = 0.0; I_0 = 0.0; I_p2 = 0.0
+                    @simd for n in 1:N
+                        base = T[l, n] * Bessel_k_χ1[n] * Bessel_k_χ2[n]
+                        I_m2 += α_m2[n] * base
+                        I_0  += α_0[n]  * base
+                        I_p2 += α_p2[n] * base
+                    end
+                    T_LL[i, ridx, kpi, kppi, l] = I_m2 * const_factor
+                    T_CL[i, ridx, kpi, kppi, l] = I_0  * const_factor
+                    T_CC[i, ridx, kpi, kppi, l] = I_p2 * const_factor
                 end
-                T_tilde[i, ridx, kpi, kppi, l] = integral
             end
         end
     end
 
-    return T_tilde
+    return T_LL, T_CL, T_CC
 end
