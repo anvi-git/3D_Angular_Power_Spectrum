@@ -50,11 +50,12 @@ function compute_T̃_beyond(ℓ::Number, χ::AbstractArray, R::AbstractArray,
     nkp = length(kp)
     nkpp = length(kpp)
 
-    x = get_clencurt_grid(kmin, kmax, N)
-    w = get_clencurt_weights(kmin, kmax, N)
-    T, Bessel_k = bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N)
+    x = Blast.get_clencurt_grid(kmin, kmax, N)
+    w = Blast.get_clencurt_weights(kmin, kmax, N)
+    T, Bessel_k = Blast.bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N)
 
-    kp = kpp = chebpoints(n_cheb, log10(kmin), log10(kmax))  # shape: (n_cheb,)
+    # kp and kpp are passed as arguments, already in linear space
+    # (not reassigned here - would cause log-space multiplication error)
     # Output: (nχ, nR, nkp, nkpp, n_cheb+1)
     T_tilde = zeros(nχ, nR, nkp, nkpp, n_cheb+1)
     
