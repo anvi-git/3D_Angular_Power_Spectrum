@@ -40,62 +40,54 @@ where k', k'' are wavenumber arguments of the Hankel-transformed window function
 
 - `N::Int`: Number of integration points in k.
 """
-function compute_T̃_beyond(ℓ::Number, χ::AbstractArray, R::AbstractArray, kmin::Number, kmax::Number, β::Number; n_cheb::Int = 119, N::Int = 2^(15)+1)
-    if kmin >= kmax 
-        throw(DomainError("The integration range is unphysical. Make sure kmin < kmax.")) 
-    end
+function compute_T̃_beyond(ℓ::Number, χ::AbstractArray, R::AbstractArray, 
+                           kp::AbstractArray, kpp::AbstractArray,  # k' and k'' grids
+                           kmin::Number, kmax::Number, β::Number; 
+                           n_cheb::Int = 119, N::Int = 2^(15)+1)
     
     nχ = length(χ)
     nR = length(R)
+    nkp = length(kp)
+    nkpp = length(kpp)
 
     x = get_clencurt_grid(kmin, kmax, N)
     w = get_clencurt_weights(kmin, kmax, N)
-    T, Bessel1 = bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N)
+    T, Bessel_k = bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N)
 
-    # Output: T_tilde[1, i, ridx, l] where:
-    # i = index for χ
-    # ridx = index for R (which parametrizes k' and k'')
-    # l = Chebyshev polynomial index
-    T_tilde = zeros(1, nχ, nR, n_cheb+1)
+    kp = kpp = chebpoints(n_cheb, log10(kmin), log10(kmax))  # shape: (n_cheb,)
+    # Output: (nχ, nR, nkp, nkpp, n_cheb+1)
+    T_tilde = zeros(nχ, nR, nkp, nkpp, n_cheb+1)
     
-    for (ridx, r) in enumerate(R)
-        # Bessel1[i,k] = jₗ(kχᵢ) - already computed
-        # Bessel2[i,k] = jₗ(k'χᵢ) where k' is parametrized by R
-        # Bessel3[i,k] = jₗ(k'χᵢ) - same as Bessel2 for the first χ₁ argument
-        # Bessel4[i,k] = jₗ(k''χᵢ) where k'' is parametrized by R
+    α = w .* (x .^ β)
+    
+    for i in 1:nχ, ridx in 1:nR
+        χ₁ = χ[i]
+        χ₂ = χ₁ / R[ridx]  # or χ₁ * R[ridx], depending on convention
         
-        Bessel2 = zeros(nχ, N)  # jₗ(k'χᵢ)
-        Bessel3 = zeros(nχ, N)  # jₗ(k'χᵢ) - for χ₁ in second window function
-        Bessel4 = zeros(nχ, N)  # jₗ(k''χᵢ) - for χ₂ in second window function
-        
-        Threads.@threads for i in 1:nχ
-            # For the Hankel-transformed window functions:
-            # W̃ᴬ(k',k) contributes: jₗ(kχ₁) jₗ(k'χ₁)  → Bessel1 and Bessel2
-            # W̃ᴮ(k'',k) contributes: jₗ(kχ₂) jₗ(k''χ₂) → Bessel1 (different χ) and Bessel4
-            # But since R = χ₁/χ₂, we parametrize as:
-            # k' → r*χ[i]  (for first window function)
-            # k'' → r*χ[i]  (for second window function, but different χ argument)
-            
-            Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, r*χ[i] * x)  # jₗ(k'χ₁)
-            Bessel3[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, r*χ[i] * x)  # jₗ(k'χ₁) for W̃ᴬ
-            Bessel4[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, r*χ[i] * x)  # jₗ(k''χ₂)
+        # Bessel factors for k: j_ℓ(k·χ₁) and j_ℓ(k·χ₂)
+        Bessel_k_χ1 = @views Bessel_k[i, :]  # Pre-computed j_ℓ(k·χ₁)
+        Bessel_k_χ2 = zeros(N)
+        Threads.@threads for n in 1:N
+            Bessel_k_χ2[n] = sphericalbesselj(ℓ, x[n] * χ₂)  # j_ℓ(k·χ₂)
         end
-
-        α = w .* (x .^ β)  # Integration weight: f^AB(k) = k^β * w
         
-        # Single integration over k with four Bessel function terms
-        @tturbo l in 1:n_cheb+1, i in 1:nχ
-                Cij = zero(eltype(w))
-                for k in 1:N
-                    # ∫ dk f(k) Tₙ(k) jₗ(kχ₁) jₗ(kχ₂) jₗ(k'χ₁) jₗ(k''χ₂)
-                    # α[k] contains the k-dependent weight and integration measure
-                    # T[l,k] is the Chebyshev polynomial (or power spectrum approximation)
-                    # Bessel1[i,k], Bessel2[i,k], Bessel3[i,k], Bessel4[i,k] are the four Bessel terms
-                    Cij += α[k] * T[l,k] * Bessel1[i,k] * Bessel2[i,k] * Bessel3[i,k] * Bessel4[i,k]
+        # Loop over fixed k' and k''
+        for kpi in 1:nkp, kppi in 1:nkpp
+            # These DON'T depend on k (fixed arguments)
+            bessel_kp_χ1 = sphericalbesselj(ℓ, kp[kpi] * χ₁)
+            bessel_kpp_χ2 = sphericalbesselj(ℓ, kpp[kppi] * χ₂)
+            
+            # Integrate over k with Chebyshev coefficients
+            for l in 1:n_cheb+1
+                integral = 0.0
+                @simd for n in 1:N
+                    integral += α[n] * T[l, n] * 
+                               Bessel_k_χ1[n] * Bessel_k_χ2[n] * bessel_kp_χ1 * bessel_kpp_χ2
                 end
-                T_tilde[1,i,ridx,l] = Cij
+                T_tilde[i, ridx, kpi, kppi, l] = integral
+            end
+        end
     end
 
     return T_tilde
-
 end
