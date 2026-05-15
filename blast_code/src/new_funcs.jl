@@ -99,6 +99,70 @@ function compute_T̃_beyond(ℓ::Number, χ::AbstractArray, R::AbstractArray,
     return T_LL, T_CL, T_CC
 end
 
+"""
+    computehankelwindow(ℓ::Int, χ::AbstractArray, k_window::AbstractArray,
+                        W_g::AbstractArray) → Wtilde::Array{Float64,2}
+
+Compute the Hankel-transformed window function via numerical integration:
+
+    W̃_ℓ(k, χ₀) = ∫ dχ' χ'² W_g(χ') j_ℓ(k χ₀) j_ℓ(k χ')
+
+# Arguments
+- `ℓ::Int`: Multipole order
+- `χ::AbstractArray`: Comoving distance grid for integration (length n_χ)
+- `k_window::AbstractArray`: Wavenumber grid (length n_k)
+- `W_g::AbstractArray`: Real-space window function evaluated on χ (length n_χ)
+
+# Returns
+- `Wtilde::Array{Float64,2}`: Hankel-transformed window, shape (n_k, n_χ)
+"""
+function computehankelwindow(ℓ::Int, χ::AbstractArray, k_window::AbstractArray,
+                             W_g::AbstractArray)
+    n_k = length(k_window)
+    n_χ = length(χ)
+    Wtilde = zeros(n_k, n_χ)
+    
+    # For each output wavenumber k
+    for (i_k, k) in enumerate(k_window)
+        # For each output comoving distance χ₀
+        for (i_χ0, χ0) in enumerate(χ)
+            # Integrate over χ' with Simpson's rule or QuadGK
+            # ∫ dχ' χ'² W_g(χ') j_ℓ(k χ₀) j_ℓ(k χ')
+            
+            bessel_kχ0 = SpecialFunctions.sphericalbesselj(ℓ, k * χ0)
+            
+            # Integration function for χ'
+            integrand(χp) = χp^2 * W_g_interp(χp, χ, W_g) * bessel_kχ0 * 
+                           SpecialFunctions.sphericalbesselj(ℓ, k * χp)
+            
+            # Adaptive quadrature integration
+            result, _ = quadgk(integrand, first(χ), last(χ), rtol=1e-6)
+            Wtilde[i_k, i_χ0] = result
+        end
+    end
+    
+    return Wtilde
+end
+
+# Helper function for interpolation
+function W_g_interp(χp, χ_grid, W_g)
+    # Linear interpolation of W_g at χp
+    if χp < first(χ_grid) || χp > last(χ_grid)
+        return 0.0
+    end
+    
+    idx = searchsortedlast(χ_grid, χp)
+    if idx == 0
+        return W_g[1]
+    elseif idx == length(χ_grid)
+        return W_g[end]
+    else
+        # Linear interpolation
+        χ1, χ2 = χ_grid[idx], χ_grid[idx+1]
+        w1, w2 = W_g[idx], W_g[idx+1]
+        return w1 + (w2 - w1) * (χp - χ1) / (χ2 - χ1)
+    end
+end
 
 """
     computehankelwindowCC(ℓ::Int, χ::AbstractArray, k_window::AbstractArray,
@@ -161,7 +225,7 @@ function computewCCwithwindows(ℓ::Int, χ::AbstractArray, R::AbstractArray,
                                 cheb_coeff::AbstractArray;
                                 n_cheb::Int = 119, N::Int = 2151)
     # Build T̃_CC  →  shape (1, n, nR, n_cheb+1)
-    Ttilde = computeTwithwindows(ℓ, χ, R, kmin, kmax,
+    Ttilde = compute_T̃_with_windows(ℓ, χ, R, kmin, kmax,
                                   Wtilde1, Wtilde2, k_window;
                                   n_cheb = n_cheb, N = N)
     # Drop the leading ℓ-dimension  →  (n, nR, n_cheb+1)
@@ -205,11 +269,11 @@ function compute_T̃_with_windows(ℓ::Number, χ::AbstractArray, R::AbstractArr
     nk_win = length(k_window)
     
     # Get Clenshaw-Curtis grid and weights
-    x = get_clencurt_grid(kmin, kmax, N)
-    w = get_clencurt_weights(kmin, kmax, N)
+    x = Blast.get_clencurt_grid(kmin, kmax, N)
+    w = Blast.get_clencurt_weights(kmin, kmax, N)
     
     # Compute Chebyshev polynomials and Bessel functions
-    T, Bessel1 = bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N)
+    T, Bessel1 = Blast.bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N)
     
     T_tilde = zeros(1, nχ, nR, n_cheb+1)
     
