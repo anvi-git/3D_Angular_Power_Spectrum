@@ -101,52 +101,74 @@ end
 
 
 """
-    compute_hankel_window(ℓ::Int, χ::AbstractArray, k_window::AbstractArray, 
-                         W_g::AbstractArray)
+    computehankelwindowCC(ℓ::Int, χ::AbstractArray, k_window::AbstractArray,
+                          W_g::AbstractArray) → WtildeCC::Array{Float64,2}
 
-Compute the Hankel-transformed window function W̃_ℓ(k,χ).
+Compute the Hankel-transformed galaxy-clustering (CC) window function
 
-This accounts for non-local contributions in the radial direction.
+    W̃_ℓ^{den}(k, χ₀) = ∫ dχ' χ'² W_g(χ') j_ℓ(k χ₀) j_ℓ(k χ')
+
+which is the auto-correlation (A = B = den) specialisation of `computehankelwindow`.
 
 # Arguments
-- `ℓ::Int`: Multipole order
-- `χ::AbstractArray`: Comoving distance array
-- `k_window::AbstractArray`: Wavenumbers for window convolution
-- `W_g::AbstractArray`: Real-space window function
+- `ℓ::Int`                  Multipole order
+- `χ::AbstractArray`        Comoving distance grid (length n)
+- `k_window::AbstractArray` Wavenumber grid for the Hankel convolution (length n_k)
+- `W_g::AbstractArray`      Real-space galaxy window W_g(χ) evaluated on χ (length n)
 
 # Returns
-- `W_tilde::Array{Float64, 2}`: Hankel-transformed window W̃(k,χ) [nk × nχ]
+- `WtildeCC::Array{Float64,2}` shape (n_k, n)
 """
-function compute_hankel_window(ℓ::Int, χ::AbstractArray, k_window::AbstractArray, 
-                               W_g::AbstractArray)
-    nχ = length(χ)
-    nk = length(k_window)
-    W_tilde = zeros(nk, nχ)
-    
-    # Integration grid for χ'
-    dχ = χ[2] - χ[1]  # Assuming uniform grid
-    
-    for (i_k, k) in enumerate(k_window)
-        for (i_χ, χ_val) in enumerate(χ)
-            # W̃_ℓ(k,χ) = ∫ dχ' W_g(χ') j_ℓ(k|χ - χ'|)
-            integral = 0.0
-            
-            for (j, χ_prime) in enumerate(χ)
-                # Distance between two shells
-                Δχ = abs(χ_val - χ_prime)
-                
-                # Bessel function argument
-                bessel_val = SpecialFunctions.sphericalbesselj(ℓ, k * Δχ)
-                
-                # Accumulate integral (simple trapezoidal rule)
-                integral += W_g[j] * bessel_val * dχ
-            end
-            
-            W_tilde[i_k, i_χ] = integral
-        end
-    end
-    
-    return W_tilde
+function computehankelwindowCC(ℓ::Int, χ::AbstractArray,
+                                k_window::AbstractArray,
+                                W_g::AbstractArray)
+    return computehankelwindow(ℓ, χ, k_window, W_g)
+end
+
+
+"""
+    computewCCwithwindows(ℓ::Int, χ::AbstractArray, R::AbstractArray,
+                          kmin::Number, kmax::Number,
+                          Wtilde1::AbstractArray, Wtilde2::AbstractArray,
+                          k_window::AbstractArray,
+                          cheb_coeff::AbstractArray;
+                          n_cheb::Int = 119, N::Int = 2151)
+        → w_CC::Matrix{Float64}
+
+Full pipeline: given pre-computed Hankel windows `Wtilde1` and `Wtilde2`
+(each of shape n_k × n), build the beyond-BLAST coefficient tensor T̃_CC and
+immediately contract it with the Chebyshev-decomposed power spectrum to
+produce w_CC(χ, R) for a single multipole ℓ.
+
+# Arguments
+- `ℓ::Int`                   Multipole order
+- `χ::AbstractArray`         Comoving distance grid (length n)
+- `R::AbstractArray`         Chebyshev R-grid (length nR)
+- `kmin,kmax::Number`        Integration range in k
+- `Wtilde1,Wtilde2`          Hankel-transformed windows, shape (n_k, n)
+- `k_window::AbstractArray`  Wavenumber grid matching rows of Wtilde (length n_k)
+- `cheb_coeff::AbstractArray` Chebyshev coefficients of P(k,χ,R), shape (n, nR, n_cheb+1)
+- `n_cheb::Int`              Number of Chebyshev polynomials
+- `N::Int`                   Integration points in k
+
+# Returns
+- `w_CC::Matrix{Float64}` shape (n, nR)
+"""
+function computewCCwithwindows(ℓ::Int, χ::AbstractArray, R::AbstractArray,
+                                kmin::Number, kmax::Number,
+                                Wtilde1::AbstractArray, Wtilde2::AbstractArray,
+                                k_window::AbstractArray,
+                                cheb_coeff::AbstractArray;
+                                n_cheb::Int = 119, N::Int = 2151)
+    # Build T̃_CC  →  shape (1, n, nR, n_cheb+1)
+    Ttilde = computeTwithwindows(ℓ, χ, R, kmin, kmax,
+                                  Wtilde1, Wtilde2, k_window;
+                                  n_cheb = n_cheb, N = N)
+    # Drop the leading ℓ-dimension  →  (n, nR, n_cheb+1)
+    Ttilde_single = dropdims(Ttilde; dims = 1)
+    # Chebyshev contraction  →  (n, nR)
+    w_CC = dropdims(sum(cheb_coeff .* Ttilde_single; dims = 3); dims = 3)
+    return w_CC
 end
 
 
