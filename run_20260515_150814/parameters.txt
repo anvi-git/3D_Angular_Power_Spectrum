@@ -1,6 +1,6 @@
 Beyond BLAST Run Parameters
 ==========================
-Timestamp: 20260515_141922
+Timestamp: 20260515_150814
 
 ℓ array length: 22
 n_chi: 3
@@ -9,7 +9,7 @@ x_max: 7000
 nR: 2
 kmax: 15.384615384615385
 kmin: 0.00035714285714285714
-n_cheb: 3
+n_cheb: 119
 β: 2
 k1: 0.00035714285714285714
 k2: 15.384615384615385
@@ -17,4 +17,4 @@ N: 32769
 
 Computation Time:
 ================
-T̃ computation time: 6.781786125 seconds (0.11302976875 minutes)
+T̃ computation time: 6.107808292 seconds (0.10179680486666666 minutes)

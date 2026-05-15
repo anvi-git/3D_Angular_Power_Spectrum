@@ -1,0 +1,13 @@
+Beyond BLAST Run Parameters
+==========================
+Timestamp: 20260515_153334
+
+ℓ array length: 22
+n_chi: 30
+x_min: 26
+x_max: 7000
+nR: 16
+kmax: 15.384615384615385
+kmin: 0.00035714285714285714
+n_cheb: 30
+β: 2
