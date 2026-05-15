@@ -98,3 +98,144 @@ function compute_T̃_beyond(ℓ::Number, χ::AbstractArray, R::AbstractArray,
 
     return T_LL, T_CL, T_CC
 end
+
+
+"""
+    compute_hankel_window(ℓ::Int, χ::AbstractArray, k_window::AbstractArray, 
+                         W_g::AbstractArray)
+
+Compute the Hankel-transformed window function W̃_ℓ(k,χ).
+
+This accounts for non-local contributions in the radial direction.
+
+# Arguments
+- `ℓ::Int`: Multipole order
+- `χ::AbstractArray`: Comoving distance array
+- `k_window::AbstractArray`: Wavenumbers for window convolution
+- `W_g::AbstractArray`: Real-space window function
+
+# Returns
+- `W_tilde::Array{Float64, 2}`: Hankel-transformed window W̃(k,χ) [nk × nχ]
+"""
+function compute_hankel_window(ℓ::Int, χ::AbstractArray, k_window::AbstractArray, 
+                               W_g::AbstractArray)
+    nχ = length(χ)
+    nk = length(k_window)
+    W_tilde = zeros(nk, nχ)
+    
+    # Integration grid for χ'
+    dχ = χ[2] - χ[1]  # Assuming uniform grid
+    
+    for (i_k, k) in enumerate(k_window)
+        for (i_χ, χ_val) in enumerate(χ)
+            # W̃_ℓ(k,χ) = ∫ dχ' W_g(χ') j_ℓ(k|χ - χ'|)
+            integral = 0.0
+            
+            for (j, χ_prime) in enumerate(χ)
+                # Distance between two shells
+                Δχ = abs(χ_val - χ_prime)
+                
+                # Bessel function argument
+                bessel_val = SpecialFunctions.sphericalbesselj(ℓ, k * Δχ)
+                
+                # Accumulate integral (simple trapezoidal rule)
+                integral += W_g[j] * bessel_val * dχ
+            end
+            
+            W_tilde[i_k, i_χ] = integral
+        end
+    end
+    
+    return W_tilde
+end
+
+
+"""
+    compute_T̃_with_windows(ℓ::Number, χ::AbstractArray, R::AbstractArray, 
+                           kmin::Number, kmax::Number, 
+                           W_tilde_1::AbstractArray, W_tilde_2::AbstractArray,
+                           k_window::AbstractArray;
+                           n_cheb::Int = 119, N::Int = 2^(15)+1)
+
+Compute BLAST coefficients with Hankel-transformed window functions.
+
+This is the "proper beyond-BLAST" for galaxy clustering with realistic windows.
+
+# Arguments
+- `ℓ::Number`: Multipole order
+- `χ::AbstractArray`: Comoving distance array
+- `R::AbstractArray`: R = χ₁/χ₂ array
+- `kmin, kmax::Number`: Integration range in k
+- `W_tilde_1, W_tilde_2::AbstractArray`: Hankel-transformed windows [nk × nχ]
+- `k_window::AbstractArray`: Wavenumber grid for windows
+
+# Returns
+- `T_tilde::Array{Float64, 4}`: Precomputed coefficients [1, nχ, nR, n_cheb+1]
+"""
+function compute_T̃_with_windows(ℓ::Number, χ::AbstractArray, R::AbstractArray, 
+                                kmin::Number, kmax::Number, 
+                                W_tilde_1::AbstractArray, W_tilde_2::AbstractArray,
+                                k_window::AbstractArray;
+                                n_cheb::Int = 119, N::Int = 2^(15)+1)
+    
+    nχ = length(χ)
+    nR = length(R)
+    nk_win = length(k_window)
+    
+    # Get Clenshaw-Curtis grid and weights
+    x = get_clencurt_grid(kmin, kmax, N)
+    w = get_clencurt_weights(kmin, kmax, N)
+    
+    # Compute Chebyshev polynomials and Bessel functions
+    T, Bessel1 = bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N)
+    
+    T_tilde = zeros(1, nχ, nR, n_cheb+1)
+    
+    for (ridx, r) in enumerate(R)
+        Bessel2 = zeros(nχ, N)
+        
+        # Compute second set of Bessel functions
+        Threads.@threads for i in 1:nχ
+            Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, r*χ[i] * x)
+        end
+        
+        # Weight array (β = 2 for clustering)
+        α = w .* (x .^ 2)
+        
+        # Loop over window wavenumbers
+        for i_k1 in 1:nk_win
+            k1 = k_window[i_k1]
+            
+            for i_k2 in 1:nk_win
+                k2 = k_window[i_k2]
+                
+                # Additional Bessel functions from windows
+                for i in 1:nχ
+                    i_χ2 = Int(round(i / r))  # Index for χ₂ = χ₁/r
+                    if i_χ2 < 1 || i_χ2 > nχ
+                        continue
+                    end
+                    
+                    # Window contributions
+                    W1_factor = W_tilde_1[i_k1, i]
+                    W2_factor = W_tilde_2[i_k2, i_χ2]
+                    
+                    # Main integration loop
+                    for l in 1:n_cheb+1
+                        Cij = 0.0
+                        for k in 1:N
+                            # Standard BLAST part
+                            base = T[l,k] * Bessel1[i,k] * Bessel2[i,k] * α[k]
+                            
+                            # Window modification
+                            Cij += base * W1_factor * W2_factor
+                        end
+                        T_tilde[1, i, ridx, l] += Cij
+                    end
+                end
+            end
+        end
+    end
+    
+    return T_tilde
+end
