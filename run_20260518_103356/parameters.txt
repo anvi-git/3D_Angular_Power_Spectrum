@@ -1,0 +1,58 @@
+Beyond BLAST Run Parameters
+==========================
+Timestamp: 20260518_103356
+
+ℓ array length: 22
+n_chi: 4
+x_min: 26
+x_max: 7000
+nR: 2
+kmax: 15.384615384615385
+kmin: 0.00035714285714285714
+n_cheb: 5
+β: 2
+k': [15.38461538461538, 5.5533577900773095, 0.38547346374975583, 0.01425391372224899, 0.0009894023944077635, 0.000357142857142857]
+k'': [15.38461538461538, 5.5533577900773095, 0.38547346374975583, 0.01425391372224899, 0.0009894023944077635, 0.000357142857142857]
+N: 32769
+
+Computation Time (v2):
+T̃ computation time: 1.462262541 s (0.02437104235 min)
+
+Computation Time (v2):
+T̃ computation time: 1.167200083 s (0.019453334716666666 min)
+
+Computation Time (v2):
+T̃ computation time: 0.017317625 s (0.0002886270833333333 min)
+
+Computation Time (v2):
+T̃ computation time: 1.4188665 s (0.023647775 min)
+
+Computation Time (v2):
+T̃ computation time: 0.011007042 s (0.0001834507 min)
+
+Computation Time (v2):
+T̃ computation time: 0.076284833 s (0.0012714138833333332 min)
+
+Computation Time (v2):
+T̃ computation time: 0.0330015 s (0.0005500250000000001 min)
+
+Computation Time (v2):
+T̃ computation time: 0.625446917 s (0.010424115283333334 min)
+
+Computation Time (v2):
+T̃ computation time: 0.469577916 s (0.0078262986 min)
+
+Computation Time (v2):
+T̃ computation time: 5.10594875 s (0.08509914583333332 min)
+
+Computation Time (v2):
+T̃ computation time: 5.188638209 s (0.08647730348333332 min)
+
+Computation Time (v2):
+T̃ computation time: 137.806563459 s (2.29677605765 min)
+
+Computation Time (v2):
+T̃ computation time: 146.029861458 s (2.4338310243 min)
+
+Computation Time (v2):
+T̃ computation time: 1033.863289583 s (17.231054826383335 min)
