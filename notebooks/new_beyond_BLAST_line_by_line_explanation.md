@@ -1,9 +1,5 @@
 # Line-by-line explanation of `new_beyond_BLAST.ipynb`
 
-## Reading notes
-
-When a line defines a scalar, the explanation says so explicitly. When a line defines a vector, matrix, interpolation object, FFT plan, or plotting object, that is also stated explicitly. Complexity statements are rough asymptotic descriptions such as linear time, `O(N log N)`, or adaptive-quadrature cost when no fixed polynomial bound is the right description. 
-
 ```julia
 #Background quantities
 z_b = npzread("blast_code/data/background/z.npy") # array 
@@ -12,11 +8,12 @@ z_b = npzread("blast_code/data/background/z.npy") # array
 z_of_χ = DataInterpolations.AkimaInterpolation(z_b, χ_b); # z(χ)
 χ_of_z = DataInterpolations.AkimaInterpolation(χ_b, z_b); # χ(z)
 ```
-This cell reads external data files into memory. It also creates interpolation objects, which are callable approximations built from tabulated arrays. 
 
-- `z_b = npzread("blast_code/data/background/z.npy") # array `: Reads a NumPy background redshift file. `z_b` is a one-dimensional array, likely a `Vector{Float64}`, with shape `(N_z,)`. Reading cost is linear in the number of stored entries.
-- `χ_b = npzread("blast_code/data/background/chi.npy") # array `: Reads a NumPy background comoving-distance file. `χ_b` is another one-dimensional array, expected to align elementwise with `z_b`, so its shape is also `(N_z,)`.
-- `z_of_χ = DataInterpolations.AkimaInterpolation(z_b, χ_b); # z(χ)`: Constructs an Akima interpolant intended to represent `z(χ)`. The result is a callable interpolation object. Precomputation cost is roughly linear in the tabulated sample count.
+This cell reads external data files into memory. It also creates interpolation objects, which are callable approximations built from tabulated arrays.
+
+- `z_b = npzread("blast_code/data/background/z.npy") # array`: Reads a NumPy background redshift file. `z_b` is a one-dimensional array with shape `(N_z,)`.
+- `χ_b = npzread("blast_code/data/background/chi.npy") # array`: Reads a NumPy background comoving-distance file. `χ_b` is another one-dimensional array, expected to align elementwise with `z_b`, so its shape is also `(N_z,)`.
+- `z_of_χ = DataInterpolations.AkimaInterpolation(z_b, χ_b); # z(χ)`: Constructs an Akima interpolant intended to represent `z(χ)`. The result is a callable interpolation object.
 - `χ_of_z = DataInterpolations.AkimaInterpolation(χ_b, z_b); # χ(z)`: Constructs an Akima interpolant intended to represent `χ(z)`. The result is another callable interpolation object.
 
 
