@@ -1,105 +1,54 @@
-"""
-    window_prefactor(Hz, nz; bias=one.(Hz), growth=one.(Hz), c=Blast.C_LIGHT)
+function compute_W_tilde_modes(ℓ::Number,
+                               k_arr::AbstractVector,
+                               k_other_arr::AbstractVector,
+                               z_nodes::AbstractVector,
+                               chi_interp,
+                               zmin::Number,
+                               zmax::Number;
+                               n_cheb::Int = length(z_nodes),
+                               N::Int = 2^(15) + 1)
 
-Tracer-dependent prefactor f^A(χ) used in the generalized window function.
-"""
-window_prefactor(Hz, nz; bias=one.(Hz), growth=one.(Hz), c=Blast.C_LIGHT) = (Hz ./ c) .* bias .* nz .* growth
+    nk  = length(k_arr)
+    nk2 = length(k_other_arr)
 
-"""
-    generalized_window_function(k, χ; ell::Integer, weight, r = identity)
+    CC_obj = FastTransforms.chebyshevmoments1(Float64, N)
+    t_cc   = FastTransforms.clenshawcurtisnodes(Float64, N)
+    w_cc   = FastTransforms.clenshawcurtisweights(CC_obj)
 
-Generalized window W_l^A(k,χ) = f^A(χ) j_l(k r(χ)).
-"""
-function generalized_window_function(k, χ; ell::Integer, weight, r = identity)
-    radial = r === identity ? χ : r.(χ)
-    return weight .* SpecialFunctions.sphericalbesselj.(ell, k .* radial)
-end
+    z_cc = @. (zmax + zmin) / 2 + (zmax - zmin) / 2 * t_cc
+    χ_cc = chi_interp.(z_cc)
 
-"""
-    compute_T̃_beyond(ℓ::Number, χ::AbstractArray, R::AbstractArray, kmin::Number, kmax::Number, β::Number; n_cheb::Int = 119, N::Int = 2^(15)+1)
-Compute integrals of the Bessel functions and the Chebyshev polynomials with four Bessel function arguments.
-This is the precomputation part of the code for the generalized BLAST formalism with Hankel-transformed window functions.
+    c_basis = FastChebInterp.ChebPoly(zeros(n_cheb), SA[-1.0], SA[1.0])
+    T_mat = zeros(n_cheb, N)
 
-Computes:
-    T̃ₙ;ℓᴬᴮ(χ₁, χ₂) ≡ ∫_{kmin}^{kmax} dk f^{AB}(k) T_n(k) j_ℓ(kχ₁) j_ℓ(kχ₂) j_ℓ(k'χ₁) j_ℓ(k''χ₂)
-
-where k', k'' are wavenumber arguments of the Hankel-transformed window functions W̃ᴬ(k',k) and W̃ᴮ(k'',k).
-
-# Arguments
-- `ℓ::Number`: Multipole order
-- `χ::AbstractArray`: Array containing values of the comoving distance. 
-- `R::AbstractArray`: Array containing values for the R=χ₁/χ₂ variable.
-- `kmin::Number` and `kmax::Number`: Integration range in k.
-- `β::Number`: Exponent of the k dependence of the integral. This parameter depends on the combination of tracers: β=2,-2,0 for clustering, cosmic shear and the cross-correlation respectively.
-- `n_cheb::Int`: Number of chebyshev polynomials used in the approximation of the power spectra.
-- `N::Int`: Number of integration points in k.
-"""
-
-function compute_T̃_beyond(ℓ::Number, χ::AbstractArray, R::AbstractArray,  
-                               kp::AbstractArray, kpp::AbstractArray, 
-                               kmin::Number, kmax::Number;  
-                               n_cheb::Int = 119, N::Int = 2^(15)+1)
-    n_chi = length(χ)
-    nR = length(R)
-    nkp = length(kp)
-    nkpp = length(kpp)
-
-    x   = Blast.get_clencurt_grid(kmin, kmax, N) # the N quadrature points 
-    w   = Blast.get_clencurt_weights(kmin, kmax, N) # w quadrature weights
-    T, Bessel_k = Blast.bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N) # this computes T[n_cheb, N] -> Chebyshev coefficients of
-                                                                      # the matter power spectrum
-                                                                      # # # # # # # # # # # # # # # # # # # # # # # #
-                                                                      # and also Bessel_k[n_chi,N] -> spherical Bessel function 
-                                                                      # evaluated at each N for each comoving distance x.
-                                                                      # # # # # # # # # # # # # # # # # # # # # # # #
- 
-    # Precompute the three weight arrays once, outside all loops
-    α_m2 = w .* (x .^ (-2))   # β = -2  (shear-shear)
-    α_0  = w                  # β =  0  (shear-galaxy)
-    α_p2 = w .* (x .^ 2)      # β = +2  (galaxy-galaxy)
-
-    # T has dimension of 
-    #[different redshifts depths]
-    #[distance ratios R]
-    #[wavenumbers arguments k']
-    #[and k'']
-    #[Chebyshev mode]
-    T_LL = zeros(n_chi, nR, nkp, nkpp, n_cheb+1)
-    T_CL = zeros(n_chi, nR, nkp, nkpp, n_cheb+1)
-    T_CC = zeros(n_chi, nR, nkp, nkpp, n_cheb+1)
-
-    Threads.@threads for i in 1:n_chi
-        Bessel_k_χ2 = zeros(N)
-
-        for ridx in 1:nR            # for each R, compute the pair (χ₁, χ₂)
-            χ₁ = χ[i]
-            χ₂ = χ₁ / R[ridx]
-            Bessel_k_χ1 = @views Bessel_k[i, :]
-
-            for n in 1:N            # for each N, compute the Bessel function related to chi_2. 
-                Bessel_k_χ2[n] = sphericalbesselj(ℓ, x[n] * χ₂)
-            end
-
-            for kpi in 1:nkp, kppi in 1:nkpp
-                bessel_kp_χ1  = sphericalbesselj(ℓ, kp[kpi]  * χ₁)
-                bessel_kpp_χ2 = sphericalbesselj(ℓ, kpp[kppi] * χ₂)
-                const_factor  = bessel_kp_χ1 * bessel_kpp_χ2
-
-                for l in 1:n_cheb+1             # for each Chebyshev node, compute the integral 
-                    I_m2 = 0.0; I_0 = 0.0; I_p2 = 0.0
-                    @simd for n in 1:N          # this computes T_l(k_n) multiplied by the two Bessel functions
-                        base = T[l, n] * Bessel_k_χ1[n] * Bessel_k_χ2[n]
-                        I_m2 += α_m2[n] * base
-                        I_0  += α_0[n]  * base
-                        I_p2 += α_p2[n] * base
-                    end
-                    T_LL[i, ridx, kpi, kppi, l] = I_m2 * const_factor 
-                    T_CL[i, ridx, kpi, kppi, l] = I_0  * const_factor
-                    T_CC[i, ridx, kpi, kppi, l] = I_p2 * const_factor
-                end
-            end
-        end
+    Threads.@threads for n in 1:n_cheb
+        basis = deepcopy(c_basis)
+        basis.coefs .*= 0
+        basis.coefs[n] = 1.0
+        T_mat[n, :] = basis.(t_cc)
     end
 
-    return T_LL, T_CL, T_CC
+    Bk  = zeros(nk, N)
+    Bok = zeros(nk2, N)
+
+    Threads.@threads for i in 1:nk
+        Bk[i, :] = SpecialFunctions.sphericalbesselj.(ℓ, k_arr[i] .* χ_cc)
+    end
+
+    Threads.@threads for i in 1:nk2
+        Bok[i, :] = SpecialFunctions.sphericalbesselj.(ℓ, k_other_arr[i] .* χ_cc)
+    end
+
+    jac = (zmax - zmin) / 2
+    W_basis = zeros(Float64, nk2, nk, n_cheb)
+
+    @tturbo for n in 1:n_cheb, ik2 in 1:nk2, ik in 1:nk
+        s = zero(Float64)
+        for t in 1:N
+            s += w_cc[t] * T_mat[n, t] * Bok[ik2, t] * Bk[ik, t]
+        end
+        W_basis[ik2, ik, n] = jac * s
+    end
+
+    return W_basis
 end
