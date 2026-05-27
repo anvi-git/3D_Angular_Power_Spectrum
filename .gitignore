@@ -2,3 +2,5 @@ run/
 data/
 W_LL_A.npy
 W_LL_B.npy
+W_LL_A_old.npy
+W_LL_B_old.npy
