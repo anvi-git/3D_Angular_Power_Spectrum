@@ -66,7 +66,7 @@ function compute_W̃_chebcoeffs(
     n_z,              # funzione n(z)
     b_z,              # funzione b(z) (bias)
     D_z,              # funzione D(z) (growth factor)
-    H_z,              # funzione H(z)
+    #H_z,              # funzione H(z)
     zmin::Number,
     zmax::Number;
     n_cheb::Int,
@@ -82,7 +82,8 @@ function compute_W̃_chebcoeffs(
     jac  = (zmax - zmin) / 2
 
     # Valuta W_tilde su tutti i nodi CC
-    W_vals = @. χ_cc^2 * n_z(z_cc) * b_z(z_cc) * D_z(z_cc) * H_z(z_cc)
+    #W_vals = @. χ_cc^2 * n_z(z_cc) * b_z(z_cc) * D_z(z_cc) * H_z(z_cc)
+    W_vals = @. χ_cc^2 * n_z(z_cc) * b_z(z_cc) * D_z(z_cc)
 
     # Costruisci T_mat: stessa logica di compute_W_tilde_modes
     c_basis = FastChebInterp.ChebPoly(zeros(n_cheb+1), SA[-1.0], SA[1.0])
