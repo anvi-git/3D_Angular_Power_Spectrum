@@ -14,3 +14,5 @@ cheb_coeff_W.npy
 I_A.npy
 I_B.npy
 W_cheb.npy
+I_A_N12_ncheb12.npy
+I_B_N12_ncheb12.npy
