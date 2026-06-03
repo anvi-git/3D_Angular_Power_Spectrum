@@ -4,3 +4,13 @@ W_LL_A.npy
 W_LL_B.npy
 W_LL_A_old.npy
 W_LL_B_old.npy
+chi_cheb.npy
+b_cheb.npy
+D_cheb.npy
+n_cheb.npy
+W_vals.npy
+T_z.npy
+cheb_coeff_W.npy
+I_A.npy
+I_B.npy
+W_cheb.npy
