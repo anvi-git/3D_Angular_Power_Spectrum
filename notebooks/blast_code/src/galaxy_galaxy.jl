@@ -1,0 +1,215 @@
+module galaxy_galaxy
+
+using LaTeXStrings
+using Plots
+using Cosmology
+using QuadGK
+using DataInterpolations
+using NPZ
+import Cosmology: AbstractCosmology
+import Main.Blast
+
+import PhysicalConstants.CODATA2018: c_0
+const C_LIGHT = c_0.val * 10^(-3) #speed of light in Km/s
+
+function heath_integral(cosmo, z)
+    integrand(zp) = (1.0 + zp) / (Blast.compute_adimensional_hubble_factor(zp, cosmo)^3)
+    integral_val, _ = quadgk(integrand, z, Inf, rtol=1e-10)
+    return Blast.compute_adimensional_hubble_factor(z, cosmo) * integral_val
+end
+function compute_growth_factor(cosmo, z_range)
+    D_unnorm_z0 = heath_integral(cosmo, 0.0)
+    D_array = [heath_integral(cosmo, zz) / D_unnorm_z0 for zz in z_range]
+    return D_array
+end
+"""
+    galaxy_prefactor(x_range, z_range, cosmo; output_dir)
+
+Compute the galaxy-galaxy prefactor
+    W(z) = χ(z)^2 * b(z) * D(z) * n(z)
+on the working redshift/comoving-distance grid.
+
+# Arguments
+- `x_range::AbstractVector`: Comoving-distance array χ(z).
+- `z_range::AbstractVector`: Redshift array.
+- `cosmo`: Cosmology object.
+- `output_dir::AbstractString`: Directory to save plots.
+
+# Returns
+- `prefac::Vector{Float64}`: Galaxy clustering prefactor evaluated pointwise.
+
+# Notes
+- This matches the notebook definition
+  `prefac = x_range.^2 .* bz_array .* D_growth_array .* nz_norm`.
+- All input arrays must have the same length.
+"""
+function galaxy_prefactor(
+    x_range::AbstractVector,
+    z_range::AbstractVector,
+    cosmo;
+    output_dir::AbstractString
+)
+    # computing the plot comoving distance vs redsfhit
+    plot(z_range, x_range, label = "z(χ)", xlabel = L"z", ylabel = L"\chi [Mpc/h]", legend = :topleft)
+    savefig(joinpath(output_dir, "plots/chi_vs_z.png"))
+    println("Plot saved: ", joinpath(output_dir, "plots/chi_vs_z.png"))
+
+    # BIAS 
+    # compute the bias. the equation is b(z) = b_0 * sqrt(1+z). we set b_0 = 1.0.!
+    b_0 = 1.0
+    bz_array = zeros(size(z_range))
+    bz_array = b_0 .* sqrt.(1 .+ z_range); # bias as a function of redshift
+    #plot
+    plot(z_range, bz_array, label = "bias", xlabel = L"z", ylabel = L"b(z)", legend = :topleft)
+    savefig(joinpath(output_dir, "plots/bias.png"))
+    println("Plot saved: ", joinpath(output_dir, "plots/bias.png"))
+
+    # GROWTH FACTOR
+    D_growth_array = compute_growth_factor(cosmo, z_range)
+    #plot
+    plot(z_range, D_growth_array, label = "growth array", xlabel = L"z", ylabel = L"D(z)", legend = :topleft)
+    savefig(joinpath(output_dir, "plots/growth.png"))
+    println("Plot saved: ", joinpath(output_dir, "plots/growth.png"))
+
+    # Inverse Hubble factor
+    inv_Hubble_array = C_LIGHT ./ Blast.compute_hubble_factor.(z_range, Ref(cosmo))
+    #plot
+    plot(z_range, inv_Hubble_array, label = "inverse Hubble factor", xlabel = L"z", ylabel = L"c/H(z) [Mpc/h]", legend = :topleft)
+    savefig(joinpath(output_dir, "plots/inv_hubble.png"))
+    println("Plot saved: ", joinpath(output_dir, "plots/inv_hubble.png"))
+
+    # n(z)  
+    z_0 = 0.9/sqrt(2)
+    alpha = 2
+    beta = 1.5
+    nz = (z_range / z_0).^alpha .* exp.(-(z_range / z_0).^beta) # redshift distribution of sources, normalized to 1
+    nz_norm = nz ./ quadgk(x -> DataInterpolations.AkimaInterpolation(nz, z_range, extrapolation=ExtrapolationType.Linear)(x),
+                      minimum(z_range), maximum(z_range))[1]
+    #plot
+    plot(z_range, nz, label="n(z)", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources")
+    plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources")
+    savefig(joinpath(output_dir, "plots/nz.png"))
+    println("Plot saved: ", joinpath(output_dir, "plots/nz.png"))
+
+    # W(z)
+    prefac = x_range.^2 .* bz_array .* D_growth_array .* nz_norm
+    #plot
+    plot(z_range, 
+          prefac, 
+          label=L"$ W(z) = n(z) b(z) D(z) \chi(z)^2$", 
+          xlabel=L"$z$", 
+          ylabel=L"$W(z)$ $[Mpc/h]^2$", 
+          title=L"$W(z)$", 
+          legend=:topright, size=(800,600), titlefontsize=15, labelfontsize=15, legendfontsize=7, dpi=200)
+    savefig(joinpath(output_dir, "plots/Wz.png"))
+    println("Plot saved: ", joinpath(output_dir, "plots/Wz.png"))
+    #normalized plot
+    plot(z_range, 
+          bz_array ./ maximum(bz_array), 
+          label=L"$b(z)$", 
+          xlabel=L"$z$", 
+          ylabel=L"Normalized $b(z)$", 
+          title=L"Normalized $b(z)$")
+        plot!(z_range, 
+                x_range ./ maximum(x_range), 
+                label=L"$\chi$",
+                title = L"Normalized $\chi$",
+                xlabel=L"$z$", 
+                ylabel=L"Normalized $\chi$")
+        plot!(z_range, 
+                D_growth_array ./ maximum(D_growth_array), 
+                label=L"$D(z)$", 
+                xlabel=L"$z$", 
+                ylabel="Normalized quantities", 
+                title="Normalized quantities",
+                legend=:bottomright, size=(800,600), titlefontsize=15, labelfontsize=15, legendfontsize=15)
+        plot!(z_range, 
+                nz_norm ./ maximum(nz_norm), 
+                label=L"$n(z)$", 
+                xlabel=L"$z$", 
+                ylabel=L"Normalized $n(z)$", 
+                title=L"Normalized $n(z)$")
+        # plot!(z_range, 
+        #           inv_Hubble_array ./ maximum(inv_Hubble_array), 
+        #           label=L"$1/H(z)$", 
+        #           xlabel=L"$z$", 
+        #           ylabel=L"Normalized $1/H(z)$", 
+        #           title=L"Normalized $1/H(z)$")
+        plot!(z_range, 
+                prefac ./ maximum(prefac), 
+                label=L"$n(z) b(z) D(z) \chi(z)^2$", 
+                xlabel=L"$z$", 
+                ylabel="Normalized Quantities", 
+                title="Normalized Quantities", 
+                legend=:bottomright, size=(800,600), titlefontsize=15, labelfontsize=15, legendfontsize=7, dpi=200)
+    savefig(joinpath(output_dir, "plots/normalized_quantities.png"))
+    println("Plot saved: ", joinpath(output_dir, "plots/normalized_quantities.png"))
+    npzwrite(joinpath(output_dir, "quantities/prefac.npy"), prefac)
+    println("Wrote W(z) prefactor to: ", joinpath(output_dir, "quantities/prefac.npy"))
+    return prefac, bz_array, D_growth_array, inv_Hubble_array, nz_norm
+end
+
+"""
+    galaxy_prefactor_cheb(zmin, zmax, n_cheb, z_range, chi, bias, growth, inv_Hubble, nz, cosmo; output_dir)
+
+Compute the galaxy-clustering prefactor on a Chebyshev grid in redshift.
+
+The function builds Clenshaw–Curtis / Chebyshev nodes on the interval
+`[zmin, zmax]`, interpolates the supplied background and source quantities
+onto those nodes, and evaluates the prefactor
+
+    W(z) = χ(z)^2 * b(z) * D(z) * n(z)
+
+on the Chebyshev grid.
+
+# Arguments
+- `zmin::Number`: Lower redshift bound.
+- `zmax::Number`: Upper redshift bound.
+- `n_cheb::Int`: Number of Chebyshev nodes.
+- `z_range::AbstractVector`: Redshift grid on which `chi`, `bias`, `growth`, and `nz` are defined.
+- `chi::AbstractVector`: Comoving distance `χ(z)` evaluated on `z_range`.
+- `bias::AbstractVector`: Galaxy bias `b(z)` evaluated on `z_range`.
+- `growth::AbstractVector`: Linear growth factor `D(z)` evaluated on `z_range`.
+- `inv_Hubble::AbstractVector`: Inverse Hubble factor `c/H(z)` evaluated on `z_range`.
+- `nz::AbstractVector`: Normalized redshift distribution `n(z)` evaluated on `z_range`.
+- `output_dir::AbstractString`: Directory where the Chebyshev-grid prefactor is saved.
+
+# Returns
+- `W_vals::Vector`: The prefactor `W(z)` evaluated on the Chebyshev grid.
+
+# Notes
+- `inv_Hubble` is currently not used inside the function body.
+- The result is written to `joinpath(output_dir, "quantities/prefac_cheb.npy")`.
+- All vectors should have the same length as `z_range`.
+"""
+function galaxy_prefactor_cheb(zmin::Number, 
+                               zmax::Number, 
+                               n_cheb::Int,
+                               z_range::AbstractVector, 
+                               chi::AbstractVector, 
+                               bias::AbstractVector, 
+                               growth::AbstractVector, 
+                               inv_Hubble::AbstractVector, 
+                               nz::AbstractVector; 
+                               output_dir::AbstractString)
+
+    z_cheb_nodes = Blast.get_clencurt_grid_z(zmin, zmax, n_cheb)
+    chi_interp = DataInterpolations.AkimaInterpolation(chi, z_range, extrapolation=ExtrapolationType.Linear)
+    chi_cheb = chi_interp.(z_cheb_nodes)
+    b_interp = DataInterpolations.AkimaInterpolation(bias, z_range, extrapolation=ExtrapolationType.Linear)
+    b_cheb = b_interp.(z_cheb_nodes)
+    D_interp = DataInterpolations.AkimaInterpolation(growth, z_range, extrapolation=ExtrapolationType.Linear)
+    D_cheb = D_interp.(z_cheb_nodes)
+    nz_interps = DataInterpolations.AkimaInterpolation(nz, z_range, extrapolation=ExtrapolationType.Linear)
+    nz_cheb = nz_interps.(z_cheb_nodes)
+    W_vals = zeros(length(z_cheb_nodes))
+    W_vals .= chi_cheb.^2 .* b_cheb .* D_cheb .* nz_cheb
+    npzwrite(joinpath(output_dir, "quantities/prefac_cheb.npy"), W_vals)
+    println("Wrote W(z) prefactor on Chebyshev grid to: ", joinpath(output_dir, "quantities/prefac_cheb.npy"))
+    return W_vals
+end
+
+end # module
+
+
+
