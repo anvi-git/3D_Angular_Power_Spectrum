@@ -204,11 +204,20 @@ function galaxy_prefactor_cheb(zmin::Number,
     nz_cheb = nz_interps.(z_cheb_nodes)
     W_vals = zeros(length(z_cheb_nodes))
     W_vals .= chi_cheb.^2 .* b_cheb .* D_cheb .* nz_cheb
-    npzwrite(joinpath(output_dir, "quantities/prefac_cheb.npy"), W_vals)
-    println("Wrote W(z) prefactor on Chebyshev grid to: ", joinpath(output_dir, "quantities/prefac_cheb.npy"))
+    npzwrite(joinpath(output_dir, "quantities/prefac_on_cheb.npy"), W_vals)
+    println("Wrote W(z) prefactor on Chebyshev grid to: ", joinpath(output_dir, "quantities/prefac_on_cheb.npy"))
     return W_vals
 end
 
+function compute_prefactor_chebcoeffs(W_vals::AbstractVector; output_dir::AbstractString)
+    plan = Blast.plan_fft(W_vals)
+    cheb_coeff = Blast.fast_chebcoefs(W_vals, plan)
+    npzwrite(joinpath(output_dir, "quantities/W_cheb_coeff.npy"), cheb_coeff)
+    println("Wrote W(z) Chebyshev coefficients to: ", joinpath(output_dir, "quantities/W_cheb_coeff.npy"))
+
+    return cheb_coeff
+
+end 
 end # module
 
 
