@@ -6,9 +6,9 @@ using Cosmology
 using QuadGK
 using DataInterpolations
 using NPZ
+
 import Cosmology: AbstractCosmology
 import Main.Blast
-
 import PhysicalConstants.CODATA2018: c_0
 const C_LIGHT = c_0.val * 10^(-3) #speed of light in Km/s
 
@@ -22,6 +22,7 @@ function compute_growth_factor(cosmo, z_range)
     D_array = [heath_integral(cosmo, zz) / D_unnorm_z0 for zz in z_range]
     return D_array
 end
+
 """
     galaxy_prefactor(x_range, z_range, cosmo; output_dir)
 
@@ -53,7 +54,7 @@ function galaxy_prefactor(
     plot(z_range, x_range, label = "z(χ)", xlabel = L"z", ylabel = L"\chi [Mpc/h]", legend = :topleft)
     savefig(joinpath(output_dir, "plots/chi_vs_z.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/chi_vs_z.png"))
-
+    ######
     # BIAS 
     # compute the bias. the equation is b(z) = b_0 * sqrt(1+z). we set b_0 = 1.0.!
     b_0 = 1.0
@@ -63,21 +64,21 @@ function galaxy_prefactor(
     plot(z_range, bz_array, label = "bias", xlabel = L"z", ylabel = L"b(z)", legend = :topleft)
     savefig(joinpath(output_dir, "plots/bias.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/bias.png"))
-
+    ######
     # GROWTH FACTOR
     D_growth_array = compute_growth_factor(cosmo, z_range)
     #plot
     plot(z_range, D_growth_array, label = "growth array", xlabel = L"z", ylabel = L"D(z)", legend = :topleft)
     savefig(joinpath(output_dir, "plots/growth.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/growth.png"))
-
+    ######
     # Inverse Hubble factor
     inv_Hubble_array = C_LIGHT ./ Blast.compute_hubble_factor.(z_range, Ref(cosmo))
     #plot
     plot(z_range, inv_Hubble_array, label = "inverse Hubble factor", xlabel = L"z", ylabel = L"c/H(z) [Mpc/h]", legend = :topleft)
     savefig(joinpath(output_dir, "plots/inv_hubble.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/inv_hubble.png"))
-
+    ######
     # n(z)  
     z_0 = 0.9/sqrt(2)
     alpha = 2
@@ -90,7 +91,7 @@ function galaxy_prefactor(
     plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources")
     savefig(joinpath(output_dir, "plots/nz.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/nz.png"))
-
+    ######
     # W(z)
     prefac = x_range.^2 .* bz_array .* D_growth_array .* nz_norm
     #plot
@@ -142,10 +143,10 @@ function galaxy_prefactor(
                 ylabel="Normalized Quantities", 
                 title="Normalized Quantities", 
                 legend=:bottomright, size=(800,600), titlefontsize=15, labelfontsize=15, legendfontsize=7, dpi=200)
-    savefig(joinpath(output_dir, "plots/normalized_quantities.png"))
-    println("Plot saved: ", joinpath(output_dir, "plots/normalized_quantities.png"))
-    npzwrite(joinpath(output_dir, "quantities/prefac.npy"), prefac)
-    println("Wrote W(z) prefactor to: ", joinpath(output_dir, "quantities/prefac.npy"))
+    savefig(joinpath(output_dir, "plots/normalized_quantities_galaxy.png"))
+    println("Plot saved: ", joinpath(output_dir, "plots/normalized_quantities_galaxy.png"))
+    npzwrite(joinpath(output_dir, "quantities/prefac_galaxy.npy"), prefac)
+    println("Wrote W(z) prefactor to: ", joinpath(output_dir, "quantities/prefac_galaxy.npy"))
     return prefac, bz_array, D_growth_array, inv_Hubble_array, nz_norm
 end
 
@@ -177,10 +178,6 @@ on the Chebyshev grid.
 # Returns
 - `W_vals::Vector`: The prefactor `W(z)` evaluated on the Chebyshev grid.
 
-# Notes
-- `inv_Hubble` is currently not used inside the function body.
-- The result is written to `joinpath(output_dir, "quantities/prefac_cheb.npy")`.
-- All vectors should have the same length as `z_range`.
 """
 function galaxy_prefactor_cheb(zmin::Number, 
                                zmax::Number, 
@@ -204,16 +201,16 @@ function galaxy_prefactor_cheb(zmin::Number,
     nz_cheb = nz_interps.(z_cheb_nodes)
     W_vals = zeros(length(z_cheb_nodes))
     W_vals .= chi_cheb.^2 .* b_cheb .* D_cheb .* nz_cheb
-    npzwrite(joinpath(output_dir, "quantities/prefac_on_cheb.npy"), W_vals)
-    println("Wrote W(z) prefactor on Chebyshev grid to: ", joinpath(output_dir, "quantities/prefac_on_cheb.npy"))
+    npzwrite(joinpath(output_dir, "quantities/prefac_on_cheb_galaxy.npy"), W_vals)
+    println("Wrote W(z) prefactor on Chebyshev grid to: ", joinpath(output_dir, "quantities/prefac_on_cheb_galaxy.npy"))
     return W_vals
 end
 
 function compute_prefactor_chebcoeffs(W_vals::AbstractVector; output_dir::AbstractString)
     plan = Blast.plan_fft(W_vals)
     cheb_coeff = Blast.fast_chebcoefs(W_vals, plan)
-    npzwrite(joinpath(output_dir, "quantities/W_cheb_coeff.npy"), cheb_coeff)
-    println("Wrote W(z) Chebyshev coefficients to: ", joinpath(output_dir, "quantities/W_cheb_coeff.npy"))
+    npzwrite(joinpath(output_dir, "quantities/W_cheb_coeff_galaxy.npy"), cheb_coeff)
+    println("Wrote W(z) Chebyshev coefficients to: ", joinpath(output_dir, "quantities/W_cheb_coeff_galaxy.npy"))
 
     return cheb_coeff
 
