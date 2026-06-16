@@ -51,8 +51,7 @@ function galaxy_prefactor(
     output_dir::AbstractString
 )
     # computing the plot comoving distance vs redsfhit
-    plot(z_range, x_range, label = "z(χ)", xlabel = L"z", ylabel = L"\chi [Mpc/h]", legend = :topleft, margin = 10mm,
-                size=(800,600))
+    plot(z_range, x_range, label = "z(χ)", xlabel = L"z", ylabel = L"\chi [Mpc/h]", legend = :topleft)
     savefig(joinpath(output_dir, "plots/kernels/chi_vs_z.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/chi_vs_z.png"))
     ######
@@ -62,24 +61,21 @@ function galaxy_prefactor(
     bz_array = zeros(size(z_range))
     bz_array = b_0 .* sqrt.(1 .+ z_range); # bias as a function of redshift
     #plot
-    plot(z_range, bz_array, label = "bias", xlabel = L"z", ylabel = L"b(z)", legend = :topleft, margin = 10mm,
-                size=(800,600))
+    plot(z_range, bz_array, label = "bias", xlabel = L"z", ylabel = L"b(z)", legend = :topleft)
     savefig(joinpath(output_dir, "plots/kernels/bias.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/bias.png"))
     ######
     # GROWTH FACTOR
     D_growth_array = compute_growth_factor(cosmo, z_range)
     #plot
-    plot(z_range, D_growth_array, label = "growth array", xlabel = L"z", ylabel = L"D(z)", legend = :topleft, margin = 10mm,
-                size=(800,600))
+    plot(z_range, D_growth_array, label = "growth array", xlabel = L"z", ylabel = L"D(z)", legend = :topleft)
     savefig(joinpath(output_dir, "plots/kernels/growth.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/growth.png"))
     ######
     # Inverse Hubble factor
     inv_Hubble_array = C_LIGHT ./ Blast.compute_hubble_factor.(z_range, Ref(cosmo))
     #plot
-    plot(z_range, inv_Hubble_array, label = "inverse Hubble factor", xlabel = L"z", ylabel = L"c/H(z) [Mpc/h]", legend = :topleft, margin = 10mm,
-                size=(800,600))
+    plot(z_range, inv_Hubble_array, label = "inverse Hubble factor", xlabel = L"z", ylabel = L"c/H(z) [Mpc/h]", legend = :topleft)
     savefig(joinpath(output_dir, "plots/kernels/inv_hubble.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/inv_hubble.png"))
     ######
@@ -91,10 +87,8 @@ function galaxy_prefactor(
     nz_norm = nz ./ quadgk(x -> DataInterpolations.AkimaInterpolation(nz, z_range, extrapolation=ExtrapolationType.Linear)(x),
                       minimum(z_range), maximum(z_range))[1]
     #plot
-    plot(z_range, nz, label="n(z)", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources", margin = 10mm,
-                size=(800,600))
-    plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources", margin = 10mm,
-                size=(800,600))
+    plot(z_range, nz, label="n(z)", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources")
+    plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources")
     savefig(joinpath(output_dir, "plots/kernels/nz.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/nz.png"))
     ######
@@ -116,29 +110,26 @@ function galaxy_prefactor(
           label=L"$b(z)$", 
           xlabel=L"$z$", 
           ylabel=L"Normalized $b(z)$", 
-          title=L"Normalized $b(z)$",
-                size=(800,600))
+          title=L"Normalized $b(z)$")
         plot!(z_range, 
                 x_range ./ maximum(x_range), 
                 label=L"$\chi$",
                 title = L"Normalized $\chi$",
                 xlabel=L"$z$", 
-                ylabel=L"Normalized $\chi$",
-                size=(800,600))
+                ylabel=L"Normalized $\chi$")
         plot!(z_range, 
                 D_growth_array ./ maximum(D_growth_array), 
                 label=L"$D(z)$", 
                 xlabel=L"$z$", 
                 ylabel="Normalized quantities", 
                 title="Normalized quantities",
-                legend=:bottomright, size=(800,600), titlefontsize=15, labelfontsize=15, legendfontsize=15, dpi = 200)
+                legend=:bottomright, size=(800,600), titlefontsize=15, labelfontsize=15, legendfontsize=15)
         plot!(z_range, 
                 nz_norm ./ maximum(nz_norm), 
                 label=L"$n(z)$", 
                 xlabel=L"$z$", 
                 ylabel=L"Normalized $n(z)$", 
-                title=L"Normalized $n(z)$",
-                size=(800,600))
+                title=L"Normalized $n(z)$")
         # plot!(z_range, 
         #           inv_Hubble_array ./ maximum(inv_Hubble_array), 
         #           label=L"$1/H(z)$", 

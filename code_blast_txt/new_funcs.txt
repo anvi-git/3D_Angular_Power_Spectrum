@@ -172,6 +172,59 @@ auto-kernel case `j_ℓ(kχ)^2` weighted by the Clenshaw–Curtis quadrature rul
 - The tensor is designed for the later construction of the projected matter density
   `w̃` in the non-Limber angular power spectrum pipeline.
 """
+# function compute_W_tilde(ℓ::Number, zmin::Number, zmax::Number, kmin::Number, kmax::Number, 
+#                          z_range::AbstractArray, n_cheb::Int, N::Number, chi_of_z::Any)
+#     if zmin >= zmax 
+#         throw(DomainError("The integration range is unphysical. Make sure zmin < zmax.")) 
+#     end
+
+#     Nz = length(z_range)
+#     chi = chi_of_z.(z_range)
+#     k = get_clencurt_grid_z(kmin, kmax, N)
+#     w = get_clencurt_weights_z(zmin, zmax, N)    
+#     T, Bessel1 = bessel_cheb_eval_beyond(ℓ, zmin, zmax, kmin, kmax, z_range, n_cheb, N, chi_of_z)
+#     T_tilde_gg = zeros(1, Nz, Nz, n_cheb+1)
+#     T_tilde_gs = zeros(1, Nz, Nz, n_cheb+1)
+#     T_tilde_ss = zeros(1, Nz, Nz, n_cheb+1)
+
+# # when Bessel2 = Bessel 1 I comment these four lines below
+#     # Bessel2 = zeros(Nz, N)        
+#     # Threads.@threads for i in 1:Nz
+#     #     Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, chi[i] * k)
+#     # end
+#     αcc = w .* (k .^ 2) #β = 2 for CC, -2 for LL and 0 for CL. THIS WORKS
+#     αcs = w #β = 2 for CC, -2 for LL and 0 for CL. THIS WORKS
+#     αss = w .* (k .^ -2) #β = 2 for CC, -2 for LL and 0 for CL. THIS WORKS
+
+#       #commenting the 6 lines of code below works fine with N = 2^5 +1, with N=2^15 is 5 steps in 3 minutes
+#     # for (p, chi_val) in enumerate(chi) 
+#     #     Bessel2 = zeros(Nz, N)        
+#     #     Threads.@threads for i in 1:Nz
+#     #         Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, chi[i] * k)
+#     #     end
+#     #     α = w #β = 2 for CC, -2 for LL and 0 for CL.
+#     for (p, chi_val) in enumerate(chi)
+#         @tturbo for l in 1:n_cheb+1, i in 1:Nz
+#             Cij_gg = zero(eltype(w))
+#             Cij_gs = zero(eltype(w))
+#             Cij_ss = zero(eltype(w))
+#             for k in 1:N
+#                 #Cij +=  T[l,k] * Bessel1[i,k] * Bessel2[i,k] * α[k]
+#                 Cij_gg +=  T[l,k] * Bessel1[i,k] * Bessel1[i,k] * αcc[k] #when Bessel2 = Bessel1
+#                 Cij_gs +=  T[l,k] * Bessel1[i,k] * Bessel1[i,k] * αcs[k] #when Bessel2 = Bessel1
+#                 Cij_ss +=  T[l,k] * Bessel1[i,k] * Bessel1[i,k] * αss[k] #when Bessel2 = Bessel1
+#             end
+#             T_tilde_gg[1,i,p,l] = Cij_gg
+#             T_tilde_gs[1,i,p,l] = Cij_gs
+#             T_tilde_ss[1,i,p,l] = Cij_ss
+#         end
+#     end
+
+#     return T_tilde_gg, T_tilde_gs, T_tilde_ss
+
+# end
+
+
 function compute_W_tilde(ℓ::Number, zmin::Number, zmax::Number, kmin::Number, kmax::Number, 
                          z_range::AbstractArray, n_cheb::Int, N::Number, chi_of_z::Any)
     if zmin >= zmax 
@@ -190,9 +243,9 @@ function compute_W_tilde(ℓ::Number, zmin::Number, zmax::Number, kmin::Number, 
     # Threads.@threads for i in 1:Nz
     #     Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, chi[i] * k)
     # end
-    α = w #β = 2 for CC, -2 for LL and 0 for CL.
+    α = w #β = 2 for CC, -2 for LL and 0 for CL. THIS WORKS
 
-#commenting the 6 lines of code below works fine with N = 2^5 +1, with N=2^15 is 5 steps in 3 minutes
+      #commenting the 6 lines of code below works fine with N = 2^5 +1, with N=2^15 is 5 steps in 3 minutes
     # for (p, chi_val) in enumerate(chi) 
     #     Bessel2 = zeros(Nz, N)        
     #     Threads.@threads for i in 1:Nz
@@ -213,3 +266,5 @@ function compute_W_tilde(ℓ::Number, zmin::Number, zmax::Number, kmin::Number, 
     return T_tilde
 
 end
+
+

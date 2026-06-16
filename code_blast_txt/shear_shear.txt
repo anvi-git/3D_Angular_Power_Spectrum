@@ -31,7 +31,7 @@ function shear_prefactor(
 )
     # computing comoving distance 
     com_dist = Blast.compute_χ.(z_range, Ref(cosmo));
-    plot(z_range, com_dist, label = "z(χ)", xlabel = L"z", ylabel = L"\chi [Mpc/h]", legend = :topleft, margin = 10mm)
+    plot(z_range, com_dist, label = "z(χ)", xlabel = L"z", ylabel = L"\chi [Mpc/h]", legend = :topleft)
     savefig(joinpath(output_dir, "plots/kernels/chi_vs_z_shear.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/chi_vs_z_shear.png"))
     ######
@@ -48,10 +48,8 @@ function shear_prefactor(
     #Hubble function
     H_array = Blast.compute_hubble_factor.(z_range, Ref(cosmo))
     #plot
-    plot(z_range, nz, label="n(z)", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources", margin = 10mm,
-                size=(800,600))
-    plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources", margin = 10mm,
-                size=(800,600))
+    plot(z_range, nz, label="n(z)", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources")
+    plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources")
     savefig(joinpath(output_dir, "plots/kernels/nz_shear.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/nz_shear.png"))
     prefac_shear = similar(z_range, Float64)
@@ -77,8 +75,7 @@ function shear_prefactor(
     savefig(joinpath(output_dir, "plots/kernels/quantities_shear.png"))
     plot(z_range, prefac_shear ./ maximum(prefac_shear),
          label="W(z) normalized", xlabel="z", ylabel="W(z)/max(W(z))",
-         title="Normalized shear prefactor", margin = 10mm,
-                size=(800,600))
+         title="Normalized shear prefactor")
     savefig(joinpath(output_dir, "plots/kernels/normalized_quantities_shear.png"))
     npzwrite(joinpath(output_dir, "quantities/prefac_shear.npy"), prefac_shear)
     return prefac_shear
