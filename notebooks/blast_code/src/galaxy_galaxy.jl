@@ -23,27 +23,6 @@ function compute_growth_factor(cosmo, z_range)
     return D_array
 end
 
-"""
-    galaxy_prefactor(x_range, z_range, cosmo; output_dir)
-
-Compute the galaxy-galaxy prefactor
-    W(z) = χ(z)^2 * b(z) * D(z) * n(z)
-on the working redshift/comoving-distance grid.
-
-# Arguments
-- `x_range::AbstractVector`: Comoving-distance array χ(z).
-- `z_range::AbstractVector`: Redshift array.
-- `cosmo`: Cosmology object.
-- `output_dir::AbstractString`: Directory to save plots.
-
-# Returns
-- `prefac::Vector{Float64}`: Galaxy clustering prefactor evaluated pointwise.
-
-# Notes
-- This matches the notebook definition
-  `prefac = x_range.^2 .* bz_array .* D_growth_array .* nz_norm`.
-- All input arrays must have the same length.
-"""
 function galaxy_prefactor(
     x_range::AbstractVector,
     z_range::AbstractVector,
@@ -51,7 +30,7 @@ function galaxy_prefactor(
     output_dir::AbstractString
 )
     # computing the plot comoving distance vs redsfhit
-    plot(z_range, x_range, label = "z(χ)", xlabel = L"z", ylabel = L"\chi [Mpc/h]", legend = :topleft, margin = 10mm,
+    plot(z_range, x_range, label = "z(χ)", xlabel = L"z", ylabel = L"\chi [Mpc/h]", legend = :topleft,
                 size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/chi_vs_z.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/chi_vs_z.png"))
@@ -62,7 +41,7 @@ function galaxy_prefactor(
     bz_array = zeros(size(z_range))
     bz_array = b_0 .* sqrt.(1 .+ z_range); # bias as a function of redshift
     #plot
-    plot(z_range, bz_array, label = "bias", xlabel = L"z", ylabel = L"b(z)", legend = :topleft, margin = 10mm,
+    plot(z_range, bz_array, label = "bias", xlabel = L"z", ylabel = L"b(z)", legend = :topleft,
                 size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/bias.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/bias.png"))
@@ -70,7 +49,7 @@ function galaxy_prefactor(
     # GROWTH FACTOR
     D_growth_array = compute_growth_factor(cosmo, z_range)
     #plot
-    plot(z_range, D_growth_array, label = "growth array", xlabel = L"z", ylabel = L"D(z)", legend = :topleft, margin = 10mm,
+    plot(z_range, D_growth_array, label = "growth array", xlabel = L"z", ylabel = L"D(z)", legend = :topleft,
                 size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/growth.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/growth.png"))
@@ -78,22 +57,23 @@ function galaxy_prefactor(
     # Inverse Hubble factor
     inv_Hubble_array = C_LIGHT ./ Blast.compute_hubble_factor.(z_range, Ref(cosmo))
     #plot
-    plot(z_range, inv_Hubble_array, label = "inverse Hubble factor", xlabel = L"z", ylabel = L"c/H(z) [Mpc/h]", legend = :topleft, margin = 10mm,
+    plot(z_range, inv_Hubble_array, label = "inverse Hubble factor", xlabel = L"z", ylabel = L"c/H(z) [Mpc/h]", legend = :topleft,
                 size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/inv_hubble.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/inv_hubble.png"))
     ######
     # n(z)  
     z_0 = 0.9/sqrt(2)
+    A = 1.5/z_0
     alpha = 2
     beta = 1.5
-    nz = (z_range / z_0).^alpha .* exp.(-(z_range / z_0).^beta) # redshift distribution of sources, normalized to 1
+    nz = A .* (z_range / z_0).^alpha .* exp.(-(z_range / z_0).^beta) # redshift distribution of sources, normalized to 1
     nz_norm = nz ./ quadgk(x -> DataInterpolations.AkimaInterpolation(nz, z_range, extrapolation=ExtrapolationType.Linear)(x),
                       minimum(z_range), maximum(z_range))[1]
     #plot
-    plot(z_range, nz, label="n(z)", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources", margin = 10mm,
+    plot(z_range, nz, label="n(z)", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources",
                 size=(800,600))
-    plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources", margin = 10mm,
+    plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources",
                 size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/nz.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/nz.png"))
@@ -149,45 +129,25 @@ function galaxy_prefactor(
                 prefac ./ maximum(prefac), 
                 label=L"$n(z) b(z) D(z) \chi(z)^2$", 
                 xlabel=L"$z$", 
-                ylabel="Normalized Quantities", 
-                title="Normalized Quantities", 
+                ylabel="Normalized Kernel", 
+                title="Normalized Kernel", 
                 legend=:bottomright, size=(800,600), titlefontsize=15, labelfontsize=15, legendfontsize=7, dpi=200)
-    savefig(joinpath(output_dir, "plots/kernels/normalized_quantities_galaxy.png"))
-    println("Plot saved: ", joinpath(output_dir, "plots/kernels/normalized_quantities_galaxy.png"))
+    savefig(joinpath(output_dir, "plots/kernels/normalized_kernel_galaxy.png"))
+    println("Plot saved: ", joinpath(output_dir, "plots/kernels/normalized_kernel_galaxy.png"))
+    plot(z_range, 
+        prefac, 
+        label=L"$n(z) b(z) D(z) \chi(z)^2$", 
+        xlabel=L"$z$", 
+        ylabel="Unnormalized Kernel", 
+        title="Unnormalized Kernel", 
+        legend=:bottomright, size=(800,600), titlefontsize=15, labelfontsize=15, legendfontsize=7, dpi=200)
+    savefig(joinpath(output_dir, "plots/kernels/unnormalized_kernel_galaxy.png"))
+    println("Plot saved: ", joinpath(output_dir, "plots/kernels/unnormalized_kernel_galaxy.png"))
     npzwrite(joinpath(output_dir, "quantities/prefac_galaxy.npy"), prefac)
     println("Wrote W(z) prefactor to: ", joinpath(output_dir, "quantities/prefac_galaxy.npy"))
     return prefac, bz_array, D_growth_array, inv_Hubble_array, nz_norm
 end
 
-"""
-    galaxy_prefactor_cheb(zmin, zmax, n_cheb, z_range, chi, bias, growth, inv_Hubble, nz, cosmo; output_dir)
-
-Compute the galaxy-clustering prefactor on a Chebyshev grid in redshift.
-
-The function builds Clenshaw–Curtis / Chebyshev nodes on the interval
-`[zmin, zmax]`, interpolates the supplied background and source quantities
-onto those nodes, and evaluates the prefactor
-
-    W(z) = χ(z)^2 * b(z) * D(z) * n(z)
-
-on the Chebyshev grid.
-
-# Arguments
-- `zmin::Number`: Lower redshift bound.
-- `zmax::Number`: Upper redshift bound.
-- `n_cheb::Int`: Number of Chebyshev nodes.
-- `z_range::AbstractVector`: Redshift grid on which `chi`, `bias`, `growth`, and `nz` are defined.
-- `chi::AbstractVector`: Comoving distance `χ(z)` evaluated on `z_range`.
-- `bias::AbstractVector`: Galaxy bias `b(z)` evaluated on `z_range`.
-- `growth::AbstractVector`: Linear growth factor `D(z)` evaluated on `z_range`.
-- `inv_Hubble::AbstractVector`: Inverse Hubble factor `c/H(z)` evaluated on `z_range`.
-- `nz::AbstractVector`: Normalized redshift distribution `n(z)` evaluated on `z_range`.
-- `output_dir::AbstractString`: Directory where the Chebyshev-grid prefactor is saved.
-
-# Returns
-- `W_vals::Vector`: The prefactor `W(z)` evaluated on the Chebyshev grid.
-
-"""
 function galaxy_prefactor_cheb(zmin::Number, 
                                zmax::Number, 
                                n_cheb::Int,
@@ -196,7 +156,7 @@ function galaxy_prefactor_cheb(zmin::Number,
                                bias::AbstractVector, 
                                growth::AbstractVector, 
                                inv_Hubble::AbstractVector, 
-                               nz::AbstractVector; 
+                               nz_norm::AbstractVector; 
                                output_dir::AbstractString)
 
     z_cheb_nodes = Blast.get_clencurt_grid_z(zmin, zmax, n_cheb)
@@ -206,7 +166,7 @@ function galaxy_prefactor_cheb(zmin::Number,
     b_cheb = b_interp.(z_cheb_nodes)
     D_interp = DataInterpolations.AkimaInterpolation(growth, z_range, extrapolation=ExtrapolationType.Linear)
     D_cheb = D_interp.(z_cheb_nodes)
-    nz_interps = DataInterpolations.AkimaInterpolation(nz, z_range, extrapolation=ExtrapolationType.Linear)
+    nz_interps = DataInterpolations.AkimaInterpolation(nz_norm, z_range, extrapolation=ExtrapolationType.Linear)
     nz_cheb = nz_interps.(z_cheb_nodes)
     W_vals = zeros(length(z_cheb_nodes))
     W_vals .= chi_cheb.^2 .* b_cheb .* D_cheb .* nz_cheb
