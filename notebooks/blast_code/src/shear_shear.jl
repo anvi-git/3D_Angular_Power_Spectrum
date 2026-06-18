@@ -134,6 +134,3 @@ function compute_prefactor_chebcoeffs(W_vals::AbstractVector; output_dir::Abstra
 
 end 
 end # module
-
-
-

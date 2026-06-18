@@ -38,7 +38,7 @@ function galaxy_prefactor(
     # BIAS 
     # compute the bias. the equation is b(z) = b_0 * sqrt(1+z). we set b_0 = 1.0.!
     b_0 = 1.0
-    bz_array = zeros(size(z_range))
+    bz_array = zeros(length(z_range))
     bz_array = b_0 .* sqrt.(1 .+ z_range); # bias as a function of redshift
     #plot
     plot(z_range, bz_array, label = "bias", xlabel = L"z", ylabel = L"b(z)", legend = :topleft,
