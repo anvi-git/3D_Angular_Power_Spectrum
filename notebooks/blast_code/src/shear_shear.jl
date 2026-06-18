@@ -26,7 +26,7 @@ function compute_lensing_efficiency(z_range::AbstractVector, x_range::AbstractVe
     chi_interp = DataInterpolations.AkimaInterpolation(x_range, z_range, extrapolation=ExtrapolationType.Linear)
     
     lens_int_array = similar(z_range, Float64)
-    zmax_int = 5
+    zmax_int = maximum(z_range)
 
     for i in eachindex(z_range)
         zi = z_range[i]
@@ -79,13 +79,13 @@ function shear_prefactor(
     savefig(joinpath(output_dir, "plots/kernels/nz_shear.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/nz_shear.png"))
     prefac_shear = similar(z_range, Float64)
-    pref = 3.0 * cosmo.H0^2 * cosmo.Ωm / C_LIGHT^2
+    pref = 1.5 * cosmo.H0^2 * cosmo.Ωm / C_LIGHT^2
     lens_int_array = compute_lensing_efficiency(z_range, x_range, nz_interp)
     plot(z_range, lens_int_array, label="Lensing efficiency", xlabel="z", ylabel="Lensing efficiency", title="Lensing efficiency as a function of redshift",
                 size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/lensing_efficiency.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/lensing_efficiency.png"))
-    prefac_shear = @. x_range * (C_LIGHT / H_array) * D_growth_array * (pref * (1.0 + z_range)) * lens_int_array
+    prefac_shear = @. (1/x_range)^2 * (C_LIGHT / H_array) * D_growth_array * pref * (1.0 + z_range) * lens_int_array
     plot(z_range, prefac_shear,
          label="W(z)", xlabel="z", ylabel="W(z)",
          title="Prefactor for shear-shear correlation",
