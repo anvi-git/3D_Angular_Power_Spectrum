@@ -85,7 +85,7 @@ function shear_prefactor(
                 size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/lensing_efficiency.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/lensing_efficiency.png"))
-    prefac_shear = @. (1/x_range)^2 * (C_LIGHT / H_array) * D_growth_array * pref * (1.0 + z_range) * lens_int_array
+    prefac_shear = @. x_range * (C_LIGHT / H_array) * D_growth_array * pref * (1.0 + z_range) * lens_int_array
     plot(z_range, prefac_shear,
          label="W(z)", xlabel="z", ylabel="W(z)",
          title="Prefactor for shear-shear correlation",

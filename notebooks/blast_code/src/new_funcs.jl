@@ -136,7 +136,8 @@ function new_compute_W_tilde(ℓ::Number, zmin::Number, zmax::Number, kmin::Numb
     # Threads.@threads for i in 1:Nz
     #     Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, chi[i] * k)
     # end
-    α = w .* (k .^ β) 
+#    α = w .* (k .^ β) 
+    α = w  
 
     #commenting the 6 lines of code below works fine with N = 2^5 +1, with N=2^15 is 5 steps in 3 minutes
     # for (p, chi_val) in enumerate(chi) 
@@ -160,41 +161,41 @@ function new_compute_W_tilde(ℓ::Number, zmin::Number, zmax::Number, kmin::Numb
 
 end
 
-# function compute_W_tilde(ℓ::Number, zmin::Real, zmax::Real, kmin::Real, kmax::Real, 
-#                          z_range::AbstractArray, n_cheb::Int, N::Int, chi_of_z::Any)
-#     if zmin >= zmax 
-#         throw(DomainError("The integration range is unphysical. Make sure zmin < zmax.")) 
-#     end
+function compute_W_tilde(ℓ::Number, zmin::Real, zmax::Real, kmin::Real, kmax::Real, 
+                         z_range::AbstractArray, n_cheb::Int, N::Int, chi_of_z::Any)
+    if zmin >= zmax 
+        throw(DomainError("The integration range is unphysical. Make sure zmin < zmax.")) 
+    end
 
-#     Nk = length(z_range) # Usiamo Nk = 96 come richiesto
-#     chi = chi_of_z.(z_range)
-#     w = get_clencurt_weights_z(zmin, zmax, N)    
+    Nk = length(z_range) # Usiamo Nk = 96 come richiesto
+    chi = chi_of_z.(z_range)
+    w = get_clencurt_weights_z(zmin, zmax, N)    
     
-#     # Sfrutta la funzione ottimizzata del passaggio precedente
-#     T, Bessel1 = bessel_cheb_eval_beyond(ℓ, zmin, zmax, kmin, kmax, z_range, n_cheb, N, chi_of_z)
+    # Sfrutta la funzione ottimizzata del passaggio precedente
+    T, Bessel1 = bessel_cheb_eval_beyond(ℓ, zmin, zmax, kmin, kmax, z_range, n_cheb, N, chi_of_z)
     
-#     # 1. Pre-calcolo della matrice pesata: (Nk x N)
-#     # Moltiplichiamo ogni colonna di Bessel1.^2 per il rispettivo peso w[k]
-#     # w' trasforma il vettore in una matrice riga (1 x N) per il broadcasting corretto
-#     A = @. Bessel1^2 * w' 
+    # 1. Pre-calcolo della matrice pesata: (Nk x N)
+    # Moltiplichiamo ogni colonna di Bessel1.^2 per il rispettivo peso w[k]
+    # w' trasforma il vettore in una matrice riga (1 x N) per il broadcasting corretto
+    A = @. Bessel1^2 * w' 
 
-#     # 2. Moltiplicazione di Matrici (BLAS al massimo delle performance)
-#     # A è (Nk x N), T' è (N x n_cheb+1) -> C sarà (Nk x n_cheb+1)
-#     C = A * T'
+    # 2. Moltiplicazione di Matrici (BLAS al massimo delle performance)
+    # A è (Nk x N), T' è (N x n_cheb+1) -> C sarà (Nk x n_cheb+1)
+    C = A * T'
 
-#     # 3. Allocazione e riempimento istantaneo di T_tilde
-#     T_tilde = zeros(1, Nk, Nk, n_cheb+1)
+    # 3. Allocazione e riempimento istantaneo di T_tilde
+    T_tilde = zeros(1, Nk, Nk, n_cheb+1)
     
-#     # Poiché il risultato non dipende da p, copiamo la matrice C lungo la dimensione p
-#     for l in 1:n_cheb+1
-#         for p in 1:Nk
-#             for i in 1:Nk
-#                 @inbounds T_tilde[1, i, p, l] = C[i, l]
-#             end
-#         end
-#     end
+    # Poiché il risultato non dipende da p, copiamo la matrice C lungo la dimensione p
+    for l in 1:n_cheb+1
+        for p in 1:Nk
+            for i in 1:Nk
+                @inbounds T_tilde[1, i, p, l] = C[i, l]
+            end
+        end
+    end
 
-#     return T_tilde
-# end
+    return T_tilde
+end
 
 
