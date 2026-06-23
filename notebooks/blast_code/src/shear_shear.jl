@@ -54,7 +54,9 @@ function shear_prefactor(
 )
     # computing comoving distance 
     #com_dist = Blast.compute_χ.(z_range, Ref(cosmo));
-    plot(z_range, x_range, label = "z(χ)", xlabel = L"z", ylabel = L"\chi [Mpc/h]", legend = :topleft, size=(800,600))
+    plot(z_range, x_range, label = "z(χ)", xlabel = L"z", 
+         ylabel = L"\chi [Mpc/h]", legend = :topleft, 
+         size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/chi_vs_z_shear.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/chi_vs_z_shear.png"))
     ######
@@ -72,17 +74,19 @@ function shear_prefactor(
     #Hubble function
     H_array = Blast.compute_hubble_factor.(z_range, Ref(cosmo))
     #plot
-    plot(z_range, nz, label="n(z)", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources",
-                size=(800,600))
-    plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources",
-                size=(800,600))
+    plot(z_range, nz, label="n(z)", xlabel="z", 
+         ylabel="n(z)", title="Redshift distribution of sources",
+         size=(800,600))
+    plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", 
+          ylabel="n(z)", title="Redshift distribution of sources",
+          size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/nz_shear.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/nz_shear.png"))
     prefac_shear = similar(z_range, Float64)
     pref = 1.5 * cosmo.H0^2 * cosmo.Ωm / C_LIGHT^2
     lens_int_array = compute_lensing_efficiency(z_range, x_range, nz_interp)
     plot(z_range, lens_int_array, label="Lensing efficiency", xlabel="z", ylabel="Lensing efficiency", title="Lensing efficiency as a function of redshift",
-                size=(800,600))
+         size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/lensing_efficiency.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/lensing_efficiency.png"))
     prefac_shear = @. x_range * (C_LIGHT / H_array) * D_growth_array * pref * (1.0 + z_range) * lens_int_array

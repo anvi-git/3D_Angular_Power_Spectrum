@@ -30,8 +30,9 @@ function galaxy_prefactor(
     output_dir::AbstractString
 )
     # computing the plot comoving distance vs redsfhit
-    plot(z_range, x_range, label = "z(χ)", xlabel = L"z", ylabel = L"\chi [Mpc/h]", legend = :topleft,
-                size=(800,600))
+    plot(z_range, x_range, label = "z(χ)", xlabel = L"z", 
+         ylabel = L"\chi [Mpc/h]", legend = :topleft,
+         size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/chi_vs_z.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/chi_vs_z.png"))
     ######
@@ -41,24 +42,27 @@ function galaxy_prefactor(
     bz_array = zeros(length(z_range))
     bz_array = b_0 .* sqrt.(1 .+ z_range); # bias as a function of redshift
     #plot
-    plot(z_range, bz_array, label = "bias", xlabel = L"z", ylabel = L"b(z)", legend = :topleft,
-                size=(800,600))
+    plot(z_range, bz_array, label = "bias", xlabel = L"z", 
+         ylabel = L"b(z)", legend = :topleft,
+         size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/bias.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/bias.png"))
     ######
     # GROWTH FACTOR
     D_growth_array = compute_growth_factor(cosmo, z_range)
     #plot
-    plot(z_range, D_growth_array, label = "growth array", xlabel = L"z", ylabel = L"D(z)", legend = :topleft,
-                size=(800,600))
+    plot(z_range, D_growth_array, label = "growth array", xlabel = L"z", 
+         ylabel = L"D(z)", legend = :topleft,
+         size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/growth.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/growth.png"))
     ######
     # Inverse Hubble factor
     inv_Hubble_array = C_LIGHT ./ Blast.compute_hubble_factor.(z_range, Ref(cosmo))
     #plot
-    plot(z_range, inv_Hubble_array, label = "inverse Hubble factor", xlabel = L"z", ylabel = L"c/H(z) [Mpc/h]", legend = :topleft,
-                size=(800,600))
+    plot(z_range, inv_Hubble_array, label = "inverse Hubble factor", xlabel = L"z", 
+    ylabel = L"c/H(z) [Mpc/h]", legend = :topleft,
+         size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/inv_hubble.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/inv_hubble.png"))
     ######
@@ -71,10 +75,12 @@ function galaxy_prefactor(
     nz_norm = nz ./ quadgk(x -> DataInterpolations.AkimaInterpolation(nz, z_range, extrapolation=ExtrapolationType.Linear)(x),
                       minimum(z_range), maximum(z_range))[1]
     #plot
-    plot(z_range, nz, label="n(z)", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources",
-                size=(800,600))
-    plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", ylabel="n(z)", title="Redshift distribution of sources",
-                size=(800,600))
+    plot(z_range, nz, label="n(z)", xlabel="z", 
+         ylabel="n(z)", title="Redshift distribution of sources",
+         size=(800,600))
+    plot!(z_range, nz_norm, label="n(z) normalized", xlabel="z", 
+          ylabel="n(z)", title="Redshift distribution of sources",
+          size=(800,600))
     savefig(joinpath(output_dir, "plots/kernels/nz.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/nz.png"))
     ######
@@ -131,7 +137,7 @@ function galaxy_prefactor(
                 xlabel=L"$z$", 
                 ylabel="Normalized Kernel", 
                 title="Normalized Kernel", 
-                legend=:bottomright, size=(800,600), titlefontsize=15, labelfontsize=15, legendfontsize=7, dpi=200)
+                legend=:bottomright, size=(1400,800), titlefontsize=15, labelfontsize=15, legendfontsize=7, dpi=200)
     savefig(joinpath(output_dir, "plots/kernels/normalized_kernel_galaxy.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/normalized_kernel_galaxy.png"))
     plot(z_range, 
@@ -140,7 +146,7 @@ function galaxy_prefactor(
         xlabel=L"$z$", 
         ylabel="Unnormalized Kernel", 
         title="Unnormalized Kernel", 
-        legend=:bottomright, size=(800,600), titlefontsize=15, labelfontsize=15, legendfontsize=7, dpi=200)
+        legend=:bottomright, size=(1400,800), titlefontsize=15, labelfontsize=15, legendfontsize=7, dpi=200)
     savefig(joinpath(output_dir, "plots/kernels/unnormalized_kernel_galaxy.png"))
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/unnormalized_kernel_galaxy.png"))
     npzwrite(joinpath(output_dir, "quantities/prefac_galaxy.npy"), prefac)
