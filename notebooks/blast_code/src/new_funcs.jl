@@ -97,7 +97,7 @@ end
 
 # end
 
-function compute_W_tilde(ℓ::Number, zmin::Real, zmax::Real, kmin::Real, kmax::Real, 
+function compute_W̃(ℓ::Number, zmin::Real, zmax::Real, kmin::Real, kmax::Real, 
                          z_range::AbstractArray, n_cheb::Int, N::Int, chi_of_z::Any)
     if zmin >= zmax 
         throw(DomainError("The integration range is unphysical. Make sure zmin < zmax.")) 
