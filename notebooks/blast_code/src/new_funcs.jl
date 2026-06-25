@@ -52,7 +52,7 @@ Build the Chebyshev basis matrix in `z` and the spherical-Bessel evaluation
 matrix needed for a mixed Chebyshev/Bessel expansion.
 The function:
 1. constructs Clenshaw–Curtis grids in `k` and `z`,
-2. evaluates Chebyshev polynomials \\(T\_n(x)\\) on the mapped `z` nodes,
+2. evaluates Chebyshev polynomials \\(Tn(x)\\) on the mapped `z` nodes,
 3. evaluates `sphericalbesselj(ℓ, χ(z_i) k_j)` on the supplied redshift range.
 # Arguments
 - `ℓ::Number`: spherical Bessel order.
@@ -69,39 +69,10 @@ The function:
 - `Bessel::Matrix{Float64}`: matrix with size `(length(z_range), N)` containing
   `sphericalbesselj(ℓ, chi_of_z(z_i) * k_j)`.
 """
-function bessel_cheb_eval_beyond(ℓ::Number, zmin::Number, zmax::Number, kmin::Number, kmax::Number, 
-                                 z_range::AbstractArray, n_cheb::Int, N::Integer, chi_of_z::Any)
-    Nz = length(z_range)
-    k = get_clencurt_grid_z(kmin, kmax, N)
-    z = get_clencurt_grid_z(zmin, zmax, N)
-
-    T = zeros(n_cheb + 1, N)
-    x = @. (2 * z - (zmax + zmin)) / (zmax - zmin)
-    T[1, :] .= 1.0
-    if n_cheb >= 1
-        T[2, :] .= x
-    end
-    for i in 3:(n_cheb + 1)
-        @. T[i, :] = 2 * x * T[i-1, :] - T[i-2, :]
-    end
-
-    Bessel = zeros(Nz, N)
-    chi_vals = chi_of_z.(z_range)
-
-    Threads.@threads for j in 1:N
-        kj = k[j]
-        for i in 1:Nz
-            @inbounds Bessel[i, j] = sphericalbesselj(ℓ, chi_vals[i] * kj)
-        end
-    end
-
-    return T, Bessel
-end
-
-# function nuova_bessel_cheb_eval_beyond(ℓ::Number, zmin::Number, zmax::Number, kmin::Number, kmax::Number, 
+# function bessel_cheb_eval_beyond(ℓ::Number, zmin::Number, zmax::Number, kmin::Number, kmax::Number, 
 #                                  z_range::AbstractArray, n_cheb::Int, N::Integer, chi_of_z::Any)
 #     Nz = length(z_range)
-#     k = get_clencurt_grid_z(kmin, kmax, Nz)
+#     k = get_clencurt_grid_z(kmin, kmax, N)
 #     z = get_clencurt_grid_z(zmin, zmax, N)
 
 #     T = zeros(n_cheb + 1, N)
@@ -115,17 +86,46 @@ end
 #     end
 
 #     Bessel = zeros(Nz, N)
-#     chi_vals = chi_of_z.(z)
+#     chi_vals = chi_of_z.(z_range)
 
-#     Threads.@threads for j in 1:Nz
+#     Threads.@threads for j in 1:N
 #         kj = k[j]
-#         for i in 1:N
-#             @inbounds Bessel[j, i] = sphericalbesselj(ℓ, chi_vals[i] * kj)
+#         for i in 1:Nz
+#             @inbounds Bessel[i, j] = sphericalbesselj(ℓ, chi_vals[i] * kj)
 #         end
 #     end
 
 #     return T, Bessel
 # end
+
+function bessel_cheb_eval_beyond(ℓ::Number, zmin::Number, zmax::Number, kmin::Number, kmax::Number, 
+                                 z_range::AbstractArray, n_cheb::Int, N::Integer, chi_of_z::Any)
+    Nz = length(z_range)
+    k = get_clencurt_grid_z(kmin, kmax, Nz)
+    z = get_clencurt_grid_z(zmin, zmax, N)
+
+    T = zeros(n_cheb + 1, N)
+    x = @. (2 * z - (zmax + zmin)) / (zmax - zmin)
+    T[1, :] .= 1.0
+    if n_cheb >= 1
+        T[2, :] .= x
+    end
+    for i in 3:(n_cheb + 1)
+        @. T[i, :] = 2 * x * T[i-1, :] - T[i-2, :]
+    end
+
+    Bessel = zeros(Nz, N)
+    chi_vals = chi_of_z.(z)
+
+    Threads.@threads for j in 1:Nz
+        kj = k[j]
+        for i in 1:N
+            @inbounds Bessel[j, i] = sphericalbesselj(ℓ, chi_vals[i] * kj)
+        end
+    end
+
+    return T, Bessel
+end
 
 """
     compute_W_tilde(ℓ::Number, zmin::Number, zmax::Number, kmin::Number, kmax::Number,
@@ -246,7 +246,8 @@ function compute_W̃(ℓ::Number, zmin::Real, zmax::Real, kmin::Real, kmax::Real
     # Pre-computation of the weight matrix: (Nk x N)
     # Multiply every column of Bessel1.^2 for the corresponding weight w[k]
     # w' transforms the vector into a row matrix (1 x N) for correct broadcasting
-    A = @. Bessel1^2 * w' 
+#    A = @. Bessel1^2 * w' #this squares Bessel1 and multiplies it by the conjugate transpose of w
+    A = @. Bessel1 * Bessel1 * w' #this squares Bessel1 and multiplies it by the conjugate transpose of w
     # A is (Nk x N), T' is (N x n_cheb+1) -> C will be (Nk x n_cheb+1)
     C = A * T'
     T_tilde = zeros(1, Nk, Nk, n_cheb+1)    

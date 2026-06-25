@@ -67,13 +67,20 @@ function galaxy_prefactor(
     println("Plot saved: ", joinpath(output_dir, "plots/kernels/inv_hubble.png"))
     ######
     # n(z)  
-    z_0 = 0.9/sqrt(2)
-    A = 1.5/z_0
-    alpha = 2
-    beta = 1.5
-    nz = A .* (z_range / z_0).^alpha .* exp.(-(z_range / z_0).^beta) # redshift distribution of sources, normalized to 1
+    # z_0 = 0.9/sqrt(2)
+    # A = 1.5/z_0
+    # alpha = 2
+    # beta = 1.5
+    # nz = A .* (z_range / z_0).^alpha .* exp.(-(z_range / z_0).^beta) # redshift distribution of sources, normalized to 1
+    # nz_norm = nz ./ quadgk(x -> DataInterpolations.AkimaInterpolation(nz, z_range, extrapolation=ExtrapolationType.Linear)(x),
+    #                   minimum(z_range), maximum(z_range))[1]
+    ### CASO n(z) con picco su z = 1
+    z_0 = 1.0
+    alpha = 10.0
+    beta  = 10.0
+    nz = (z_range ./ z_0).^alpha .* exp.(- (z_range ./ z_0).^beta)
     nz_norm = nz ./ quadgk(x -> DataInterpolations.AkimaInterpolation(nz, z_range, extrapolation=ExtrapolationType.Linear)(x),
-                      minimum(z_range), maximum(z_range))[1]
+                        minimum(z_range), maximum(z_range))[1]
     #plot
     plot(z_range, nz, label="n(z)", xlabel="z", 
          ylabel="n(z)", title="Redshift distribution of sources",
