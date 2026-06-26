@@ -41,7 +41,7 @@ Return the Chebyshev polynomials up to order 'n_cheb+1' and the Bessel function 
 """
 function bessel_cheb_eval(ℓ::Number, kmin::Number, kmax::Number, χ::AbstractArray, n_cheb::Int, N::Number)
 
-    nχ = length(χ)
+    nχhi = length(χhi)
     x = get_clencurt_grid(kmin, kmax, N)
 
     k_cheb = chebpoints(n_cheb, log10(kmin), log10(kmax)) 
@@ -55,9 +55,9 @@ function bessel_cheb_eval(ℓ::Number, kmin::Number, kmax::Number, χ::AbstractA
         T[i,:] = copy_c.(log10.(x))
     end
 
-    Bessel = zeros(nχ, N)
-    Threads.@threads for i in 1:nχ
-            Bessel[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, χ[i] * x)
+    Bessel = zeros(nχhi, N)
+    Threads.@threads for i in 1:nχhi
+            Bessel[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, χhi[i] * x)
     end
 
     return T, Bessel
@@ -88,25 +88,25 @@ function compute_T̃(ℓ::Number, χ::AbstractArray, R::AbstractArray, kmin::Num
         throw(DomainError("The integration range is unphysical. Make sure kmin < kmax.")) 
     end
     
-    nχ = length(χ)
+    nχhi = length(χhi)
     nR = length(R)
 
     x = get_clencurt_grid(kmin, kmax, N)
     w = get_clencurt_weights(kmin, kmax, N)
-    T, Bessel1 = bessel_cheb_eval(ℓ, kmin, kmax, χ, n_cheb, N)
+    T, Bessel1 = bessel_cheb_eval(ℓ, kmin, kmax, χhi, n_cheb, N)
 
-    T_tilde = zeros(1, nχ, nR, n_cheb+1)
+    T_tilde = zeros(1, nχhi, nR, n_cheb+1)
     
     for (ridx, r) in enumerate(R)
-        Bessel2 = zeros(nχ, N)
+        Bessel2 = zeros(nχhi, N)
         
-        Threads.@threads for i in 1:nχ
-            Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, r*χ[i] * x)
+        Threads.@threads for i in 1:nχhi
+            Bessel2[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, r*χhi[i] * x)
         end
 
         α = w .* (x .^ β) #β = 2 for CC, -2 for LL and 0 for CL.
          
-        @tturbo for l in 1:n_cheb+1, i in 1:nχ
+        @tturbo for l in 1:n_cheb+1, i in 1:nχhi
             Cij = zero(eltype(w))
             for k in 1:N
                 Cij +=  T[l,k] * Bessel1[i,k] * Bessel2[i,k] * α[k]
