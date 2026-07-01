@@ -28,8 +28,8 @@ The notebook extends the BLAST workflow to build a quantity of the form `S_l(k1,
 
 ```mermaid
 flowchart TD
-    A["Start notebook"] --> B["Activate Julia environment"]
-    B --> C["Include BLAST and custom source files"]
+    A["Start notebook and activate Julia environment"] --> B["using Pkg Pkg.activate(blast_code) Pkg.resolve() Pkg.instantiate()"]
+    A --> C["Include BLAST and custom source files"]
     C --> D["Load background arrays z and chi"]
     D --> E["Build interpolators z(chi) and chi(z)"]
     E --> F["Set grids in chi, z, ell, k"]
