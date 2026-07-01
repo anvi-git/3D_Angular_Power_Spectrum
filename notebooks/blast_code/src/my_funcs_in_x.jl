@@ -1,48 +1,48 @@
 using Base.Threads
 using LinearAlgebra
 
-"""
-    get_clencurt_grid_z(zmin::Number, zmax::Number, N::Number) -> Vector{Float64}
-Construct a Clenshaw–Curtis grid in the redshift interval `[zmin, zmax]`.
-The nodes are first generated on the interval `[-1, 1]` using
-`FastTransforms.clenshawcurtisnodes`, then mapped to `[zmin, zmax]`.
-# Arguments
-- `zmin::Number`: lower bound of the redshift interval.
-- `zmax::Number`: upper bound of the redshift interval.
-- `N::Number`: number of Clenshaw–Curtis nodes to generate.
-# Returns
-- `Vector{Float64}`: the mapped redshift grid.
-"""
-function get_clencurt_grid_z(zmin::Number, zmax::Number, N::Number)
-    z = FastTransforms.clenshawcurtisnodes(Float64, N)
-    z = (zmax - zmin) / 2 * z .+ (zmin + zmax) / 2
+# """
+#     get_clencurt_grid_z(zmin::Number, zmax::Number, N::Number) -> Vector{Float64}
+# Construct a Clenshaw–Curtis grid in the redshift interval `[zmin, zmax]`.
+# The nodes are first generated on the interval `[-1, 1]` using
+# `FastTransforms.clenshawcurtisnodes`, then mapped to `[zmin, zmax]`.
+# # Arguments
+# - `zmin::Number`: lower bound of the redshift interval.
+# - `zmax::Number`: upper bound of the redshift interval.
+# - `N::Number`: number of Clenshaw–Curtis nodes to generate.
+# # Returns
+# - `Vector{Float64}`: the mapped redshift grid.
+# """
+# function get_clencurt_grid_z(zmin::Number, zmax::Number, N::Number)
+#     z = FastTransforms.clenshawcurtisnodes(Float64, N)
+#     z = (zmax - zmin) / 2 * z .+ (zmin + zmax) / 2
 
-    z[1] *= (1 - 1e-8)
-    z[end] *= (1 + 1e-8) # TODO: replace with a principled endpoint treatment.
+#     z[1] *= (1 - 1e-8)
+#     z[end] *= (1 + 1e-8) # TODO: replace with a principled endpoint treatment.
 
-    return z
-end
+#     return z
+# end
 
-"""
-    get_clencurt_weights_z(zmin::Number, zmax::Number, N::Number) -> Vector{Float64}
-Construct Clenshaw–Curtis quadrature weights mapped to the redshift interval `[zmin, zmax]`.
-The weights are first computed on the canonical Clenshaw–Curtis grid using
-`FastTransforms.chebyshevmoments1` together with `FastTransforms.clenshawcurtisweights`, 
-then rescaled to the physical interval by the factor `(zmax - zmin) / 2`.
-# Arguments
-- `zmin::Number`: lower bound of the redshift interval.
-- `zmax::Number`: upper bound of the redshift interval.
-- `N::Number`: number of quadrature weights.
-# Returns
-- `Vector{Float64}`: quadrature weights on `[zmin, zmax]`.
-"""
-function get_clencurt_weights_z(zmin::Number, zmax::Number, N::Number)
-    CC_obj = FastTransforms.chebyshevmoments1(Float64, N)
-    w = FastTransforms.clenshawcurtisweights(CC_obj)
-    w = (zmax - zmin) / 2 * w
+# """
+#     get_clencurt_weights_z(zmin::Number, zmax::Number, N::Number) -> Vector{Float64}
+# Construct Clenshaw–Curtis quadrature weights mapped to the redshift interval `[zmin, zmax]`.
+# The weights are first computed on the canonical Clenshaw–Curtis grid using
+# `FastTransforms.chebyshevmoments1` together with `FastTransforms.clenshawcurtisweights`, 
+# then rescaled to the physical interval by the factor `(zmax - zmin) / 2`.
+# # Arguments
+# - `zmin::Number`: lower bound of the redshift interval.
+# - `zmax::Number`: upper bound of the redshift interval.
+# - `N::Number`: number of quadrature weights.
+# # Returns
+# - `Vector{Float64}`: quadrature weights on `[zmin, zmax]`.
+# """
+# function get_clencurt_weights_z(zmin::Number, zmax::Number, N::Number)
+#     CC_obj = FastTransforms.chebyshevmoments1(Float64, N)
+#     w = FastTransforms.clenshawcurtisweights(CC_obj)
+#     w = (zmax - zmin) / 2 * w
 
-    return w
-end
+#     return w
+# end
 
 function W_tilde_computation(ℓ::Number, x_min::Number, x_max::Number, kmin::Number, kmax::Number,
                              Nk::Int, Nkp::Int, n_cheb::Int, N::Number, x::AbstractVector)
@@ -51,8 +51,8 @@ function W_tilde_computation(ℓ::Number, x_min::Number, x_max::Number, kmin::Nu
         throw(DomainError("The integration range is unphysical. Make sure x_min < x_max."))
     end
 
-    kp = get_clencurt_grid_z(kmin, kmax, Nkp)
-    w  = get_clencurt_weights_z(x_min, x_max, N)
+    kp = get_clencurt_grid(kmin, kmax, Nkp)
+    w  = get_clencurt_weights(x_min, x_max, N)
 
     T, Bessel1 = bessel_computation(ℓ, x_min, x_max, kmin, kmax, Nk, n_cheb, N, x)
     T_tilde = zeros(eltype(w), Nk, Nkp, n_cheb + 1, 1)
@@ -74,8 +74,8 @@ end
 function bessel_computation(ℓ::Number, x_min::Number, x_max::Number, kmin::Number, kmax::Number, 
                                  Nk::Int, n_cheb::Int, N::Integer, x::AbstractVector)
     
-    k = get_clencurt_grid_z(kmin, kmax, Nk)
-    x_grid = get_clencurt_grid_z(x_min, x_max, N)
+    k = get_clencurt_grid(kmin, kmax, Nk)
+    x_grid = get_clencurt_grid(x_min, x_max, N)
 
     T = zeros(n_cheb + 1, N)
     xx = @. (2 * x_grid - (x_max + x_min)) / (x_max - x_min)
