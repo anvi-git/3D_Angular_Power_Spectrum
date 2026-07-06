@@ -1,19 +1,20 @@
 using Base.Threads
 using LinearAlgebra
 
-function W_tilde_computation(ℓ::Number, x_min::Number, x_max::Number, kmin::Number, kmax::Number,
-                             Nk::Int, Nkp::Int, n_cheb::Int, N::Number, x::AbstractVector)
+function W_tilde_computation(ℓ::Number, xmin::Number, xmax::Number, kmin::Number, kmax::Number,
+                             Nk::Int, Nkp::Int, n_cheb::Int, N::Number, k_grid::AbstractVector, kp_grid::AbstractVector, x::AbstractVector)
 
-    if x_min >= x_max
-        throw(DomainError("The integration range is unphysical. Make sure x_min < x_max."))
+    if xmin >= xmax
+        throw(DomainError("The integration range is unphysical. Make sure xmin < xmax."))
     end
 
-    kp = get_clencurt_grid(kmin, kmax, Nkp)
-    w  = get_clencurt_weights(x_min, x_max, N)
+    kp = kp_grid
+    #kp = get_clencurt_grid(kmin, kmax, Nkp)
+    w  = get_clencurt_weights(xmin, xmax, N)
 
-    T, Bessel1 = bessel_computation(ℓ, x_min, x_max, kmin, kmax, Nk, n_cheb, N, x)
+    T, Bessel1 = bessel_computation(ℓ, xmin, xmax, kmin, kmax, Nk, n_cheb, N, k_grid, x)
     T_tilde = zeros(eltype(w), Nk, Nkp, n_cheb + 1, 1)
-    _, Bessel2 = bessel_computation(ℓ, x_min, x_max, kmin, kmax, Nkp, n_cheb, N, x)
+    _, Bessel2 = bessel_computation(ℓ, xmin, xmax, kmin, kmax, Nkp, n_cheb, N, kp_grid, x)
 
     for ic in 1:(n_cheb + 1) 
         @tturbo for ik in 1:Nk, ikp in 1:Nkp
@@ -28,14 +29,15 @@ function W_tilde_computation(ℓ::Number, x_min::Number, x_max::Number, kmin::Nu
 
 end
 
-function bessel_computation(ℓ::Number, x_min::Number, x_max::Number, kmin::Number, kmax::Number, 
-                                 Nk::Int, n_cheb::Int, N::Integer, x::AbstractVector)
+function bessel_computation(ℓ::Number, xmin::Number, xmax::Number, kmin::Number, kmax::Number, 
+                                 Nk::Int, n_cheb::Int, N::Integer, k_grid::AbstractVector, x::AbstractVector)
     
-    k = get_clencurt_grid(kmin, kmax, Nk)
-    x_grid = get_clencurt_grid(x_min, x_max, N)
+    k = k_grid
+    #k = get_clencurt_grid(kmin, kmax, Nk)
+    x_grid = get_clencurt_grid(xmin, xmax, N)
 
     T = zeros(n_cheb + 1, N)
-    xx = @. (2 * x_grid - (x_max + x_min)) / (x_max - x_min)
+    xx = @. (2 * x_grid - (xmax + xmin)) / (xmax - xmin)
     T[1, :] .= 1.0
     if n_cheb >= 1
         T[2, :] .= xx
@@ -49,8 +51,7 @@ function bessel_computation(ℓ::Number, x_min::Number, x_max::Number, kmin::Num
     Threads.@threads for j in 1:Nk
         kj = k[j]
         for i in 1:N
-            #here x[i] is the i-th element of the x array
-            Bessel[j, i] = @views SpecialFunctions.sphericalbesselj.(ℓ, x[i] * kj) 
+            Bessel[j, i] = @views SpecialFunctions.sphericalbesselj.(ℓ, x_grid[i] * kj) 
         end
     end
 
