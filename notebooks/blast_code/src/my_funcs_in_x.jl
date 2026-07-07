@@ -12,9 +12,9 @@ function W_tilde_computation(ℓ::Number, xmin::Number, xmax::Number, kmin::Numb
     #kp = get_clencurt_grid(kmin, kmax, Nkp)
     w  = get_clencurt_weights(xmin, xmax, N)
 
-    T, Bessel1 = bessel_computation(ℓ, xmin, xmax, kmin, kmax, Nk, n_cheb, N, k_grid, x)
+    T, Bessel1 = bessel_computation(ℓ, xmin, xmax, Nk, n_cheb, N, k_grid)
     T_tilde = zeros(eltype(w), Nk, Nkp, n_cheb + 1, 1)
-    _, Bessel2 = bessel_computation(ℓ, xmin, xmax, kmin, kmax, Nkp, n_cheb, N, kp_grid, x)
+    _, Bessel2 = bessel_computation(ℓ, xmin, xmax, Nkp, n_cheb, N, kp_grid)
 
     for ic in 1:(n_cheb + 1) 
         @tturbo for ik in 1:Nk, ikp in 1:Nkp
@@ -29,11 +29,10 @@ function W_tilde_computation(ℓ::Number, xmin::Number, xmax::Number, kmin::Numb
 
 end
 
-function bessel_computation(ℓ::Number, xmin::Number, xmax::Number, kmin::Number, kmax::Number, 
-                                 Nk::Int, n_cheb::Int, N::Integer, k_grid::AbstractVector, x::AbstractVector)
+function bessel_computation(ℓ::Number, xmin::Number, xmax::Number, 
+                                 Nk::Int, n_cheb::Int, N::Integer, k_grid::AbstractVector)
     
     k = k_grid
-    #k = get_clencurt_grid(kmin, kmax, Nk)
     x_grid = get_clencurt_grid(xmin, xmax, N)
 
     T = zeros(n_cheb + 1, N)
