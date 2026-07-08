@@ -1,5 +1,3 @@
-module ConfigMod 
-
 using OrderedCollections
 
 Base.@kwdef struct RunConfig
@@ -12,7 +10,7 @@ Base.@kwdef struct RunConfig
     Nkp::Int = 150
     Nkpp::Int = 150
     n_cheb::Int = 200
-    # ell values
+    # ℓ values
     ℓ::Vector{Int} = collect(range(2, 200, length=100))
     # to sort the k-grid or not
     sorting::Bool = false
@@ -34,9 +32,9 @@ function validate(config::RunConfig)
     minimum(config.ℓ) >= 0 || error("ℓ must be non-negative")
     return config
 end
-# minimum wavenumber for the k-grid
+
+# Helper functions
 kmin(config::RunConfig) = 2.5 / config.xmax
-# comoving distance grid
 x_grid(config::RunConfig) = LinRange(config.xmin, config.xmax, config.N)
 
 function k_grids(config::RunConfig, Blast)
@@ -50,7 +48,6 @@ function k_grids(config::RunConfig, Blast)
         return k, kp, kpp
     end
 end
-
 
 function write_run_config(
     output_dir,
@@ -97,4 +94,21 @@ function write_run_config(
     end
 end
 
+# Master execution function
+function setup_run_config(output_dir, Blast, z, zmin, zmax; kwargs...)
+    # 1. Initialize config with any custom parameters passed via kwargs
+    config = RunConfig(; kwargs...)
+    
+    # 2. Validate configuration parameters
+    validate(config)
+    
+    # 3. Generate grids
+    x = x_grid(config)
+    k, kp, kpp = k_grids(config, Blast)
+    
+    # 4. Write metadata file
+    write_run_config(output_dir, config, x, z, zmin, zmax, k, kp, kpp)
+    
+    # Return everything needed for the rest of your pipeline
+    return (config=config, x=x, k=k, kp=kp, kpp=kpp)
 end
