@@ -91,17 +91,21 @@ function galaxy_prefactor(
     #                     minimum(z), maximum(z))[1]
     #plot
     plot(z, nz, label=L"n(z)", xlabel=L"z", 
-         ylabel=L"n(z)")
+         ylabel=L"n(z)", legend = :topleft,
+         size=(800,600), dpi = 200)
     savefig(joinpath(output_dir, "plots/kernels/nz.png"))
     println("n(z) vs redshift plot saved.")
     plot(z, n_chi_norm, label=L"n(z) normalized", xlabel=L"z", 
-          ylabel=L"n(z) normalized")
+          ylabel=L"n(z) normalized", legend = :topleft,
+         size=(800,600), dpi = 200)
     savefig(joinpath(output_dir, "plots/kernels/nz_normalized.png"))
     println("Normalized n(z) vs redshift plot saved.")
     plot(z, nz, label=L"n(z)", xlabel=L"z", 
          ylabel=L"n(z)")
     plot!(z, n_chi_norm, label=L"n(z) normalized", xlabel=L"z", 
           ylabel=L"n(z) normalized")
+    plot!(legend = :topleft,
+         size=(800,600), dpi = 200)
     savefig(joinpath(output_dir, "plots/kernels/nz_both.png"))
     println("n(z) vs redshift plot saved.")
     ######
