@@ -189,7 +189,7 @@ function galaxy_prefactor_cheb(xmin::Number,
     H_interp = DataInterpolations.AkimaInterpolation(Hubble_param, z, extrapolation=ExtrapolationType.Linear)
     Hubble_cheb = H_interp.(z_cheb_nodes)
     W_vals = zeros(length(z_cheb_nodes))
-    W_vals .= chi_cheb_nodes.^2 .* b_cheb .* D_cheb .* nz_cheb .* Hubble_cheb
+    W_vals = chi_cheb_nodes.^2 .* b_cheb .* D_cheb .* nz_cheb .* Hubble_cheb
     npzwrite(joinpath(output_dir, "quantities/prefac_on_cheb_galaxy.npy"), W_vals)
     println("W(z) prefactor on Chebyshev grid saved: ", joinpath(output_dir, "quantities/prefac_on_cheb_galaxy.npy"))
     return W_vals
