@@ -39,6 +39,33 @@ function get_clencurt_weights_log(kmin::Number, kmax::Number, N::Integer)
 end
 
 
+"""
+    generate_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting) -> NamedTuple
+
+Genera le griglie di Clenshaw-Curtis per k, kp e kpp utilizzando i limiti e i nodi forniti.
+Se `sorting=true`, le griglie vengono ordinate in modo crescente.
+"""
+function generate_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false)
+    # Generazione iniziale delle griglie
+    k_grid   = Blast.get_clencurt_grid(kmin, kmax, Nk)
+    kp_grid  = Blast.get_clencurt_grid(kmin, kmax, Nkp)
+    kpp_grid = Blast.get_clencurt_grid(kmin, kmax, Nkpp)
+    
+    # Ordinamento condizionale
+    if sorting
+        k_grid   = sort(k_grid)
+        kp_grid  = sort(kp_grid)
+        kpp_grid = sort(kpp_grid)
+    end
+    
+    return (
+        k_grid   = k_grid,
+        kp_grid  = kp_grid,
+        kpp_grid = kpp_grid,
+        sorting  = sorting
+    )
+end
+
 function W_tilde_computation(ℓ::Number, xmin::Number, xmax::Number, kmin::Number, kmax::Number,
                              Nk::Int, Nkp::Int, n_cheb::Int, N::Number, k_grid::AbstractVector, kp_grid::AbstractVector, x::AbstractVector)
 

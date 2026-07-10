@@ -1,114 +1,46 @@
-using OrderedCollections
+using NPZ
+using DataInterpolations
 
-Base.@kwdef struct RunConfig
-    # comoving distance integration parameters
-    N::Int = 2^15 + 1
-    xmin::Float64 = 26.0
-    xmax::Float64 = 7000.0
-    # k-grid
-    Nk::Int = 150
-    Nkp::Int = 150
-    Nkpp::Int = 150
-    n_cheb::Int = 200
-    # ℓ values
-    ℓ::Vector{Int} = collect(range(2, 200, length=100))
-    # to sort the k-grid or not
-    sorting::Bool = false
-    # maximum wavenumber
-    kmax::Float64 = 200.0 / 13.0
-    # output directory
-    output_root::String = "out/runs"
-end
-
-function validate(config::RunConfig)
-    config.N > 1 || error("N must be > 1")
-    config.xmin > 0 || error("xmin must be > 0")
-    config.xmax > config.xmin || error("xmax must be larger than xmin")
-    config.Nk > 0 || error("Nk must be > 0")
-    config.Nkp > 0 || error("Nkp must be > 0")
-    config.Nkpp > 0 || error("Nkpp must be > 0")
-    config.n_cheb > 0 || error("n_cheb must be > 0")
-    !isempty(config.ℓ) || error("ℓ must not be empty")
-    minimum(config.ℓ) >= 0 || error("ℓ must be non-negative")
-    return config
-end
-
-# Helper functions
-kmin(config::RunConfig) = 2.5 / config.xmax
-x_grid(config::RunConfig) = LinRange(config.xmin, config.xmax, config.N)
-
-function k_grids(config::RunConfig, Blast)
-    k  = Blast.get_clencurt_grid(kmin(config), config.kmax, config.Nk)
-    kp = Blast.get_clencurt_grid(kmin(config), config.kmax, config.Nkp)
-    kpp = Blast.get_clencurt_grid(kmin(config), config.kmax, config.Nkpp)
-
-    if config.sorting
-        return sort(k), sort(kp), sort(kpp)
-    else
-        return k, kp, kpp
-    end
-end
-
-function write_run_config(
-    output_dir,
-    config,
-    x,
-    z,
-    zmin,
-    zmax,
-    k_grid,
-    kp_grid,
-    kpp_grid
+"""
+    setup_cosmology_grid(; cosmo, N, Nk, Nkp, Nkpp, n_cheb) -> NamedTuple
+"""
+function setup_cosmology_grid(;
+    cosmo  = Blast.FlatΛCDM(),
+    N      = 2^5 + 1,
+    Nk     = 150,
+    Nkp    = 150,
+    Nkpp   = 150,
+    n_cheb = 200
 )
-    kmin_val = 2.5 / config.xmax
-    params_run = OrderedDict(
-        "number of points for the integration of the integrals of W, N" => config.N,
-        "minimum comoving distance xmin" => config.xmin,
-        "maximum comoving distance xmax" => config.xmax,
-        "minimum redshift zmin" => zmin,
-        "maximum redshift zmax" => zmax,
-        "minimum wavenumber kmin" => kmin_val,
-        "maximum wavenumber kmax" => config.kmax,
-        "number of Chebyshev nodes n_cheb" => config.n_cheb,
-        "number of ℓ values" => length(config.ℓ),
-        "number of k points Nk" => config.Nk,
-        "number of kp points Nkp" => config.Nkp,
-        "number of kpp points Nkpp" => config.Nkpp,
-        "sorting enabled" => config.sorting
+    # background quantities
+    z_b      = npzread("blast_code/data/background/z.npy")
+    x_b      = npzread("blast_code/data/background/chi.npy")
+    n5k_bins = npzread("blast_code/data/dNdzs_fullwidth.npz")
+    
+    # Akima interpolations
+    z_of_χ   = DataInterpolations.AkimaInterpolation(z_b, x_b)
+    chi_of_z = DataInterpolations.AkimaInterpolation(x_b, z_b)
+    
+    # grids in x and z
+    xmin = 26
+    xmax = 7000
+    x    = LinRange(xmin, xmax, N)
+    z    = z_of_χ.(x)
+    
+    zmin = minimum(z)
+    zmax = maximum(z)
+    
+    # harmonic space and boundaries of the wavenumbers
+    ℓ    = LinRange(2, 200, 100)
+    kmax = 200 / 13
+    kmin = 2.5 / xmax
+    
+    return (
+        cosmo=cosmo, N=N, Nk=Nk, Nkp=Nkp, Nkpp=Nkpp, n_cheb=n_cheb,
+        z_b=z_b, x_b=x_b, n5k_bins=n5k_bins,
+        z_of_χ=z_of_χ, chi_of_z=chi_of_z,
+        xmin=xmin, xmax=xmax, x=x, z=z, zmin=zmin, zmax=zmax,
+        ℓ=ℓ, kmax=kmax, kmin=kmin
     )
-
-    open(joinpath(output_dir, "config.txt"), "w") do io
-        println(io, "=== Run parameters ===")
-        for (key, val) in params_run
-            println(io, key, " => ", val)
-        end
-
-        println(io)
-        println(io, "=== Additional info ===")
-        println(io, "comoving distance array x has size: ", length(x))
-        println(io, "redshift array z has size: ", length(z))
-        println(io, "k_grid and kp_grid are ", k_grid == kp_grid ? "the same" : "different")
-        println(io, "k_grid and kpp_grid are ", k_grid == kpp_grid ? "the same" : "different")
-        println(io, "kp_grid and kpp_grid are ", kp_grid == kpp_grid ? "the same" : "different")
-        println(io, "k_grid is ", config.sorting ? "sorted" : "not sorted")
-    end
 end
 
-# Master execution function
-function setup_run_config(output_dir, Blast, z, zmin, zmax; kwargs...)
-    # 1. Initialize config with any custom parameters passed via kwargs
-    config = RunConfig(; kwargs...)
-    
-    # 2. Validate configuration parameters
-    validate(config)
-    
-    # 3. Generate grids
-    x = x_grid(config)
-    k, kp, kpp = k_grids(config, Blast)
-    
-    # 4. Write metadata file
-    write_run_config(output_dir, config, x, z, zmin, zmax, k, kp, kpp)
-    
-    # Return everything needed for the rest of your pipeline
-    return (config=config, x=x, k=k, kp=kp, kpp=kpp)
-end
