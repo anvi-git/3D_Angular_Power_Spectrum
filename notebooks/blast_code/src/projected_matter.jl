@@ -7,33 +7,7 @@ function w_ell_tullio(c::AbstractArray, T::AbstractArray)
     return @tullio w[i,j,k] := c[j,k,l] * T[i,j,k,l]
 end
 
-"""
-    get_clencurt_grid(kmin::Number, kmax::Number, N::Number)
-Return the integration points in k. They are a set of 'N' Chebyshev points rescaled between 'kmin' and 'kmax'.
-"""
-function get_clencurt_grid(kmin::Number, kmax::Number, N::Number)
-    CC_obj = FastTransforms.chebyshevmoments1(Float64, N)
-    x = FastTransforms.clenshawcurtisnodes(Float64, N)
-    x = (kmax - kmin) / 2 * x .+ (kmin + kmax) / 2 
 
-    x[1] *= (1-1e-8)
-    x[end] *= (1+1e-8) #TODO: this is just a quick patch, need to figure this out properly.
-
-    return x
-end
-
-"""
-    get_clencurt_weights(kmin::Number, kmax::Number, N::Number)
-Return the set of 'N' weights needed to perform the integration with the Clenshaw-Curtis quadrature rule.
-The weights are rescaled between 'kmin' and 'kmax'.  
-"""
-function get_clencurt_weights(kmin::Number, kmax::Number, N::Number)
-    CC_obj = FastTransforms.chebyshevmoments1(Float64, N)
-    w = FastTransforms.clenshawcurtisweights(CC_obj)
-    w = (kmax - kmin) / 2 * w
-
-    return w
-end
 
 """
     bessel_cheb_eval(ℓ::Number, kmin::Number, kmax::Number, χ::AbstractArray, n_cheb::Int, N::Number)

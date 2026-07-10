@@ -1,6 +1,32 @@
 using Base.Threads
 using LinearAlgebra
 
+## BELOW: from BLAST
+"""
+    get_clencurt_grid(kmin::Number, kmax::Number, N::Number)
+Return the integration points in k. They are a set of 'N' Chebyshev points rescaled between 'kmin' and 'kmax'.
+"""
+function get_clencurt_grid(kmin::Number, kmax::Number, N::Number)
+    CC_obj = FastTransforms.chebyshevmoments1(Float64, N)
+    x = FastTransforms.clenshawcurtisnodes(Float64, N)
+    x = (kmax - kmin) / 2 * x .+ (kmin + kmax) / 2 
+    return x
+end
+
+"""
+    get_clencurt_weights(kmin::Number, kmax::Number, N::Number)
+Return the set of 'N' weights needed to perform the integration with the Clenshaw-Curtis quadrature rule.
+The weights are rescaled between 'kmin' and 'kmax'.  
+"""
+function get_clencurt_weights(kmin::Number, kmax::Number, N::Number)
+    CC_obj = FastTransforms.chebyshevmoments1(Float64, N)
+    w = FastTransforms.clenshawcurtisweights(CC_obj)
+    w = (kmax - kmin) / 2 * w
+
+    return w
+end
+## ABOVE: from BLAST
+
 function get_clencurt_grid_log(kmin::Number, kmax::Number, N::Integer)
     u_grid = Blast.get_clencurt_grid(log(kmin), log(kmax), N)  # CC nodes mapped onto [ln kmin, ln kmax]
     return exp.(u_grid)                                        # k = e^u
