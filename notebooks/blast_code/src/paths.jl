@@ -59,7 +59,6 @@ function save_run_config(
         "number of kpp points Nkpp" => Nkpp
     )
 
-    # Assicura che la cartella esista (anche se creata in precedenza)
     mkpath(output_dir)
 
     # Scrittura del file di testo
@@ -83,5 +82,18 @@ function save_run_config(
     end
 
     println("Data brought to safety in folder: ", output_dir)
+    append_to_log(output_dir, "Run started at $(Dates.now())")
     return params_run
+end
+
+"""
+    append_to_log(output_dir, message)
+"""
+function append_to_log(output_dir, message::String)
+    log_file = joinpath(output_dir, "output_info.txt")
+    
+    open(log_file, "a") do io
+        time_str = Dates.format(now(), "HH:MM:SS")
+        println(io, "[$time_str] ", message)
+    end
 end
