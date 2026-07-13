@@ -7,9 +7,9 @@ using DataInterpolations
 function setup_cosmology_grid(;
     cosmo  = Blast.FlatΛCDM(),
     N      = 2^15 + 1,
-    Nk     = 150,
-    Nkp    = 150,
-    Nkpp   = 150,
+    Nk     = 350,
+    Nkp    = 350,
+    Nkpp   = 350,
     n_cheb = 200
 )
     # background quantities
