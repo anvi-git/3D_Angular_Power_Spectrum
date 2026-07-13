@@ -80,7 +80,7 @@ function galaxy_prefactor(
     nz_interp = DataInterpolations.AkimaInterpolation(nz, z, extrapolation=ExtrapolationType.Linear)
     integral_nz, _ = quadgk(x -> nz_interp(x), minimum(z), maximum(z), rtol=1e-10)
     nz_norm = nz ./ integral_nz
-    n_chi_norm = nz_norm .* dz_dchi    
+    n_chi_norm = nz_norm .* dz_dchi 
     ### CASO n(z) con picco su z = 1
     # z_0 = 1.0
     # alpha = 10.0

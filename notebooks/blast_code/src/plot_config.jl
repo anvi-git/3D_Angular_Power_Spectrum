@@ -15,10 +15,10 @@ function setup_plot_theme(paper = nothing)
     end
     
     # margins
-    leftmargin   = 5Plots.mm
-    bottommargin = 5Plots.mm
-    rightmargin  = 5Plots.mm
-    topmargin    = 5Plots.mm
+    leftmargin   = 10Plots.mm
+    bottommargin = 10Plots.mm
+    rightmargin  = 10Plots.mm
+    topmargin    = 10Plots.mm
     
     # Font delle etichette
     titlefontsize  = 15
@@ -28,7 +28,7 @@ function setup_plot_theme(paper = nothing)
     
     # Colori e palette
     c      = :curl
-    colors = palette(:viridis)
+    colors = palette(:thermal)
     
     # Dizionario di stile riutilizzabile al volo nei plot: plot(...; shared_style...)
     shared_style = Dict{Symbol, Any}(

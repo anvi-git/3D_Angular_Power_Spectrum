@@ -46,12 +46,10 @@ Genera le griglie di Clenshaw-Curtis per k, kp e kpp utilizzando i limiti e i no
 Se `sorting=true`, le griglie vengono ordinate in modo crescente.
 """
 function generate_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false)
-    # Generazione iniziale delle griglie
     k_grid   = Blast.get_clencurt_grid(kmin, kmax, Nk)
     kp_grid  = Blast.get_clencurt_grid(kmin, kmax, Nkp)
     kpp_grid = Blast.get_clencurt_grid(kmin, kmax, Nkpp)
     
-    # Ordinamento condizionale
     if sorting
         k_grid   = sort(k_grid)
         kp_grid  = sort(kp_grid)
@@ -67,39 +65,41 @@ function generate_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false)
 end
 
 function W_tilde_computation(ℓ::Number, xmin::Number, xmax::Number, kmin::Number, kmax::Number,
-                             Nk::Int, Nkp::Int, n_cheb::Int, N::Number, k_grid::AbstractVector, kp_grid::AbstractVector, x::AbstractVector)
+                             Nk::Int, Nkp::Int, n_cheb::Int, N::Int, k_grid::AbstractVector, kp_grid::AbstractVector, x::AbstractVector)
 
     if xmin >= xmax
         throw(DomainError("The integration range is unphysical. Make sure xmin < xmax."))
     end
 
-    kp = kp_grid
-    # cambiare la griglia kp_grid con una griglia logaritmica?
     w  = get_clencurt_weights(xmin, xmax, N)
 
     T, Bessel1 = bessel_computation(ℓ, xmin, xmax, Nk, n_cheb, N, k_grid)
-#    T_tilde = zeros(eltype(w), Nk, Nkp, n_cheb + 1, 1)
     T_tilde = zeros(eltype(w), Nk, Nkp, n_cheb, 1)
     _, Bessel2 = bessel_computation(ℓ, xmin, xmax, Nkp, n_cheb, N, kp_grid)
 
-#    for ic in 1:(n_cheb + 1) 
-    for ic in 1:n_cheb 
-        @tturbo for ik in 1:Nk, ikp in 1:Nkp
-            Cij = zero(eltype(w))
-            for iN in 1:N
-                Cij += T[ic, iN] * Bessel1[ik, iN] * Bessel2[ikp, iN] * w[iN] * kp[ikp]
-            end
-        T_tilde[ik, ikp, ic, 1] = Cij
-        end
-    end
-    return T_tilde
+    # for ic in 1:n_cheb 
+    #     @tturbo for ik in 1:Nk, ikp in 1:Nkp
+    #         Cij = zero(eltype(w))
+    #         for iN in 1:N
+    #             Cij += T[ic, iN] * Bessel1[ik, iN] * Bessel2[ikp, iN] * w[iN] * kp_grid[ikp]
+    #         end
+    #     T_tilde[ik, ikp, ic, 1] = Cij
+    #     end
+    # end
 
+    # EVEN faster? check -> is approx up to 1e-9
+    for ic in 1:n_cheb
+    @views Tw = T[ic, :] .* w
+    Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel2'
+    @views @. T_tilde[:, :, ic, 1] = Dim_Integrated * kp_grid'
+    end
+
+    return T_tilde
 end
 
 function bessel_computation(ℓ::Number, xmin::Number, xmax::Number, 
                                  Nk::Int, n_cheb::Int, N::Integer, k_grid::AbstractVector)
     
-    k = k_grid
     x_grid = get_clencurt_grid(xmin, xmax, N)
     T = zeros(n_cheb, N)
     xx = @. (2 * x_grid - (xmax + xmin)) / (xmax - xmin)
@@ -114,7 +114,7 @@ function bessel_computation(ℓ::Number, xmin::Number, xmax::Number,
     Bessel = zeros(Nk, N)
 
     Threads.@threads for j in 1:Nk
-        kj = k[j]
+        kj = k_grid[j]
         for i in 1:N
            Bessel[j, i] = @views SpecialFunctions.sphericalbesselj.(ℓ, x_grid[i] * kj) 
         end

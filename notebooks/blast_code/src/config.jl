@@ -6,7 +6,7 @@ using DataInterpolations
 """
 function setup_cosmology_grid(;
     cosmo  = Blast.FlatΛCDM(),
-    N      = 2^5 + 1,
+    N      = 2^15 + 1,
     Nk     = 150,
     Nkp    = 150,
     Nkpp   = 150,
@@ -32,7 +32,7 @@ function setup_cosmology_grid(;
     
     # harmonic space and boundaries of the wavenumbers
     ℓ    = LinRange(2, 200, 100)
-    kmax = 200 / 13
+    kmax = 200 / 13 # 
     kmin = 2.5 / xmax
     
     return (

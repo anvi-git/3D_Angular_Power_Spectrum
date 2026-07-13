@@ -6,10 +6,10 @@ Base.@kwdef struct PlotTheme
     size_plot::Tuple{Int,Int} = (1200, 600)
     size_heatmap::Tuple{Int,Int} = (600, 600)
     dpi::Int = 300
-    leftmargin::typeof(1Plots.mm) = 5Plots.mm
-    bottommargin::typeof(1Plots.mm) = 5Plots.mm
-    rightmargin::typeof(1Plots.mm) = 5Plots.mm
-    topmargin::typeof(1Plots.mm) = 5Plots.mm
+    leftmargin::typeof(1Plots.mm) = 10Plots.mm
+    bottommargin::typeof(1Plots.mm) = 10Plots.mm
+    rightmargin::typeof(1Plots.mm) = 10Plots.mm
+    topmargin::typeof(1Plots.mm) = 10Plots.mm
     titlefontsize::Int = 15
     yguidefontsize::Int = 15
     xguidefontsize::Int = 15
