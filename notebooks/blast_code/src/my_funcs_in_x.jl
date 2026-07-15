@@ -87,7 +87,7 @@ function W_tilde_computation(ℓ::Number, xmin::Number, xmax::Number, kmin::Numb
     #     end
     # end
 
-    # EVEN faster? check -> is approx up to 1e-9
+    # EVEN faster? check -> is approx up to 1e-10
     for ic in 1:n_cheb
     @views Tw = T[ic, :] .* w
     Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel2'
