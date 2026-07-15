@@ -28,7 +28,7 @@ function setup_plot_theme(paper = nothing)
     
     # Colori e palette
     c      = :curl
-    colors = palette(:thermal)
+    colors = palette(:bamako)
     
     # Dizionario di stile riutilizzabile al volo nei plot: plot(...; shared_style...)
     shared_style = Dict{Symbol, Any}(
