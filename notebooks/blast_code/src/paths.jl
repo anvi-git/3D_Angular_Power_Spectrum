@@ -12,11 +12,13 @@ function setup_output_directories()
     quantity_subdir  = joinpath(output_dir, "quantities")
     chebcoefs        = joinpath(quantity_subdir, "chebcoefs")
     Sl               = joinpath(quantity_subdir, "Sl")
+    heatmaps         = joinpath(Sl_plots, "heatmaps")
     
     # create directories
     mkpath(chebcoefs)
     mkpath(Sl)
     mkpath(Sl_plots)
+    mkpath(heatmaps)
     mkpath(Kernel_plots)
     
     println("Folders in place: ", output_dir, ", ", plot_subdir, " and ", quantity_subdir)
@@ -29,7 +31,8 @@ function setup_output_directories()
         Kernel_plots    = Kernel_plots,
         quantity_subdir = quantity_subdir,
         chebcoefs       = chebcoefs,
-        Sl              = Sl
+        Sl              = Sl,
+        heatmaps        = heatmaps
     )
 end
 

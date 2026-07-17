@@ -208,11 +208,15 @@ function galaxy_prefactor_cheb(xmin::Number,
                                growth::AbstractVector, 
                                Hubble_param::AbstractVector, 
                                n_chi_norm::AbstractVector; 
-                               output_dir::AbstractString)
+                               output_dir::AbstractString, sorting ::Bool)
     Main.append_to_log(output_dir, "=== galaxy_prefactor_cheb ===")
     Main.append_to_log(output_dir, "The galaxy_prefactor_cheb function has been called.")
     Main.append_to_log(output_dir, "Computing Chebyshev nodes.")
-    chi_cheb_nodes = Blast.get_clencurt_grid(xmin, xmax, n_cheb)
+    if sorting
+        chi_cheb_nodes = reverse(Blast.get_clencurt_grid(xmin, xmax, n_cheb))
+    else 
+        chi_cheb_nodes = Blast.get_clencurt_grid(xmin, xmax, n_cheb)
+    end
     Main.append_to_log(output_dir, "size of the Chebyshev grid is $(length(chi_cheb_nodes)).")
     Main.append_to_log(output_dir, "The galaxy_prefactor function has been completed.")
     Main.append_to_log(output_dir, "Computing interpolated values.")
