@@ -1,139 +1,132 @@
 using Base.Threads
 using LinearAlgebra
 
+## BELOW: from BLAST
 """
-    get_clencurt_grid_z(zmin::Number, zmax::Number, N::Number) -> Vector{Float64}
-Construct a Clenshaw–Curtis grid in the redshift interval `[zmin, zmax]`.
-The nodes are first generated on the interval `[-1, 1]` using
-`FastTransforms.clenshawcurtisnodes`, then mapped to `[zmin, zmax]`.
-# Arguments
-- `zmin::Number`: lower bound of the redshift interval.
-- `zmax::Number`: upper bound of the redshift interval.
-- `N::Number`: number of Clenshaw–Curtis nodes to generate.
-# Returns
-- `Vector{Float64}`: the mapped redshift grid.
+    get_clencurt_grid(kmin::Number, kmax::Number, N::Number)
+Return the integration points in k. They are a set of 'N' Chebyshev points rescaled between 'kmin' and 'kmax'.
 """
-function get_clencurt_grid_z(zmin::Number, zmax::Number, N::Number)
-    z = FastTransforms.clenshawcurtisnodes(Float64, N)
-    z = (zmax - zmin) / 2 * z .+ (zmin + zmax) / 2
-
-    z[1] *= (1 - 1e-8)
-    z[end] *= (1 + 1e-8) # TODO: replace with a principled endpoint treatment.
-
-    return z
+function get_clencurt_grid(kmin::Number, kmax::Number, N::Number)
+    x = FastTransforms.clenshawcurtisnodes(Float64, N)
+    x = (kmax - kmin) / 2 * x .+ (kmin + kmax) / 2 
+    return x
 end
 
 """
-    get_clencurt_weights_z(zmin::Number, zmax::Number, N::Number) -> Vector{Float64}
-Construct Clenshaw–Curtis quadrature weights mapped to the redshift interval `[zmin, zmax]`.
-The weights are first computed on the canonical Clenshaw–Curtis grid using
-`FastTransforms.chebyshevmoments1` together with `FastTransforms.clenshawcurtisweights`, 
-then rescaled to the physical interval by the factor `(zmax - zmin) / 2`.
-# Arguments
-- `zmin::Number`: lower bound of the redshift interval.
-- `zmax::Number`: upper bound of the redshift interval.
-- `N::Number`: number of quadrature weights.
-# Returns
-- `Vector{Float64}`: quadrature weights on `[zmin, zmax]`.
+    get_clencurt_weights(kmin::Number, kmax::Number, N::Number)
+Return the set of 'N' weights needed to perform the integration with the Clenshaw-Curtis quadrature rule.
+The weights are rescaled between 'kmin' and 'kmax'.  
 """
-function get_clencurt_weights_z(zmin::Number, zmax::Number, N::Number)
+function get_clencurt_weights(Xmin::Number, Xmax::Number, N::Number)
     CC_obj = FastTransforms.chebyshevmoments1(Float64, N)
     w = FastTransforms.clenshawcurtisweights(CC_obj)
-    w = (zmax - zmin) / 2 * w
+    w = (Xmax - Xmin) / 2 * w
 
     return w
 end
+## ABOVE: from BLAST
 
-function W_tilde_computed(ℓ::Number, zmin::Number, zmax::Number, kmin::Number, kmax::Number,
-                             Nk::Int, Nkp::Int, n_cheb::Int, N::Number, chi_of_z::Any)
-
-    if zmin >= zmax
-        throw(DomainError("The integration range is unphysical. Make sure zmin < zmax."))
-    end
-
-    kp = get_clencurt_grid_z(kmin, kmax, Nkp)
-    w  = get_clencurt_weights_z(zmin, zmax, N)
-
-    T, Bessel1 = bessel_func(ℓ, zmin, zmax, kmin, kmax, Nk, n_cheb, N, chi_of_z)
-    T_tilde = zeros(eltype(w), Nk, Nkp, n_cheb + 1, 1)
-    _, Bessel2 = bessel_func(ℓ, zmin, zmax, kmin, kmax, Nkp, n_cheb, N, chi_of_z)
-
-    for ic in 1:(n_cheb + 1) 
-        @tturbo for ik in 1:Nk, ikp in 1:Nkp
-            Cij = zero(eltype(w))
-            for iN in 1:N
-                Cij += T[ic, iN] * Bessel1[ik, iN] * Bessel2[ikp, iN] * w[iN] * kp[ikp]
-            end
-        T_tilde[ik, ikp, ic, 1] = Cij
-        end
-    end
-    return T_tilde
-
+function get_clencurt_grid_log(kmin::Number, kmax::Number, N::Integer)
+    u_grid = Blast.get_clencurt_grid(log(kmin), log(kmax), N)  # CC nodes mapped onto [ln kmin, ln kmax]
+    return exp.(u_grid)                                        # k = e^u
 end
 
-function bessel_func(ℓ::Number, zmin::Number, zmax::Number, kmin::Number, kmax::Number, 
-                                 Nk::Int, n_cheb::Int, N::Integer, chi_of_z::Any)
-    
-    k = get_clencurt_grid_z(kmin, kmax, Nk)
-    z = get_clencurt_grid_z(zmin, zmax, N)
+function get_clencurt_weights_log(kmin::Number, kmax::Number, N::Integer)
+    k_grid = get_clencurt_grid_log(kmin, kmax, N)
+    w_u = Blast.get_clencurt_weights(log(kmin), log(kmax), N)  # CC weights for ∫ du
+    return w_u .* k_grid                                        # Jacobian dk = k du
+end
 
-    T = zeros(n_cheb + 1, N)
-    x = @. (2 * z - (zmax + zmin)) / (zmax - zmin)
-    T[1, :] .= 1.0
-    if n_cheb >= 1
-        T[2, :] .= x
-    end
-    for i in 3:(n_cheb + 1)
-        @. T[i, :] = 2 * x * T[i-1, :] - T[i-2, :]
+"""
+    generate_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting) -> NamedTuple
+
+Genera le griglie di Clenshaw-Curtis per k, kp e kpp utilizzando i limiti e i nodi forniti.
+Se `sorting=true`, le griglie vengono ordinate in modo crescente.
+"""
+function generate_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false)    
+    if sorting
+        k_grid   = reverse(Blast.get_clencurt_grid(kmin, kmax, Nk))
+        kp_grid  = reverse(Blast.get_clencurt_grid(kmin, kmax, Nkp))
+        kpp_grid = reverse(Blast.get_clencurt_grid(kmin, kmax, Nkpp))
+    else
+        k_grid   = Blast.get_clencurt_grid(kmin, kmax, Nk)
+        kp_grid  = Blast.get_clencurt_grid(kmin, kmax, Nkp)
+        kpp_grid = Blast.get_clencurt_grid(kmin, kmax, Nkpp)   
     end
     
+    return (
+        k_grid   = k_grid,
+        kp_grid  = kp_grid,
+        kpp_grid = kpp_grid,
+        sorting  = sorting
+    )
+end
+
+function W_tilde_computation(ℓ::Number, xmin::Number, xmax::Number, kmin::Number, kmax::Number,
+                             Nk::Int, Nkp::Int, n_cheb::Int, N::Int, k_grid::AbstractVector, kp_grid::AbstractVector, x::AbstractVector, sorting::Bool)
+
+    if xmin >= xmax
+        throw(DomainError("The integration range is unphysical. Make sure xmin < xmax."))
+    end
+
+    if sorting
+        w  = reverse(get_clencurt_weights(xmin, xmax, N))
+    else 
+        w  = get_clencurt_weights(xmin, xmax, N)
+    end
+
+    T, Bessel1 = bessel_computation(ℓ, xmin, xmax, Nk, n_cheb, N, k_grid, sorting)
+    T_tilde = zeros(eltype(w), Nk, Nkp, n_cheb, 1)
+    #_, Bessel2 = bessel_computation(ℓ, xmin, xmax, Nkp, n_cheb, N, kp_grid, sorting)
+
+    # for ic in 1:n_cheb 
+    #     @tturbo for ik in 1:Nk, ikp in 1:Nkp
+    #         Cij = zero(eltype(w))
+    #         for iN in 1:N
+    #             Cij += T[ic, iN] * Bessel1[ik, iN] * Bessel2[ikp, iN] * w[iN] * kp_grid[ikp]
+    #         end
+    #     T_tilde[ik, ikp, ic, 1] = Cij
+    #     end
+    # end
+
+    # EVEN faster? check -> is approx up to 1e-10
+    for ic in 1:n_cheb
+    @views Tw = T[ic, :] .* w
+    #Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel2'
+    Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel1'
+    @views @. T_tilde[:, :, ic, 1] = Dim_Integrated * kp_grid'
+    end
+
+    return T_tilde
+end
+
+function bessel_computation(ℓ::Number, xmin::Number, xmax::Number, 
+                                 Nk::Int, n_cheb::Int, N::Integer, k_grid::AbstractVector, sorting::Bool)
+                             
+    if sorting
+        x_grid = reverse(get_clencurt_grid(xmin, xmax, N))
+    else 
+        x_grid = get_clencurt_grid(xmin, xmax, N)
+    end
+    T = zeros(n_cheb, N)
+    xx = @. (2 * x_grid - (xmax + xmin)) / (xmax - xmin)
+    T[1, :] .= 1.0
+    if n_cheb >= 2 #1
+        T[2, :] .= xx
+    end
+    for i in 3:(n_cheb)
+        @. T[i, :] = 2 * xx * T[i-1, :] - T[i-2, :]
+    end
+
     Bessel = zeros(Nk, N)
-    chi_vals = chi_of_z.(z)
 
     Threads.@threads for j in 1:Nk
-        kj = k[j]
+        kj = k_grid[j]
         for i in 1:N
-#           Bessel[i,:] = @views SpecialFunctions.sphericalbesselj.(ℓ, χhi[i] * x)
-            Bessel[j, i] = @views SpecialFunctions.sphericalbesselj.(ℓ, chi_vals[i] * kj)
-            #@inbounds Bessel[j, i] = sphericalbesselj(ℓ, chi_vals[i] * kj)
+           Bessel[j, i] = @views SpecialFunctions.sphericalbesselj.(ℓ, x_grid[i] * kj) 
         end
     end
 
     return T, Bessel
 
 end
-
-
-# function compute_W̃(ℓ::Number, zmin::Real, zmax::Real, kmin::Real, kmax::Real, 
-#                          z_range::AbstractArray, n_cheb::Int, N::Int, chi_of_z::Any)
-#     if zmin >= zmax 
-#         throw(DomainError("The integration range is unphysical. Make sure zmin < zmax.")) 
-#     end
-
-#     Nk = length(z_range)
-#     chi = chi_of_z.(z_range)
-#     w = get_clencurt_weights_z(zmin, zmax, N)    
-#     T, Bessel1 = bessel_cheb_eval_beyond(ℓ, zmin, zmax, kmin, kmax, z_range, n_cheb, N, chi_of_z)
-    
-#     # if Bessel2 is different from Bessel1, then
-#     # Bessel2 = zeros(Nk, N)
-#     #_, Bessel2 = bessel_cheb_eval_beyond(ℓ, zmin, zmax, kmin, kmax, z_range, n_cheb, N, chi_of_z)
-#     #A = @. Bessel1 * Bessel2 * w'
-#     # Pre-computation of the weight matrix: (Nk x N)
-#     # Multiply every column of Bessel1.^2 for the corresponding weight w[k]
-#     # w' transforms the vector into a row matrix (1 x N) for correct broadcasting
-# #    A = @. Bessel1^2 * w' #this squares Bessel1 and multiplies it by the conjugate transpose of w
-#     A = @. Bessel1 * Bessel1 * w' #this squares Bessel1 and multiplies it by the conjugate transpose of w
-#     # A is (Nk x N), T' is (N x n_cheb+1) -> C will be (Nk x n_cheb+1)
-#     C = A * T'
-#     T_tilde = zeros(1, Nk, Nk, n_cheb+1)    
-#     for l in 1:n_cheb+1
-#         for p in 1:Nk
-#             for i in 1:Nk
-#                 @inbounds T_tilde[1, i, p, l] = C[i, l]
-#             end
-#         end
-#     end
-
-#     return T_tilde
-# end

@@ -32,44 +32,57 @@ function galaxy_prefactor(
     plot_style::AbstractDict = Dict()
 )
     # setting the output directory for plots
+    Main.append_to_log(output_dir, "=== galaxy prefactor function started ===")
+    Main.append_to_log(output_dir, "Processing galaxy prefactor...")
     println("Plots will be saved in: ", joinpath(output_dir, "plots/kernels/"))
     println("Quantities will be saved in: ", joinpath(output_dir, "quantities/"))
     # computing the plot comoving distance vs redsfhit
-    plot(z, x, label = L"z(\chi)", xlabel = L"z", 
-         ylabel = L"\chi [Mpc/h]", legend = :topleft; plot_style...
-         #size=(800,600), dpi = 200
-         )
+    Main.append_to_log(output_dir, "=== comoving distance vs redshift ===")
+    plot(z, x, label = L"z(\chi)", xlabel = L"z", ylabel = L"\chi [Mpc/h]", legend = :topleft; plot_style...)
     savefig(joinpath(output_dir, "plots/kernels/chi_vs_z.png"))
     println("Comoving distance vs redshift plot saved.")
+    Main.append_to_log(output_dir, "size of the comoving distance array x is $(length(x)).")
+    Main.append_to_log(output_dir, "Done. Moving on to the bias...")
     ######
     # BIAS 
+    Main.append_to_log(output_dir, "=== bias ===")
+    Main.append_to_log(output_dir, "Computing the bias...")
     # compute the bias. the equation is b(z) = b_0 * sqrt(1+z). we set b_0 = 1.0.!
     b_0 = 1.0
     # bz_array = b_0 .* sqrt.(1 .+ z); # bias as a function of redshift
     bz_array = @. 0.98 + 1.24 * z - 1.72 * z^2 + 1.28 * z^3    
     #plot
-    plot(z, bz_array, label = "bias", xlabel = L"z", 
-         ylabel = L"b(z)", legend = :topleft; plot_style...)
+    plot(z, bz_array, label = "bias", xlabel = L"z", ylabel = L"b(z)", legend = :topleft; plot_style...)
     savefig(joinpath(output_dir, "plots/kernels/bias.png"))
     println("Bias plot saved.")
+    Main.append_to_log(output_dir, "size of the bias array is $(length(bz_array)).")
+    Main.append_to_log(output_dir, "Done. Moving on to the growth factor...")
     ######
     # GROWTH FACTOR
+    Main.append_to_log(output_dir, "=== growth factor ===")
+    Main.append_to_log(output_dir, "Computing the growth factor...")
     D_growth_array = compute_growth_factor(cosmo, z)
     #plot
-    plot(z, D_growth_array, label = "growth array", xlabel = L"z", 
-         ylabel = L"D(z)", legend = :topleft; plot_style...)
+    plot(z, D_growth_array, label = "growth array", xlabel = L"z", ylabel = L"D(z)", legend = :topleft; plot_style...)
     savefig(joinpath(output_dir, "plots/kernels/growth.png"))
     println("Growth factor plot saved.")
+    Main.append_to_log(output_dir, "size of the growth factor array is $(length(D_growth_array)).")
+    Main.append_to_log(output_dir, "Done. Moving on to the Hubble factor...")
     ######
     # Hubble factor
+    Main.append_to_log(output_dir, "=== Hubble factor ===")
+    Main.append_to_log(output_dir, "Computing the Hubble factor...")
     Hubble_array = Blast.compute_hubble_factor.(z, Ref(cosmo)) ./ C_LIGHT
     #plot
-    plot(z, Hubble_array, label = "Hubble factor", xlabel = L"z", 
-    ylabel = L"H(z) [Mpc/h]/c", legend = :topleft; plot_style...)
+    plot(z, Hubble_array, label = "Hubble factor", xlabel = L"z", ylabel = L"H(z) [Mpc/h]/c", legend = :topleft; plot_style...)
     savefig(joinpath(output_dir, "plots/kernels/hubble.png"))
     println("Hubble factor plot saved.")
+    Main.append_to_log(output_dir, "size of the Hubble factor array is $(length(Hubble_array)).")
+    Main.append_to_log(output_dir, "Done. Moving on to the number density...")
     ######
     #n(z)  
+    Main.append_to_log(output_dir, "=== number density ===")
+    Main.append_to_log(output_dir, "Computing the number density...")
     z_0 = 0.9/sqrt(2)
     A = 1.5/z_0
     alpha = 2
@@ -93,6 +106,7 @@ function galaxy_prefactor(
          ylabel=L"n(z)", legend = :topleft; plot_style...)
     savefig(joinpath(output_dir, "plots/kernels/nz.png"))
     println("n(z) vs redshift plot saved.")
+    Main.append_to_log(output_dir, "Both non normalized...")
     plot(z, n_chi_norm, label=L"n(z) normalized", xlabel=L"z", 
           ylabel=L"n(z) normalized", legend = :topleft; plot_style...)
     savefig(joinpath(output_dir, "plots/kernels/nz_normalized.png"))
@@ -104,8 +118,14 @@ function galaxy_prefactor(
     plot!(legend = :topleft; plot_style...)
     savefig(joinpath(output_dir, "plots/kernels/nz_both.png"))
     println("n(z) vs redshift plot saved.")
+    Main.append_to_log(output_dir, "and normalized...")
+    Main.append_to_log(output_dir, "size of the number density array is $(length(nz)).")
+    Main.append_to_log(output_dir, "size of the normalized number density array is $(length(n_chi_norm)).")
+    Main.append_to_log(output_dir, "Done. Moving on to the complete prefactor W(χ)...")
     ######
     # W(z)
+    Main.append_to_log(output_dir, "=== W(χ) ===")
+    Main.append_to_log(output_dir, "Computing W(χ)...")
     prefac = x.^2 .* bz_array .* D_growth_array .* n_chi_norm .* Hubble_array
     #plot
     plot(z, 
@@ -161,7 +181,8 @@ function galaxy_prefactor(
                 legend=:bottomright; plot_style...)
     savefig(joinpath(output_dir, "plots/kernels/normalized_kernel_galaxy.png"))
     println("Normalized kernel plot saved.")
-
+    Main.append_to_log(output_dir, "Done.")
+    Main.append_to_log(output_dir, "size of the complete prefactor array is $(length(prefac)).")
     plot(z, 
         prefac, 
         label=L"\frac{n(z) b(z) D(z) \chi(z)^2 H(z)}{c}", 
@@ -174,6 +195,7 @@ function galaxy_prefactor(
 
     npzwrite(joinpath(output_dir, "quantities/prefac_galaxy.npy"), prefac)
     println("W(z) prefactor saved: ", joinpath(output_dir, "quantities/prefac_galaxy.npy"))
+    Main.append_to_log(output_dir, "The galaxy_prefactor function has been completed.")
     return prefac, bz_array, D_growth_array, Hubble_array, n_chi_norm
 end
 
@@ -186,36 +208,54 @@ function galaxy_prefactor_cheb(xmin::Number,
                                growth::AbstractVector, 
                                Hubble_param::AbstractVector, 
                                n_chi_norm::AbstractVector; 
-                               output_dir::AbstractString)
-
-    chi_cheb_nodes = Blast.get_clencurt_grid(xmin, xmax, n_cheb)
-
+                               output_dir::AbstractString, sorting ::Bool)
+    Main.append_to_log(output_dir, "=== galaxy_prefactor_cheb ===")
+    Main.append_to_log(output_dir, "The galaxy_prefactor_cheb function has been called.")
+    Main.append_to_log(output_dir, "Computing Chebyshev nodes.")
+    if sorting
+        chi_cheb_nodes = reverse(Blast.get_clencurt_grid(xmin, xmax, n_cheb))
+    else 
+        chi_cheb_nodes = Blast.get_clencurt_grid(xmin, xmax, n_cheb)
+    end
+    Main.append_to_log(output_dir, "size of the Chebyshev grid is $(length(chi_cheb_nodes)).")
+    Main.append_to_log(output_dir, "The galaxy_prefactor function has been completed.")
+    Main.append_to_log(output_dir, "Computing interpolated values.")
     z_interp = DataInterpolations.AkimaInterpolation(z, x, extrapolation=ExtrapolationType.Linear)
     z_cheb_nodes = z_interp.(chi_cheb_nodes) 
-
+    Main.append_to_log(output_dir, "size of the interpolated redshift array is $(length(z_cheb_nodes)).")
+    Main.append_to_log(output_dir, "redshift computed.")
     b_interp = DataInterpolations.AkimaInterpolation(bias, x, extrapolation=ExtrapolationType.Linear)
     b_cheb = b_interp.(chi_cheb_nodes)
-
+    Main.append_to_log(output_dir, "size of the interpolated bias array is $(length(b_cheb)).")
+    Main.append_to_log(output_dir, "bias computed.")
     D_interp = DataInterpolations.AkimaInterpolation(growth, x, extrapolation=ExtrapolationType.Linear)
     D_cheb = D_interp.(chi_cheb_nodes)
-
+    Main.append_to_log(output_dir, "size of the interpolated growth factor array is $(length(D_cheb)).")
+    Main.append_to_log(output_dir, "growth computed.")
     nz_interps = DataInterpolations.AkimaInterpolation(n_chi_norm, x, extrapolation=ExtrapolationType.Linear)
     nz_cheb = nz_interps.(chi_cheb_nodes)
-
+    Main.append_to_log(output_dir, "size of the interpolated normalization array is $(length(nz_cheb)).")
+    Main.append_to_log(output_dir, "normalization computed.")
     H_interp = DataInterpolations.AkimaInterpolation(Hubble_param, x, extrapolation=ExtrapolationType.Linear)
     Hubble_cheb = H_interp.(chi_cheb_nodes)
-
+    Main.append_to_log(output_dir, "size of the interpolated Hubble factor array is $(length(Hubble_cheb)).")
+    Main.append_to_log(output_dir, "Hubble factor computed.")
     W_vals = zeros(length(chi_cheb_nodes))
     W_vals = chi_cheb_nodes.^2 .* b_cheb .* D_cheb .* nz_cheb .* Hubble_cheb
+    Main.append_to_log(output_dir, "size of the interpolated prefactor array is $(length(W_vals)).")
+    Main.append_to_log(output_dir, "Prefactor computed.")
 
     npzwrite(joinpath(output_dir, "quantities/prefac_on_cheb_galaxy.npy"), W_vals)
     println("W(z) prefactor on Chebyshev grid saved: ", joinpath(output_dir, "quantities/prefac_on_cheb_galaxy.npy"))
+    Main.append_to_log(output_dir, "The galaxy_prefactor_cheb function has been completed.")
     return W_vals
 end
 
 function compute_prefactor_chebcoeffs(W_vals::AbstractVector; output_dir::AbstractString)
     plan = Blast.plan_fft(W_vals)
+    Main.append_to_log(output_dir, "size of the plan wave is $(length(plan)).")
     cheb_coeff = Blast.fast_chebcoefs(W_vals, plan)
+    Main.append_to_log(output_dir, "size of the Chebyshev coefficients is $(length(cheb_coeff)).")
     npzwrite(joinpath(output_dir, "quantities/W_cheb_coeff_galaxy.npy"), cheb_coeff)
     println("W(z) Chebyshev coefficients saved: ", joinpath(output_dir, "quantities/W_cheb_coeff_galaxy.npy"))
 
