@@ -1,0 +1,823 @@
+using Base.Threads
+println("Threads available: ", Threads.nthreads())
+
+ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0;
+using Pkg
+Pkg.activate("blast_code"; io=devnull)
+Pkg.resolve(; io=devnull)
+Pkg.instantiate(; io=devnull)
+
+using Revise 
+using HDF5, NPZ, DataInterpolations, Interpolations, FastChebInterp
+using BenchmarkTools, FFTW, FastTransforms, Dates, TOML, Plots, Plots.Measures
+using QuadGK, LaTeXStrings, Tullio, StaticArrays, LoopVectorization, LinearAlgebra
+using Unitful, SpecialFunctions, DifferentialEquations, Cosmology, NumericalIntegration
+using CSV, DataFrames, JSON, OrderedCollections
+using ProgressMeter
+ProgressMeter.ijulia_behavior(:clear)
+;
+
+include("blast_code/src/Blast.jl")
+include("blast_code/src/blast_tutorials.jl")
+include("blast_code/src/galaxy_galaxy.jl")
+include("blast_code/src/shear_shear.jl")
+include("blast_code/src/config.jl")
+include("blast_code/src/paths.jl")
+include("blast_code/src/plot_config.jl")
+using .galaxy_galaxy
+using .shear_shear
+using .Blast
+using .blast_tutorials
+
+#sets the paths for the output directories 
+paths = setup_output_directories()
+append_to_log(paths.output_dir, "=== Run started ===")
+#sets up the cosmology grid and returns the parameters
+grid_data = setup_cosmology_grid() 
+#sets up the plotting theme and returns the parameters
+plot_theme = setup_plot_theme() 
+#returns the k grids for the calculations
+grids = Blast.generate_k_grids(grid_data.kmin, grid_data.kmax, grid_data.Nk, grid_data.Nkp, grid_data.Nkpp; sorting=false) 
+#saves the run parameters in a txt file
+params_run = save_run_config(
+    paths.output_dir, grid_data.N, 
+    grid_data.xmin, grid_data.xmax, grid_data.zmin, grid_data.zmax, grid_data.kmin, grid_data.kmax, 
+    grid_data.n_cheb, grid_data.ℓ, grid_data.Nk, grid_data.Nkp, grid_data.Nkpp,
+    grid_data.x, grid_data.z, 
+    grids.k_grid, grids.kp_grid, grids.kpp_grid, grids.sorting)
+;
+
+default(
+    fontfamily = "Computer Modern",
+    titlefontfamily = "Computer Modern",
+    legendfontfamily = "Computer Modern"
+)
+
+println(grids.k_grid[97])
+
+#run parameters
+reuse = true #if set to true, the code will load the W_tilde. 
+mode = "fast"
+# fast -> # Nk = Nkp = Nkpp = 150
+# big ->  # Nk = Nkp = Nkpp = 350
+
+println("k_grid: ", grids.k_grid[1], " ", grids.k_grid[end])
+println("kmin: ", grid_data.kmin, " ", "kmax: ", grid_data.kmax)
+
+W_x, bias, growth, Hubble_param, nz_norm = galaxy_galaxy.galaxy_prefactor(grid_data.x, grid_data.z, grid_data.cosmo; 
+                                                     output_dir=paths.output_dir, plot_style = plot_theme.shared_style);
+W_cheb = galaxy_galaxy.galaxy_prefactor_cheb(grid_data.xmin, grid_data.xmax, grid_data.n_cheb, grid_data.z, grid_data.x, 
+                                                         bias, growth, Hubble_param, nz_norm; 
+                                                         output_dir=paths.output_dir, sorting=grids.sorting);
+
+npzwrite(joinpath(paths.output_dir, "W_x.npy"), W_x)
+append_to_log(paths.output_dir, "W_x.npy saved.")
+append_to_log(paths.output_dir, "the size of W_x is $(size(W_x)).")
+
+println("Kernel on normal nodes at the end of the array: ")
+println(W_x[end])
+println("Kernel on Chebyshev nodes at the start of the array: ")
+println(W_cheb[1])
+println("Kernel on normal nodes at the start of the array: ")
+println(W_x[1])
+println("Kernel on Chebyshev nodes at the end of the array: ")
+println(W_cheb[end])
+
+# questo diventa superfluo.
+W_cheb_ord = reverse!(W_cheb); #this is the same as doing W_cheb_ord = W_cheb[end:-1:1];
+c_cheb = galaxy_galaxy.compute_prefactor_chebcoeffs(W_cheb_ord; output_dir=paths.output_dir);
+
+println("Kernel on normal nodes at the end of the array: ")
+println(W_x[end])
+println("Kernel on Chebyshev nodes at the start of the array: ")
+println(W_cheb[end])
+println("Kernel on Chebyshev nodes at the start of the array, now reversed: ")
+println(W_cheb_ord[end])
+
+#println(size(x_cheb_plot))
+println(size(W_cheb_ord))
+println(size(W_cheb))
+println(size(W_x))
+println(size(grid_data.x))
+
+if grids.sorting
+  x_cheb_plot = Blast.get_clencurt_grid(grid_data.xmin, grid_data.xmax, grid_data.n_cheb)
+else
+  x_cheb_plot = Blast.get_clencurt_grid(grid_data.xmax, grid_data.xmin, grid_data.n_cheb)
+end
+z_interp = DataInterpolations.AkimaInterpolation(grid_data.z, grid_data.x, extrapolation=ExtrapolationType.Linear)
+z_cheb_plot = z_interp.(x_cheb_plot)
+plot(x_cheb_plot, W_cheb_ord, label = L"\sum_{n=0}^{N_{cheb}-1} c_n T_n(\chi)", ls=:dash, markersize=0.1, markercolor =:blue)
+plot!(x_cheb_plot, W_cheb, label = L"W(\chi) \; \mathrm{on} \; \mathrm{Chebyshev} \; \mathrm{nodes}", lw=1, ls=:dot; markercolor =:red, plot_theme.shared_style...)
+plot!(grid_data.x, W_x, label = L"W(\chi)", lw=1, ls=:dot; markercolor = :green, plot_theme.shared_style...)
+
+#galW_computed_on_cheb, _, _, _, _ = galaxy_galaxy.galaxy_prefactor(x_cheb_plot, z_cheb_plot, grid_data.cosmo; output_dir=paths.output_dir);
+W_x_on_cheb , _, _, _, _ = galaxy_galaxy.galaxy_prefactor(sort(x_cheb_plot), sort(z_cheb_plot), grid_data.cosmo; output_dir=paths.output_dir);
+
+plot(x_cheb_plot, W_cheb, label = L"\sum_{n=0}^{N_{cheb}-1} c_n T_n(\chi)", ls=:dash, markersize=0.1, markercolor =:blue)
+plot!(sort(x_cheb_plot), W_x_on_cheb, label = L"W(\chi) \; \mathrm{on} \; \mathrm{Chebyshev} \; \mathrm{nodes}", lw=1, ls=:dot)
+plot!(x_cheb_plot, W_cheb_ord, label = L"W(\chi) \; \mathrm{on} \; \mathrm{Chebyshev} \; \mathrm{nodes} \; \mathrm{ordered}", lw=1, ls=:dot)
+plot!(xlabel = L"\chi [Mpc/h]", ylabel = L"W(\chi) [\mathrm{Mpc}/h]", size = plot_theme.size_Cl,
+        title = "Chebyshev approximation of the galaxy prefactor W", titlefontsize = 5, legendposition = :outertopright, legendfontsize = 10; plot_theme.shared_style...)
+
+if grids.sorting
+  W_x_on_cheb = W_x_on_cheb[end:-1:1]; #this is the same as doing W_cheb_ord = W_cheb[end:-1:1];
+end
+rel_err = (W_cheb ./ W_x_on_cheb .- 1)
+rel_err_abs = abs.(rel_err)
+rel_err_pct = 100 .* rel_err
+rel_err_pct_abs = 100 .* rel_err_abs
+;
+
+plot(
+    x_cheb_plot, 
+    rel_err_pct,
+    label = L"\frac{W_{\mathrm{Cheb}} - W_{\mathrm{true}}}{W_{\mathrm{true}}}\,[\%]",
+    lw = 1.5,
+    marker = :circle,
+    markersize = 2,
+    legendposition = :topright,
+    xlabel = L"\chi\,[\mathrm{Mpc}/h]",
+    ylabel = L"\mathrm{errore\ relativo}\,[\%]",
+    title = "Relative error of Chebyshev approximation", size=plot_theme.size_Cl; plot_theme.shared_style...
+    )
+
+hline!([0.0], ls = :dash, lw = 1, color = :black, label = false)
+
+
+p1 = plot(
+    x_cheb_plot, W_x_on_cheb,
+    label = L"\sum_{n=0}^{N_{\mathrm{cheb}}-1} c_n T_n(\chi)",
+    ls = :dash, color = :green)
+plot!(p1, x_cheb_plot, W_cheb, label = L"W(\chi)", lw = 1, ls = :dot, color = :red)
+plot!(p1, dpi = 300, legendposition = :topleft, xlabel = L"\chi [Mpc/h]", ylabel = L"W(\chi) [\mathrm{Mpc}/h]", 
+        size = plot_theme.size_Cl; plot_theme.shared_style...
+        )
+    
+p2 = plot(
+    x_cheb_plot, rel_err_pct,
+    label = L"\frac{W_{\mathrm{Cheb}} - W_{\mathrm{true}}}{W_{\mathrm{true}}} [\%]",
+    lw = 1.0, marker = :circle, markercolor = :black, markersize = 1, linestyle = :dot, 
+    title = "relative error [%]", titlefontsize = 10
+)
+hline!(p2, [0.0], ls = :solid, lw = 1, color = :red, label = false)
+
+plot(p1, p2, layout = @layout([a; b]), dpi = 300,
+     xlabel = L"\chi\,[\mathrm{Mpc}/h]",
+    size = plot_theme.size_Cl; plot_theme.shared_style...)
+
+savefig(joinpath(paths.plot_subdir, "kernels/Wx_cheb_comparison_with_rel_error.png"))
+
+println("size of c_cheb: ", size(c_cheb))
+npzwrite(joinpath(paths.quantity_subdir, "chebcoefs/c_cheb.npy"), c_cheb)
+
+n_idx = 0:(grid_data.n_cheb - 1)
+plot(n_idx, abs.(c_cheb),
+     yscale = :log10,
+     xlabel = L"{grid_data.n_cheb}",
+     ylabel = L"|c_{grid_data.n_cheb}|",
+     label = L"|c_{grid_data.n_cheb}| \ \mathrm{di} \ W(\chi)",
+     title = "Chebyshev coefficients decay",
+     marker = :circle, markersize = 3; plot_theme.shared_style...
+     )
+savefig(joinpath(paths.plot_subdir, "kernels", "chebcoeff_decay_galaxy.png"))
+
+function cheb_eval_partial(coeffs, x, xmin, xmax, ntrunc)
+    t = @. (2*x - (xmax + xmin)) / (xmax - xmin)
+    T0 = ones(length(x))
+    if ntrunc == 0
+        return coeffs[1] .* T0
+    end
+    T1 = t
+    S = coeffs[1] .* T0 .+ coeffs[2] .* T1
+    for n in 2:ntrunc
+        T2 = @. 2*t*T1 - T0
+        S .+= coeffs[n+1] .* T2
+        T0, T1 = T1, T2
+    end
+    return S
+end
+
+#chi_cheb_nodes = reverse(Blast.get_clencurt_grid(grid_data.xmin, grid_data.xmax, grid_data.n_cheb))
+chi_cheb_nodes = Blast.get_clencurt_grid(grid_data.xmin, grid_data.xmax, grid_data.n_cheb)
+x_ref = chi_cheb_nodes
+Wref = W_cheb
+
+truncs = 1:1:length(c_cheb)-1
+#truncs = [5, 10, 20, 40, 80, 120, 160, length(c_cheb)-1]
+errs = Float64[]
+Wn = zeros(length(x_ref))
+for ntrunc in truncs
+    Wn = cheb_eval_partial(c_cheb, x_ref, grid_data.xmin, grid_data.xmax, ntrunc)
+    err = maximum(abs.(Wn .- Wref)) / maximum(abs.(Wref))
+    push!(errs, err)
+end
+
+truncs_plot = truncs[1:end]
+errs_plot = errs[1:end]
+yticks_vals = 10.0 .^ (floor(log10(minimum(errs_plot))):ceil(log10(maximum(errs_plot))))
+
+plot(truncs_plot, errs_plot,
+     yscale = :log10,
+     marker = :circle,
+     xlabel = L"N_{trunc}",
+     ylabel = L"\mathrm{err}(N_{trunc}) = \frac{\max_i |W_{N_{trunc}} - W(\chi_i)|}{\max_i |W(\chi_i)|}",
+     title  = L"\mathrm{err}(N_{trunc}) = \frac{\max_i |W_{N_{trunc}} - W(\chi_i)|}{\max_i |W(\chi_i)|}",
+     legend = false,
+     framestyle = :box,
+     yticks = yticks_vals, size=plot_theme.size_Cl; plot_theme.shared_style...
+     )
+savefig(joinpath(paths.plot_subdir, "kernels", "chebcoeff_truncation_error_galaxy.png"))
+
+# # N = 2^15+1, Nk = Nkp = Nkpp = 150, N_cheb = 200, length(ℓ) = 100
+# mode are "fast", "slow", and "big"
+W_tilde = zeros(grid_data.Nk, grid_data.Nkp, grid_data.n_cheb, length(grid_data.ℓ))
+if reuse
+  if mode == "fast"
+    W_tilde = npzread("/Users/anvi/Desktop/cosmo/notebooks/out/W_tilde.npy")
+    #W_tilde = h5read("/Users/anvi/Desktop/cosmo/notebooks/out/W_tilde.h5", "W_tilde")
+  elseif mode == "slow"
+    W_tilde = npzread("/Users/anvi/Desktop/cosmo/notebooks/out/W_tilde_slow.npy")
+    #W_tilde = h5read("/Users/anvi/Desktop/cosmo/notebooks/out/W_tilde_fast.h5", "W_tilde")
+  elseif mode == "big"
+    W_tilde = npzread("/Users/anvi/Desktop/cosmo/notebooks/out/W_tilde_350.npy")
+    #W_tilde = h5read("/Users/anvi/Desktop/cosmo/notebooks/out/W_tilde_fast.h5", "W_tilde")
+  end
+else
+  elapsed_time = zeros(length(grid_data.ℓ))
+  println("Dimensions of W_tilde: ", size(W_tilde))
+  for i in eachindex(grid_data.ℓ)
+      t_0 = time()
+      W_tilde[:, :, :, i] .= Blast.W_tilde_computation(grid_data.ℓ[i], grid_data.zmin, grid_data.zmax, grid_data.kmin, grid_data.kmax,
+      grid_data.Nk, grid_data.Nkp, grid_data.n_cheb, grid_data.N, grids.k_grid, grids.kp_grid, grids.kpp_grid, grids.sorting)
+      t_end = time()
+      elapsed_time[i] = t_end - t_0
+      println("Finished computing W_tilde for ℓ = $(grid_data.ℓ[i]). Time elapsed $(round(elapsed_time[i], digits=2))s")
+  npzwrite(joinpath(paths.quantity_subdir, "elapsed_time.npy"), elapsed_time)  
+  #histogram(grid_data.ℓ, elapsed_time, bins=30, xlabel = L"\ell", ylabel = "Elapsed time [s]", title = "Elapsed time for W_tilde computation", size=plot_theme.size_plot; plot_theme.shared_style...)  
+  end
+end
+;
+# p = Progress(length(grid_data.ℓ); desc = "Computing W_tilde")
+# elapsed_time = zeros(length(grid_data.ℓ))
+# nℓ = length(grid_data.ℓ)
+# dims = (grid_data.Nk, grid_data.Nkp, grid_data.n_cheb, nℓ)
+
+# h5open(joinpath(paths.output_dir, "W_tilde.h5"), "w") do file
+#     dset = create_dataset(file, "W_tilde", Float64, dims; chunk = (grid_data.Nk, grid_data.Nkp, grid_data.n_cheb, 1),compress = 8)
+#     println("Dimensions of W_tilde on disk: ", dims)
+#     for (i, ell) in enumerate(grid_data.ℓ)
+#         t_0 = time()
+
+#         tmp = Blast.W_tilde_computation(
+#             ell,
+#             grid_data.zmin,
+#             grid_data.zmax,
+#             grid_data.kmin,
+#             grid_data.kmax,
+#             grid_data.Nk,
+#             grid_data.Nkp,
+#             grid_data.n_cheb,
+#             grid_data.N,
+#             grids.k_grid,
+#             grids.kp_grid,
+#             grids.kpp_grid,
+#             grids.sorting
+#         )
+
+#         dset[:, :, :, i] = tmp
+#         tmp = nothing
+#         GC.gc()
+
+#         t_end = time()
+#         elapsed_time[i] = t_end - t_0
+
+#         next!(p; showvalues = [(:ℓ, grid_data.ℓ[i]), (:dt, round(elapsed_time[i], digits=2))])    
+#     end
+
+#     write(file, "elapsed_time", elapsed_time)
+# end
+
+#W_tilde = h5read(joinpath(paths.output_dir, "W_tilde.h5"), "W_tilde")
+if reuse == false
+  npzwrite(joinpath(paths.quantity_subdir, "W_tilde.npy"), W_tilde)
+end
+
+println("Size of W_tilde: ", size(W_tilde))
+#Size of W_tilde: (Nk, Nkp, Ncheb, Nl)
+
+# #this is analog to computing 
+# #W_tilde_flipped = W_tilde[end:-1:1, end:-1:1, :, :]
+# #what this does is to flip the first two dimensions of W_tilde, which are the k and kp dimensions. 
+# #This is necessary because the Bessel functions used in the computation of W_tilde 
+# #are defined on a grid that goes from kmin to kmax, 
+# # but the output of the computation is stored in a grid that goes from kmax to kmin. 
+# # Therefore, we need to flip the first two dimensions of W_tilde to match the original grid.
+#W_tilde .= W_tilde[end:-1:1, end:-1:1, :, :]
+#;
+
+@tullio W_final_gal[il, ik, ikp] := W_tilde[ik, ikp, ic, il] * c_cheb[ic]
+# W_final_gal = zeros(nℓ, grid_data.Nk, grid_data.Nkp)
+# h5open(joinpath(paths.output_dir, "W_tilde.h5"), "r") do file
+#     Wdset = file["W_tilde"]
+
+#     nℓ = size(Wdset, 4)
+#     Nk = size(Wdset, 1)
+#     Nkp = size(Wdset, 2)
+
+#     p = Progress(nℓ; desc = "Computing W_final_gal")
+
+#     for il in 1:nℓ
+#         Wslice = Wdset[:, :, :, il]
+#         @tullio W_final_gal[il, ik, ikp] = Wslice[ik, ikp, ic] * c_cheb[ic]
+#         next!(p; showvalues = [(:il, il)])
+#     end
+# end
+
+;
+
+println("Size of W_final_gal: ", size(W_final_gal))
+# [ell, k_grid, kp_grid]
+
+println(grids.k_grid[1])
+println(grids.k_grid[end])
+idx = sortperm(grids.k_grid) #idx = 150, 149, ..., 1
+idx_p = sortperm(grids.kp_grid) #idx_p = 150, 149, ..., 1
+println(idx)
+println(idx_p)
+println(grids.k_grid[1])
+println(grids.k_grid[end])
+;
+
+# genera tick automatici alle potenze di 10 nel range dei dati
+xticks_vals = 10.0 .^ (floor(log10(minimum(grids.k_grid))):ceil(log10(maximum(grids.k_grid))))
+yticks_vals = 10.0 .^ (floor(log10(minimum(grids.kp_grid))):ceil(log10(maximum(grids.kp_grid))))
+il = 1
+if grids.sorting
+        heatmap(grids.k_grid, grids.kp_grid,
+                W_final_gal[il,:,:]/maximum(W_final_gal[il,:,:]),
+                title=L"W_{final}^{gg}"*"(at fixed "*L"ℓ)",
+                xscale = :log10, 
+                yscale = :log10,
+                xlabel=L"log_{10}(k) \; [\mathrm{h/Mpc}]", ylabel=L"log_{10}(k_p) \; [\mathrm{h/Mpc}]",
+                size = plot_theme.size_heatmap,
+                c = plot_theme.c, 
+                xticks = xticks_vals, 
+                yticks = yticks_vals; 
+                plot_theme.shared_style...
+                )
+else
+        #heatmap(grids.k_grid[idx], grids.kp_grid[idx_p],
+        heatmap(sort(grids.k_grid), sort(grids.kp_grid),
+                W_final_gal[il,:,:]/maximum(W_final_gal[il,:,:]),
+                title=L"W_{final}^{gg}"*"(at fixed "*L"ℓ)",
+                xscale = :log10, 
+                yscale = :log10,
+                xlabel=L"k", ylabel=L"k_p",
+                size = plot_theme.size_heatmap,
+                c = plot_theme.c, 
+                xticks = xticks_vals, 
+                yticks = yticks_vals; 
+                plot_theme.shared_style...
+                )
+end
+
+savefig(joinpath(paths.plot_subdir, "Sl_plots/heatmaps/heatmap_k_k1_log.png"))
+
+il = 1
+if grids.sorting
+        heatmap(grids.k_grid, grids.kp_grid,
+                W_final_gal[il,:,:]/maximum(W_final_gal[il,:,:]),
+                title=L"W_{final}^{gg}"*"(at fixed "*L"ℓ)",
+                xlabel=L"k", ylabel=L"k_p",
+                size = plot_theme.size_heatmap,
+                c = plot_theme.c; 
+                plot_theme.shared_style...
+                )
+else
+#        heatmap(grids.k_grid[idx], grids.kp_grid[idx_p],
+         heatmap(sort(grids.k_grid), sort(grids.kp_grid),
+                W_final_gal[il,:,:]/maximum(W_final_gal[il,:,:]),
+                title=L"W_{final}^{gg}"*"(at fixed "*L"ℓ)",
+                xlabel=L"k", ylabel=L"k_p",
+                size = plot_theme.size_heatmap,
+                c = plot_theme.c; 
+                plot_theme.shared_style...
+                )
+end
+
+savefig(joinpath(paths.plot_subdir, "Sl_plots/heatmaps/heatmap_k_k1.png"))
+
+println(size(W_tilde))
+
+println(1:grid_data.Nk)
+
+il = 1
+if grids.sorting
+    heatmap(1:grid_data.Nk, 1:grid_data.Nkp, W_final_gal[il,:,:]/maximum(W_final_gal[il,:,:]), 
+        title = L"W_{final}^{gg}"*"(at fixed "*L"ℓ)", 
+        xlabel = L"N_k", ylabel = L"N_{kp}", 
+        colorbar = true, c = plot_theme.c, size = plot_theme.size_heatmap; plot_theme.shared_style...
+        )
+else
+    heatmap(1:grid_data.Nk, 1:grid_data.Nkp, W_final_gal[il,:,:]/maximum(W_final_gal[il,:,:]), 
+        title = L"W_{final}^{gg}"*"(at fixed "*L"ℓ)", 
+        xlabel = L"N_k", ylabel = L"N_{kp}", 
+        colorbar = true, c = plot_theme.c, size = plot_theme.size_heatmap; plot_theme.shared_style...
+        )
+end
+
+savefig(joinpath(paths.plot_subdir, "Sl_plots/heatmaps/heatmap_Nk_Nkp.png"))
+
+yticks_vals = 10.0 .^ (floor(log10(minimum(grids.k_grid))):ceil(log10(maximum(grids.k_grid))))
+il = 1
+if grids.sorting
+        heatmap(1:grid_data.Nk, 
+                grids.kp_grid, 
+                W_final_gal[il, :, :] / maximum(W_final_gal[il, :, :]), 
+                title = L"W_{final}^{gg}"*L"("*"at fixed "*L"ℓ = 90)", 
+                xlabel = L"N_k", ylabel = L"\log_{10}(k_{grid})",
+                y_ticks = yticks_vals,
+                #yscale = :log10, 
+                #xscale = :log10,
+                colorbar = true, c = plot_theme.c, size = plot_theme.size_heatmap; plot_theme.shared_style...
+                )
+else
+        heatmap(1:grid_data.Nk, 
+                sort(grids.kp_grid), 
+                W_final_gal[il, :, :] / maximum(W_final_gal[il, :, :]), 
+                title = L"W_{final}^{gg}"*L"("*"at fixed "*L"ℓ = 90)", 
+                xlabel = L"N_k", ylabel = L"\log_{10}(k_{grid})",
+                y_ticks = yticks_vals,
+                yscale = :log10, 
+                #xscale = :log10,
+                colorbar = true, c = plot_theme.c, size = plot_theme.size_heatmap; plot_theme.shared_style...
+                )
+end
+
+savefig(joinpath(paths.plot_subdir, "Sl_plots/heatmaps/heatmap_Nk_kp.png"))
+
+#3D matter power spectrum
+pk_dict = npzread("blast_code/data/pk.npz")
+Pklin = pk_dict["pk_lin"]
+Pknonlin = pk_dict["pk_nl"]
+k_pk = pk_dict["k"]
+z_pk = pk_dict["z"]
+#Interpolating the power spectrum: Linear P(k) - Non-linear P(k)
+y_pk = LinRange(log10(first(k_pk)),log10(last(k_pk)), length(k_pk))
+x_pk = LinRange(first(z_pk), last(z_pk), length(z_pk))
+InterpPmm = Interpolations.interpolate(log10.(Pklin),BSpline(Cubic(Line(OnGrid()))))
+InterpPmm = scale(InterpPmm, (x_pk, y_pk))
+InterpPmm = Interpolations.extrapolate(InterpPmm, Line())
+InterpPmm_nl = Interpolations.interpolate(log10.(Pknonlin),BSpline(Cubic(Line(OnGrid()))))
+InterpPmm_nl = scale(InterpPmm_nl, x_pk, y_pk)
+InterpPmm_nl = Interpolations.extrapolate(InterpPmm_nl, Line())
+power_spectrum(k_pk, χ1, χ2) = @. sqrt(10^InterpPmm(grid_data.z_of_χ(χ1),log10(k_pk)) * 10^InterpPmm(grid_data.z_of_χ(χ2),log10(k_pk)))
+power_spectrum_nl(k_pk, χ1, χ2) = @. sqrt(10^InterpPmm_nl(grid_data.z_of_χ(χ1),log10(k_pk)) * 10^InterpPmm_nl(grid_data.z_of_χ(χ2),log10(k_pk)))
+
+plot(k_pk, power_spectrum.(k_pk, 1000.0, 1000.0), 
+     label="Linear P(k)", 
+     xscale=:log10, 
+     yscale=:log10, 
+     title=L"$P(k)$ at $z=0$", titlefontsize=20,
+     xlabel=L"$k \; (h/\mathrm{Mpc})$", 
+     ylabel=L"$P(k) \; ((\mathrm{Mpc}/h)^3)$", 
+     labelfontsize=15)
+plot!(k_pk, power_spectrum_nl.(k_pk, 1000.0, 1000.0), 
+      label="Non-linear P(k)", 
+      xscale=:log10, 
+      yscale=:log10, size=plot_theme.size_Cl; plot_theme.shared_style...
+      )
+
+function trapz_weights(k)
+    nk = length(k)
+    @assert nk ≥ 2
+    w = fill(k[2] - k[1], nk)
+    w[1] /= 2
+    w[end] /= 2
+    return w
+end
+
+Pk_grid = power_spectrum.(grids.k_grid, grid_data.xmin, grid_data.xmax)
+
+if grids.sorting
+  #w_k = trapz_weights(grids.k_grid)
+  w_k = reverse(Blast.get_clencurt_weights(grid_data.kmin, grid_data.kmax, grid_data.Nk))
+  weight_gal = w_k .* grids.k_grid.^2 .* Pk_grid
+else
+  #w_k = trapz_weights(grids.k_grid)
+  w_k = Blast.get_clencurt_weights(grid_data.kmin, grid_data.kmax, grid_data.Nk)
+  weight_gal = w_k .* grids.k_grid.^2 .* Pk_grid
+end
+;
+
+plot(grids.k_grid, Pk_grid, 
+     xscale=:log10, 
+     yscale=:log10, 
+     title=L"$P(k)$", titlefontsize=20,
+     xlabel=L"$k \; (h/\mathrm{Mpc})$", 
+     ylabel=L"$P(k) \; ((\mathrm{Mpc}/h)^3)$", 
+     labelfontsize=15, size=plot_theme.size_plot; plot_theme.shared_style...
+     )
+
+plot(grids.k_grid, w_k, label = L"weights", xscale = :log10, 
+     yscale = :log10, 
+     xlabel = L"k \; (h/\mathrm{Mpc})", size=plot_theme.size_Cl; plot_theme.shared_style...
+     )
+plot!(grids.k_grid, grids.k_grid.^2, label = L"k^2", xscale = :log10, 
+     yscale = :log10, 
+     xlabel = L"k \; (h/\mathrm{Mpc})", size=plot_theme.size_Cl; plot_theme.shared_style...
+     )
+plot!(grids.k_grid, Pk_grid, label = L"P(k)", xscale = :log10, 
+     yscale = :log10, 
+     xlabel = L"k \; (h/\mathrm{Mpc})", size=plot_theme.size_Cl; plot_theme.shared_style...
+     )
+plot!(grids.k_grid, weight_gal, 
+     xscale=:log10, 
+     yscale=:log10, 
+     title=L"$k^2 P(k)$", titlefontsize=20,
+     xlabel=L"$k \; (h/\mathrm{Mpc})$", 
+     ylabel=L"$k^2 P(k) \; ((\mathrm{Mpc}/h))$", 
+     label =L"$k^2 P(k) \; * \; \mathrm{w} $",
+     labelfontsize=15, legendposition = :bottomright, size=plot_theme.size_plot; plot_theme.shared_style...
+     )
+
+plot(grids.k_grid, weight_gal, 
+     xscale=:log10, 
+     yscale=:log10, 
+     title=L"$k^2 P(k)$", titlefontsize=20,
+     xlabel=L"$k \; (h/\mathrm{Mpc})$", 
+     ylabel=L"$k^2 P(k) \; ((\mathrm{Mpc}/h))$", 
+     label =L"$k^2 P(k) \; * \; \mathrm{w} $",
+     labelfontsize=15, legendposition = :bottomright, size=plot_theme.size_plot; plot_theme.shared_style...
+     )
+
+abstract type AbstractProbe end
+struct Galaxy <: AbstractProbe end
+struct Shear <: AbstractProbe end
+factorial_frac(ℓ) = (ℓ + 2.0) * (ℓ + 1.0) * ℓ * (ℓ - 1.0)
+get_ell_prefactor(::Galaxy, ::Galaxy, ℓ) = @. (2 / π) * ones(length(ℓ))
+get_ell_prefactor(::Galaxy, ::Shear,  ℓ) = @. (2 / π) * sqrt(factorial_frac(ℓ))
+get_ell_prefactor(::Shear,  ::Galaxy, ℓ) = @. (2 / π) * sqrt(factorial_frac(ℓ))
+get_ell_prefactor(::Shear,  ::Shear,  ℓ) = @. (2 / π) * factorial_frac(ℓ)
+pref_gg = get_ell_prefactor(Galaxy(), Galaxy(), grid_data.ℓ)
+pref_gg = reduce(vcat, pref_gg)
+pref_gs = get_ell_prefactor(Galaxy(), Shear(), grid_data.ℓ)
+pref_gs = reduce(vcat, pref_gs)
+pref_gg = reduce(vcat, pref_gg)
+pref_ss = get_ell_prefactor(Shear(), Shear(), grid_data.ℓ)
+pref_ss = reduce(vcat, pref_ss);
+
+println("SIZES")
+println("weight_gal -> ", size(weight_gal))
+println("W_final_gal -> ", size(W_final_gal))
+println("pref_gg -> ", size(pref_gg))
+
+S_lkk_gg = zeros(Float64, size(W_final_gal, 3), size(W_final_gal, 3), length(grid_data.ℓ))
+@tullio S_lkk_gg[kp, kpp, li] = pref_gg[li] * weight_gal[k] * W_final_gal[li, k, kp] * W_final_gal[li, k, kpp]
+npzwrite(joinpath(paths.quantity_subdir, "Sl/S_lkk_gg.npy"), S_lkk_gg)
+println("Size of S_l (kp, kpp) (gal-gal): \n(grid_data.Nk, grid_data.Nkp, NL) -> ", size(S_lkk_gg))
+;
+
+npzwrite(joinpath(paths.quantity_subdir, "Sl/S_lkk_gg.npy"), S_lkk_gg)
+
+xref = (grid_data.xmax - grid_data.xmin ) * 0.5
+ℓ_to_k = ℓ -> ℓ ./ xref
+ℓ_ticks = 1:50:200
+k_ticks = ℓ_to_k.(ℓ_ticks)
+k_ticklabels = [string(round(k, digits=3)) for k in k_ticks];
+
+i = 98
+j = i 
+k_p = grids.k_grid[i]
+k_pp = grids.kp_grid[j]
+plot(grid_data.ℓ, S_lkk_gg[i,j,:],
+      color = :blue,
+      label = label = L"k_p = k_{pp} = %$(round(k_p, digits=5)) \; \mathrm{h/Mpc}")
+      
+plot!(xaxis = L"\ell",
+      ylabel = L"S_\ell"
+      ,xscale = :log10,
+     )
+plot!(twiny(),
+      xaxis = L"k \; (h/\mathrm{Mpc})",
+      xticks = (ℓ_ticks, k_ticklabels),
+      #xscale = :log10,
+      xlims = (minimum(grid_data.ℓ), maximum(grid_data.ℓ)),
+      label = ""
+     )
+plot!(label = "Beyond BLAST", 
+      size=plot_theme.size_Cl,
+      title = L"S_{\ell}^{gg} (k_p = k_{pp} = %$(round(k_p, digits=5)) \; \mathrm{h/Mpc})",
+      titlefontsize = 20,
+      titleposition = :left ; plot_theme.shared_style...)
+
+savefig(joinpath(paths.plot_subdir, "Sl_plots/ell_vs_Sl_kp_kpp_$i.png"))
+
+plt = plot()
+il = 1
+println("ℓ = ", grid_data.ℓ[il])
+println("ℓ is fixed always")
+ikpp = 5
+println("k_1 (k_p) varies at each iteration")
+println("k_2 (k_pp) = ", grids.kp_grid[ikpp] , " h/Mpc - fixed, stays there")
+k_pp = grids.kp_grid[ikpp]
+plot(grids.k_grid, S_lkk_gg[:, ikpp, il], 
+#color = plot_theme.colors[:],
+label = L"k_{pp} = %$(round(k_pp, digits=5)) \; \mathrm{h/Mpc}, \; ℓ = %$(grid_data.ℓ[il])",
+linestyle = :solid)
+plot!(xaxis = L"k_{p} \; (h/\mathrm{Mpc})",
+      ylabel = L"S_\ell \; (\mathrm{Mpc}/h)^2"
+      ,xscale = :log10
+     )
+plot!( title = L"S_\ell^{gg} = \int dk k^2 P(k) \int \tilde W(k, k_1) \int \tilde W(k, k_2) (\mathrm{varying} \; k_1 (k_p), \mathrm{at} \; \mathrm{fixed} \; k_2 (k_{pp}))",
+      titlefontsize = 20,
+      label = L"\ell=%$(grid_data.ℓ[il]), k_pp=%$(round(k_pp, digits=3)) \; \mathrm{h/Mpc}",
+      titleposition = :left, labelfontsize = 20, labelposition = :topright,
+      legendposition = :topleft, 
+      size=plot_theme.size_Cl; plot_theme.shared_style...)
+
+savefig(joinpath(paths.plot_subdir, "Sl_plots/kpp_vs_Sl_idxell_$il"*"_kpp_$k_pp.png"))
+
+plt = plot()
+il = 2
+for ip in 1:grid_data.Nkp
+    kp = grids.k_grid[ip]
+    kpp = grids.kp_grid[ip]
+end
+println("ℓ = ", grid_data.ℓ[il])
+println("ℓ is fixed always")
+println("k_1 (k_p) varies at each iteration")
+println("k_2 (k_pp) is fixed at each iteration")
+for ip in 1:20:grid_data.Nkp
+    color_palette = cgrad(:seaborn_icefire_gradient, grid_data.Nkp)
+    kp = grids.k_grid[ip]
+    kpp = grids.kp_grid[ip]
+    plot!(grids.k_grid, S_lkk_gg[:,ip,il]/maximum(S_lkk_gg[:,ip,il]), 
+    #color = plot_theme.colors[ip], 
+    color = color_palette[ip],
+    label = L"k_p = k_{pp} = %$(round(kp, digits=5)) \; \mathrm{h/Mpc})",
+    linestyle = :solid)
+end
+plot!(xaxis = L"k_{p} \; (h/\mathrm{Mpc})",
+      ylabel = L"S_\ell"
+      ,xscale = :log10
+      , label = ""
+     )
+plot!(title = L"S_\ell^{gg} \; \mathrm{for} \; \ell = %$(grid_data.ℓ[il])",
+      legendposition = :outertopright, size = plot_theme.size_Cl, titlefontsize = 20, titleposition = :left; plot_theme.shared_style...)
+
+savefig(joinpath(paths.plot_subdir, "Sl_plots/kp_vs_Sl_idxell_$il"*"each_time_kpp_fixed.png"))
+
+using Plots
+
+# 1. Initialize the plot with your baseline styling
+plt = plot(
+    xaxis = L"k_{p} \; (h/\mathrm{Mpc})",
+    ylabel = L"S_\ell",
+    xscale = :log10,
+    title = L"S_\ell^{gg} \; \mathrm{for} \; \ell = %$(grid_data.ℓ[il])",
+    legendposition = :outertopright, 
+    size = plot_theme.size_Cl, 
+    titlefontsize = 20, 
+    titleposition = :left; 
+    plot_theme.shared_style...
+)
+
+color_palette = cgrad(:seaborn_icefire_gradient, grid_data.Nkp)
+
+anim = @animate for ip in 1:10:grid_data.Nkp
+    kp = grids.k_grid[ip]
+    kpp = grids.kp_grid[ip]
+    
+    plot!(
+        plt,
+        grids.k_grid, 
+        S_lkk_gg[:, ip, il] / maximum(S_lkk_gg[:, ip, il]), 
+        color = color_palette[ip],
+        label = L"k_p = k_{pp} = %$(round(kp, digits=5)) \; \mathrm{h/Mpc})",
+        linestyle = :solid
+    )
+end
+
+gif(anim, joinpath(paths.plot_subdir, "Sl_plots/kp_vs_Sl_idxell_$il"*"plot_evolution.gif"), fps = 1)
+
+plt = plot()
+ipp = 6
+kpp = grids.kp_grid[ipp]
+color_palette = cgrad(:seaborn_icefire_gradient, grid_data.ℓ) 
+println("ℓ changes at each iteration")
+println("k_1 (k_p) varies at each iteration")
+println("k_2 (k_pp) is kept fixed for every iteration")
+for il in 1:length(grid_data.ℓ)
+    plot!(grids.kp_grid, S_lkk_gg[:,ipp,il],
+    color = color_palette[ipp],
+    label = L"k_{pp} = %$(round(kpp, digits=5)) \; \mathrm{h/Mpc}, \; ℓ = %$(grid_data.ℓ[il])",
+    linestyle = :solid)
+end
+plot!(xaxis = L"k_{p} \; (h/\mathrm{Mpc})",
+      ylabel = L"S_\ell"
+      ,xscale = :log10
+     )
+plot!( title = L"S_\ell^{gg} = \int dk k^2 P(k) \int \tilde W(k, k_1) \int \tilde W(k, k_2) (\mathrm{at} \; \mathrm{different} \; \; \ell )",
+      titlefontsize = 20,
+      titleposition = :left, legend = nothing,
+      legendposition = :outertopright, 
+      size=plot_theme.size_Cl; plot_theme.shared_style...)
+
+savefig(joinpath(paths.plot_subdir, "Sl_plots/kp_vs_Sl_kpp_$kpp"*"_loop_on_ell.png"))
+
+plt = plot(
+    xaxis = L"k_{p} \; (h/\mathrm{Mpc})",
+    ylabel = L"S_\ell",
+    xscale = :log10,
+    title = L"S_\ell^{gg} = \int dk k^2 P(k) \int \tilde W(k, k_1) \int \tilde W(k, k_2) \; (\mathrm{at} \; \mathrm{different} \; \ell)",
+    titlefontsize = 16,
+    titleposition = :left, 
+    legend = nothing,
+    legendposition = :outertopright, 
+    size = plot_theme.size_Cl; 
+    plot_theme.shared_style...
+)
+
+ipp = 6
+kpp = grids.kp_grid[ipp]
+color_palette = cgrad(:seaborn_icefire_gradient, length(grid_data.ℓ)) 
+
+println("ℓ changes at each iteration")
+println("k_1 (k_p) varies at each iteration")
+println("k_2 (k_pp) is kept fixed for every iteration")
+
+anim = @animate for il in 1:10:length(grid_data.ℓ)
+    plot!(
+        plt,
+        grids.kp_grid, 
+        S_lkk_gg[:, ipp, il],
+        color = color_palette[il], # Changed from [ipp] to [il] so colors actually transition
+        label = L"k_{pp} = %$(round(kpp, digits=5)) \; \mathrm{h/Mpc}, \; ℓ = %$(grid_data.ℓ[il])",
+        linestyle = :solid
+    )
+end
+
+gif(anim, joinpath(paths.plot_subdir, "Sl_plots/kpp_vs_Sl_idxell_loop_on_ℓ_kp_$kpp"*".gif"), fps = 1)
+
+plt = plot()
+ip = 140
+ipp = 140
+k_p = grids.k_grid[ip]
+k_pp = grids.kp_grid[ipp]
+plot(
+    grid_data.ℓ,
+    S_lkk_gg[ip, ipp, :] .* grid_data.ℓ .* (grid_data.ℓ .+ 1),
+    xaxis = L"\ell",
+    yaxis = L"\ell(\ell+1)S_\ell",
+)
+
+plot!(twiny(),
+      xaxis = L"k \; (h/\mathrm{Mpc})",
+      xticks = (ℓ_ticks, k_ticklabels),
+      xlims = (minimum(grid_data.ℓ), maximum(grid_data.ℓ)),
+      label = ""
+     )
+
+plot!(label = "Beyond BLAST", 
+    legend = false, colorbar = true, colorbar_title = L"j", clims = (1, grid_data.Nkp),
+    title = L"\ell(\ell+1)S_\ell^{gg}",
+    size=plot_theme.size_Cl, titlefontsize=20, 
+    titleposition = :left;
+    plot_theme.shared_style...
+    )
+
+savefig(joinpath(paths.plot_subdir, "Sl_plots/ell_vs_Sl_kp_kpp_$k_p"*"_"*"$k_pp.png"))
+
+diagS = [diag(S_lkk_gg[:, :, i]) for i in 1:size(S_lkk_gg, 3)]
+
+nshow = 100
+idx = round.(Int, range(1, size(S_lkk_gg, 3), length=nshow))
+
+p = plot(
+    xlabel = L"k \; (h/\mathrm{Mpc})",
+    ylabel = L"S_\ell(k,k)",
+    title  = L"S_\ell^{gg}(k,k)\ \mathrm{for\ different}\ \ell\ \mathrm{values}",
+    colorbar_title = L"j",
+    clims = (1, grid_data.Nkp),                   
+    legend = false,
+    colorbar = true,
+    lw = 2,
+    size=plot_theme.size_Cl; 
+    plot_theme.shared_style...
+)
+colors = cgrad(:seaborn_icefire_gradient, nshow)
+for ii in idx
+    plot!(p, grids.kp_grid, diagS[ii]/maximum(diagS[ii]), line_z = ii, 
+    color = colors[ii],;
+        label = L"\ell = %$(grid_data.ℓ[ii])")
+end
+
+p
+
+println(grids.k_grid[147])
+println(grid_data.ℓ[2])
+
+println(S_lkk_gg[3,3,2])
+println(S_lkk_gg[147,147,2])
