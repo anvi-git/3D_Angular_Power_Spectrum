@@ -212,7 +212,7 @@ function galaxy_prefactor_cheb(xmin::Number,
     Main.append_to_log(output_dir, "=== galaxy_prefactor_cheb ===")
     Main.append_to_log(output_dir, "The galaxy_prefactor_cheb function has been called.")
     Main.append_to_log(output_dir, "Computing Chebyshev nodes.")
-    if sorting
+    if sorting == true
         chi_cheb_nodes = reverse(Blast.get_clencurt_grid(xmin, xmax, n_cheb))
     else 
         chi_cheb_nodes = Blast.get_clencurt_grid(xmin, xmax, n_cheb)

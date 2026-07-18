@@ -44,7 +44,7 @@ Genera le griglie di Clenshaw-Curtis per k, kp e kpp utilizzando i limiti e i no
 Se `sorting=true`, le griglie vengono ordinate in modo crescente.
 """
 function generate_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false)    
-    if sorting
+    if sorting == true
         k_grid   = reverse(Blast.get_clencurt_grid(kmin, kmax, Nk))
         kp_grid  = reverse(Blast.get_clencurt_grid(kmin, kmax, Nkp))
         kpp_grid = reverse(Blast.get_clencurt_grid(kmin, kmax, Nkpp))
@@ -69,7 +69,7 @@ function W_tilde_computation(ℓ::Number, xmin::Number, xmax::Number, kmin::Numb
         throw(DomainError("The integration range is unphysical. Make sure xmin < xmax."))
     end
 
-    if sorting
+    if sorting == true
         w  = reverse(get_clencurt_weights(xmin, xmax, N))
     else 
         w  = get_clencurt_weights(xmin, xmax, N)
@@ -103,7 +103,7 @@ end
 function bessel_computation(ℓ::Number, xmin::Number, xmax::Number, 
                                  Nk::Int, n_cheb::Int, N::Integer, k_grid::AbstractVector, sorting::Bool)
                              
-    if sorting
+    if sorting == true
         x_grid = reverse(get_clencurt_grid(xmin, xmax, N))
     else 
         x_grid = get_clencurt_grid(xmin, xmax, N)
