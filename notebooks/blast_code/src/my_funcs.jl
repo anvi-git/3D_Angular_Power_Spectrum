@@ -95,6 +95,7 @@ function W_tilde_computation(ℓ::Number, xmin::Number, xmax::Number, kmin::Numb
     #Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel2'
     Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel1'
     @views @. T_tilde[:, :, ic, 1] = Dim_Integrated * kp_grid'
+    #@views T_tilde[:, :, ic, 1] = Dim_Integrated .* kp_grid'
     end
 
     return T_tilde
