@@ -6,11 +6,11 @@ using DataInterpolations
 """
 function setup_cosmology_grid(;
     cosmo  = Blast.FlatΛCDM(),
-    N      = 2^15 + 1,
-    Nk     = 150,
-    Nkp    = 150,
-    Nkpp   = 150,
-    n_cheb = 50
+    N      = 2^17 + 1,
+    Nk     = 250,
+    Nkp    = 250,
+    Nkpp   = 250,
+    n_cheb = 100
 )
     # background quantities
     z_b      = npzread("blast_code/data/background/z.npy")
