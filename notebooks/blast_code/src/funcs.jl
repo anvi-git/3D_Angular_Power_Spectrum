@@ -1,8 +1,5 @@
 using Base.Threads
 using LinearAlgebra
-using Dates
-
-import Main.Blast
 
 ## BELOW: from BLAST
 """
@@ -46,47 +43,11 @@ end
 Genera le griglie di Clenshaw-Curtis per k, kp e kpp utilizzando i limiti e i nodi forniti.
 Se `sorting=true`, le griglie vengono ordinate in modo crescente.
 """
-function generate_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false)    
-    if sorting == true
-        k_grid   = reverse(Blast.get_clencurt_grid(kmin, kmax, Nk))
-        kp_grid  = reverse(Blast.get_clencurt_grid(kmin, kmax, Nkp))
-        kpp_grid = reverse(Blast.get_clencurt_grid(kmin, kmax, Nkpp))
-    else
-        k_grid   = Blast.get_clencurt_grid(kmin, kmax, Nk)
-        kp_grid  = Blast.get_clencurt_grid(kmin, kmax, Nkp)
-        kpp_grid = Blast.get_clencurt_grid(kmin, kmax, Nkpp)   
-    end
-    
-    return (
-        k_grid   = k_grid,
-        kp_grid  = kp_grid,
-        kpp_grid = kpp_grid,
-        sorting  = sorting
-    )
-end
+function generate_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false)   
 
-function make_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false, output_dir=nothing)   
-
-    # Log di inizio operazione (se output_dir è fornito)
-    if !isnothing(output_dir)
-        Main.append_to_log(output_dir, "Generating k_grid, kp_grid, kpp_grid.")
-        Main.append_to_log(output_dir, "Parameters: kmin=$kmin, kmax=$kmax, Nk=$Nk, Nkp=$Nkp, Nkpp=$Nkpp, sorting=$sorting")
-    end
-
-    k_grid   = 10 .^ range(log10(kmin), log10(kmax), length=Nk)
-    #k_grid = vcat(0.0, k_grid)
-    kp_grid  = 10 .^ range(log10(kmin), log10(kmax), length=Nkp)
-    #kp_grid = vcat(0.0, kp_grid)
-    kpp_grid = 10 .^ range(log10(kmin), log10(kmax), length=Nkpp)
-    #kpp_grid = vcat(0.0, kpp_grid)
-
-    # Log di conferma e riassunto dei dati generati
-    if !isnothing(output_dir)
-        Main.append_to_log(output_dir, "grids created successfully.")
-        Main.append_to_log(output_dir, " -> k_grid:   min=$(minimum(k_grid)), max=$(maximum(k_grid)), len=$(length(k_grid))")
-        Main.append_to_log(output_dir, " -> kp_grid:  min=$(minimum(kp_grid)), max=$(maximum(kp_grid)), len=$(length(kp_grid))")
-        Main.append_to_log(output_dir, " -> kpp_grid: min=$(minimum(kpp_grid)), max=$(maximum(kpp_grid)), len=$(length(kpp_grid))")
-    end
+    k_grid   = reverse(Blast.get_clencurt_grid(kmin, kmax, Nk))
+    kp_grid  = reverse(Blast.get_clencurt_grid(kmin, kmax, Nkp))
+    kpp_grid = reverse(Blast.get_clencurt_grid(kmin, kmax, Nkpp))
     
     return (
         k_grid   = k_grid,

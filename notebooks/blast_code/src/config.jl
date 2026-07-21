@@ -10,7 +10,7 @@ function setup_cosmology_grid(;
     Nk     = 150,
     Nkp    = 150,
     Nkpp   = 150,
-    n_cheb = 119
+    n_cheb = 50
 )
     # background quantities
     z_b      = npzread("blast_code/data/background/z.npy")

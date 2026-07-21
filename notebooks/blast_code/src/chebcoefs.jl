@@ -11,11 +11,23 @@ In practise, the `vals` array is the power spectrum P(k,χ). The first axis shou
 - `p::FFTW.rFFTWPlan`: A FFTW plan object for transforming `vals` with the appropriate real to real transformations. This plan can be applied using the `*` operator (e.g., `transformed_vals = p * vals`).
 
 """
-function plan_fft(vals::AbstractArray{<:Number,N}) where {N}
-    kind = map(n -> n > 1 ? FFTW.REDFT00 : FFTW.DHT, size(vals)[1])
-    p = FFTW.plan_r2r(deepcopy(vals), kind, [1]; flags=FFTW.PATIENT, timelimit=Inf)   
+# function plan_fft(vals::AbstractArray{<:Number,N}) where {N}
+#     kind = map(n -> n > 1 ? FFTW.REDFT00 : FFTW.DHT, size(vals)[1])
+#     p = FFTW.plan_r2r(deepcopy(vals), kind, [1]; flags=FFTW.PATIENT, timelimit=Inf)   
                                                                                     
-    return p 
+#     return p 
+# end
+function plan_fft(vals::AbstractArray{<:Number,N}; sorting::Bool=false) where {N}
+    kind = map(n -> n > 1 ? FFTW.REDFT00 : FFTW.DHT, size(vals)[1])
+    if sorting == true
+        vals_for_plan = reverse(deepcopy(vals); dims=1)
+    else
+        vals_for_plan = deepcopy(vals)
+    end
+
+    p = FFTW.plan_r2r(vals_for_plan, kind, [1]; flags=FFTW.PATIENT, timelimit=Inf)
+
+    return p
 end
 
 function new_plan_fft(vals::AbstractArray{<:Number,N}) where {N}
@@ -36,14 +48,31 @@ Arguments:
 Returns:
 - `coefs`: An array of the same size as `vals`, containing the computed Chebyshev coefficients.
 """
-function fast_chebcoefs(vals::AbstractArray, plan::FFTW.r2rFFTWPlan)
-    coefs = plan * vals
+# function fast_chebcoefs(vals::AbstractArray, plan::FFTW.r2rFFTWPlan)
+#     coefs = plan * vals
+
+#     s = size(coefs)
+#     coefs ./= 2*(s[1]-1)
+    
+#     N = length(s)
+#     coefs[CartesianIndices(ntuple(i -> i == 1 ? (2:s[1]-1) : (1:s[i]), Val{N}()))] *= 2
+
+#     return coefs
+# end
+function fast_chebcoefs(vals::AbstractArray, plan::FFTW.r2rFFTWPlan; sorting::Bool=false)
+    if sorting == true
+        vals_ordered = reverse(vals; dims=1)
+    else
+        vals_ordered = vals
+    end
+    coefs = plan * vals_ordered
 
     s = size(coefs)
     coefs ./= 2*(s[1]-1)
-    
+
     N = length(s)
     coefs[CartesianIndices(ntuple(i -> i == 1 ? (2:s[1]-1) : (1:s[i]), Val{N}()))] *= 2
 
     return coefs
 end
+
