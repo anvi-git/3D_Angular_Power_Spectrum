@@ -1,15 +1,12 @@
-using NPZ
-using DataInterpolations
-
 """
     setup_cosmology_grid(; cosmo, N, Nk, Nkp, Nkpp, n_cheb) -> NamedTuple
 """
 function setup_cosmology_grid(;
     cosmo  = bb.FlatΛCDM(),
-    N      = 2^5 + 1,
-    Nk     = 250,
-    Nkp    = 250,
-    Nkpp   = 250,
+    N      = 2^15 + 1,
+    Nk     = 150,
+    Nkp    = 150,
+    Nkpp   = 150,
     n_cheb = 100
 )
     # background quantities

@@ -1,9 +1,3 @@
-using Base.Threads
-using LinearAlgebra
-using Dates
-
-import Main.bb
-
 ## BELOW: from BLAST
 """
     get_clencurt_grid(kmin::Number, kmax::Number, N::Number)
@@ -29,48 +23,12 @@ function get_clencurt_weights(Xmin::Number, Xmax::Number, N::Number)
 end
 ## ABOVE: from BLAST
 
-function get_clencurt_grid_log(kmin::Number, kmax::Number, N::Integer)
-    u_grid = bb.get_clencurt_grid(log(kmin), log(kmax), N)  # CC nodes mapped onto [ln kmin, ln kmax]
-    return exp.(u_grid)                                        # k = e^u
-end
-
-function get_clencurt_weights_log(kmin::Number, kmax::Number, N::Integer)
-    k_grid = get_clencurt_grid_log(kmin, kmax, N)
-    w_u = bb.get_clencurt_weights(log(kmin), log(kmax), N)  # CC weights for ∫ du
-    return w_u .* k_grid                                        # Jacobian dk = k du
-end
-
-"""
-    generate_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting) -> NamedTuple
-
-Genera le griglie di Clenshaw-Curtis per k, kp e kpp utilizzando i limiti e i nodi forniti.
-Se `sorting=true`, le griglie vengono ordinate in modo crescente.
-"""
-function generate_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false)    
-    if sorting == true
-        k_grid   = reverse(bb.get_clencurt_grid(kmin, kmax, Nk))
-        kp_grid  = reverse(bb.get_clencurt_grid(kmin, kmax, Nkp))
-        kpp_grid = reverse(bb.get_clencurt_grid(kmin, kmax, Nkpp))
-    else
-        k_grid   = bb.get_clencurt_grid(kmin, kmax, Nk)
-        kp_grid  = bb.get_clencurt_grid(kmin, kmax, Nkp)
-        kpp_grid = bb.get_clencurt_grid(kmin, kmax, Nkpp)   
-    end
-    
-    return (
-        k_grid   = k_grid,
-        kp_grid  = kp_grid,
-        kpp_grid = kpp_grid,
-        sorting  = sorting
-    )
-end
-
 function make_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false, output_dir=nothing)   
 
     # Log di inizio operazione (se output_dir è fornito)
     if !isnothing(output_dir)
-        Main.append_to_log(output_dir, "Generating k_grid, kp_grid, kpp_grid.")
-        Main.append_to_log(output_dir, "Parameters: kmin=$kmin, kmax=$kmax, Nk=$Nk, Nkp=$Nkp, Nkpp=$Nkpp, sorting=$sorting")
+        append_to_log(output_dir, "Generating k_grid, kp_grid, kpp_grid.")
+        append_to_log(output_dir, "Parameters: kmin=$kmin, kmax=$kmax, Nk=$Nk, Nkp=$Nkp, Nkpp=$Nkpp, sorting=$sorting")
     end
 
     k_grid   = 10 .^ range(log10(kmin), log10(kmax), length=Nk)
@@ -78,10 +36,10 @@ function make_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false, output_dir=nothi
     kpp_grid = 10 .^ range(log10(kmin), log10(kmax), length=Nkpp)
 
     if !isnothing(output_dir)
-        Main.append_to_log(output_dir, "grids created successfully.")
-        Main.append_to_log(output_dir, " -> k_grid:   min=$(minimum(k_grid)), max=$(maximum(k_grid)), len=$(length(k_grid))")
-        Main.append_to_log(output_dir, " -> kp_grid:  min=$(minimum(kp_grid)), max=$(maximum(kp_grid)), len=$(length(kp_grid))")
-        Main.append_to_log(output_dir, " -> kpp_grid: min=$(minimum(kpp_grid)), max=$(maximum(kpp_grid)), len=$(length(kpp_grid))")
+        append_to_log(output_dir, "grids created successfully.")
+        append_to_log(output_dir, " -> k_grid:   min=$(minimum(k_grid)), max=$(maximum(k_grid)), len=$(length(k_grid))")
+        append_to_log(output_dir, " -> kp_grid:  min=$(minimum(kp_grid)), max=$(maximum(kp_grid)), len=$(length(kp_grid))")
+        append_to_log(output_dir, " -> kpp_grid: min=$(minimum(kpp_grid)), max=$(maximum(kpp_grid)), len=$(length(kpp_grid))")
     end
     
     return (
@@ -92,9 +50,8 @@ function make_k_grids(kmin, kmax, Nk, Nkp, Nkpp; sorting=false, output_dir=nothi
     )
 end
 
-function compute_W(ℓ::Number, xmin::Number, xmax::Number, kmin::Number, kmax::Number,
-                             Nk::Int, Nkp::Int, n_cheb::Int, N::Int, k_grid::AbstractVector, kp_grid::AbstractVector, x::AbstractVector, sorting::Bool)
-
+function compute_W(ℓ::Number, xmin::Number, xmax::Number,
+                             Nk::Int, Nkp::Int, n_cheb::Int, N::Int, k_grid::AbstractVector, kp_grid::AbstractVector, sorting::Bool)
     if xmin >= xmax
         throw(DomainError("The integration range is unphysical. Make sure xmin < xmax."))
     end
@@ -159,5 +116,97 @@ function compute_jl(ℓ::Number, xmin::Number, xmax::Number,
     end
 
     return T, Bessel
+end 
 
+function analyze_W_cheb(grid_data, x_cheb, W_x, W_cheb, c_cheb, grids, bb, paths, plot_theme)
+
+    function cheb_eval_partial(coeffs, x, xmin, xmax, ntrunc)
+        t = @. (2*x - (xmax + xmin)) / (xmax - xmin)
+        T0 = ones(length(x))
+        if ntrunc == 0
+            return coeffs[1] .* T0
+        end
+        T1 = t
+        S = coeffs[1] .* T0 .+ coeffs[2] .* T1
+        for n in 2:ntrunc
+            T2 = @. 2*t*T1 - T0
+            S .+= coeffs[n+1] .* T2
+            T0, T1 = T1, T2
+        end
+        return S
+    end
+
+    w_dir = joinpath(paths.plot_subdir, "W")
+    isdir(w_dir) || mkpath(w_dir)
+
+    # Plot 1: W(x) vs W_cheb
+    p_wx = plot(grid_data.x, W_x, label = L"W(\chi)", lw = 1, ls = :dot; markercolor = :green, plot_theme.shared_style...)
+    plot!(p_wx, x_cheb, W_cheb, label = L"W(\chi) \; \mathrm{on} \; \mathrm{Chebyshev} \; \mathrm{nodes}",
+          lw = 1, ls = :dot; markercolor = :red, plot_theme.shared_style...)
+    savefig(p_wx, joinpath(w_dir, "W_x_and_W_cheb.png"))
+
+    # Calcolo W su nodi di Chebyshev (rimossa la chiamata duplicata)
+    z_cheb = grid_data.z_of_χ.(x_cheb)
+    W_x_on_cheb, _, _, _, _ = bb.compute_Wx(x_cheb, z_cheb, grid_data.cosmo; output_dir = paths.output_dir)
+
+    rel_err = (W_cheb ./ W_x_on_cheb .- 1)
+    rel_err_abs = abs.(rel_err)
+    rel_err_pct = 100 .* rel_err
+    rel_err_pct_abs = 100 .* rel_err_abs
+
+    # Plot 2: relative percentage error of Chebyshev approximation
+    p_relerr = plot(1:grid_data.n_cheb, rel_err_pct,
+        label = L"\frac{W_{\mathrm{Cheb}} - W_{\mathrm{true}}}{W_{\mathrm{true}}}\,[\%]",
+        lw = 1.5, marker = :circle, markersize = 2, legendposition = :topright,
+        xlabel = L"\chi\,[\mathrm{Mpc}/h]", ylabel = L"\mathrm{errore\ relativo}\,[\%]",
+        title = "Relative error of Chebyshev approximation", size = plot_theme.size_Cl; plot_theme.shared_style...)
+    hline!(p_relerr, [0.0], ls = :dash, lw = 1, color = :black, label = false)
+
+    # Subplot combinato p1 + p2
+    p1 = plot(sort(x_cheb), W_x_on_cheb,
+        label = L"\sum_{n=0}^{N_{\mathrm{cheb}}-1} c_n T_n(\chi)", ls = :dash, color = :green)
+    plot!(p1, x_cheb, W_cheb, label = L"W(\chi)", lw = 1, ls = :dot, color = :red)
+    plot!(p1, dpi = 300, legendposition = :topleft, xlabel = L"\chi [Mpc/h]", ylabel = L"W(\chi) [\mathrm{Mpc}/h]",
+          size = plot_theme.size_Cl; plot_theme.shared_style...)
+
+    p2 = plot(1:grid_data.n_cheb, rel_err_pct,
+        label = L"\frac{W_{\mathrm{Cheb}} - W_{\mathrm{true}}}{W_{\mathrm{true}}} [\%]",
+        lw = 1.0, marker = :circle, markercolor = :black, markersize = 1, linestyle = :dot,
+        title = "relative error [%]", titlefontsize = 10)
+    hline!(p2, [0.0], ls = :solid, lw = 1, color = :red, label = false)
+
+    p_combined = plot(p1, p2, layout = @layout([a; b]), dpi = 300,
+        xlabel = L"\chi\,[\mathrm{Mpc}/h]", size = plot_theme.size_Cl; plot_theme.shared_style...)
+
+    # Plot 3: c_cheb decay
+    n_idx = 0:(grid_data.n_cheb - 1)
+    p_decay = plot(n_idx, abs.(c_cheb),
+        yscale = :log10,
+        xlabel = L"n", ylabel = L"|c_n|",
+        label = L"|c_n| \ \mathrm{di} \ W(\chi)",
+        title = "Chebyshev coefficients decay",
+        marker = :circle, markersize = 3; plot_theme.shared_style...)
+    savefig(p_decay, joinpath(w_dir, "chebcoeff_decay_galaxy.png"))
+
+    # Plot 4: truncation error analysis
+    truncs = 1:1:length(c_cheb)-1
+    errs = Float64[]
+    for ntrunc in truncs
+        Wn = cheb_eval_partial(c_cheb, x_cheb, grid_data.xmin, grid_data.xmax, ntrunc)
+        err = maximum(abs.(Wn .- W_cheb)) / maximum(abs.(W_cheb))
+        push!(errs, err)
+    end
+
+    yticks_vals = 10.0 .^ (floor(log10(minimum(errs))):ceil(log10(maximum(errs))))
+
+    p_trunc = plot(truncs, errs,
+        yscale = :log10, marker = :circle,
+        xlabel = L"N_{trunc}",
+        ylabel = L"\mathrm{err}(N_{trunc}) = \frac{\max_i |W_{N_{trunc}} - W(\chi_i)|}{\max_i |W(\chi_i)|}",
+        title  = L"\mathrm{err}(N_{trunc}) = \frac{\max_i |W_{N_{trunc}} - W(\chi_i)|}{\max_i |W(\chi_i)|}",
+        legend = false, framestyle = :box, yticks = yticks_vals, size = plot_theme.size_Cl; plot_theme.shared_style...)
+    savefig(p_trunc, joinpath(w_dir, "chebcoeff_truncation_error_galaxy.png"))
+
+    return (W_x_on_cheb = W_x_on_cheb, rel_err_pct = rel_err_pct, errs = errs,
+            p_wx = p_wx, p_relerr = p_relerr, p_combined = p_combined, p_decay = p_decay, p_trunc = p_trunc)
 end

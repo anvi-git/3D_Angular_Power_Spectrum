@@ -1,37 +1,43 @@
-using Dates
-using OrderedCollections
-
 function setup_output_directories()
     timestamp = Dates.format(now(), "yyyy_mm_dd_HHMMSS")
     
     # output directory structure
-    output_dir       = "out/runs/run_$timestamp"
-    plot_subdir      = joinpath(output_dir, "plots")
+    out_dir       = "out/runs/run_$timestamp"
+    plot_subdir      = joinpath(out_dir, "plots")
+    W_plots          = joinpath(plot_subdir, "W")
+    k_grid_plots     = joinpath(plot_subdir, "k_grid")
     Sl_plots         = joinpath(plot_subdir, "Sl_plots")
-    Kernel_plots     = joinpath(plot_subdir, "kernels")
-    quantity_subdir  = joinpath(output_dir, "quantities")
-    chebcoefs        = joinpath(quantity_subdir, "chebcoefs")
-    Sl               = joinpath(quantity_subdir, "Sl")
     heatmaps         = joinpath(Sl_plots, "heatmaps")
+    quantity_subdir  = joinpath(out_dir, "quantities")
+    c_cheb           = joinpath(quantity_subdir, "c_cheb")
+    Sl               = joinpath(quantity_subdir, "Sl")
+    W_cheb           = joinpath(quantity_subdir, "W_cheb")
+    W                = joinpath(quantity_subdir, "W")
     
     # create directories
-    mkpath(chebcoefs)
+    mkpath(c_cheb)
     mkpath(Sl)
     mkpath(Sl_plots)
     mkpath(heatmaps)
-    mkpath(Kernel_plots)
-    
-    println("Folders in place: ", output_dir, ", ", plot_subdir, " and ", quantity_subdir)
+    mkpath(W_plots)
+    mkpath(k_grid_plots)
+    mkpath(W_cheb)
+    mkpath(W)
+
+    println("Folders in place: \n", out_dir, "\n", plot_subdir, "\n and \n", quantity_subdir)
     
     # returns the paths
     return (
-        output_dir      = output_dir,
+        output_dir      = out_dir,
         plot_subdir     = plot_subdir,
         Sl_plots        = Sl_plots,
-        Kernel_plots    = Kernel_plots,
+        W_plots         = W_plots,
+        k_grid_plots    = k_grid_plots,
         quantity_subdir = quantity_subdir,
-        chebcoefs       = chebcoefs,
+        c_cheb          = c_cheb,
         Sl              = Sl,
+        W_cheb          = W_cheb,
+        W               = W,
         heatmaps        = heatmaps
     )
 end
@@ -84,7 +90,7 @@ function save_run_config(
         println(dictio, "k_grid is ", sorting ? "sorted" : "not sorted")
     end
 
-    println("Data brought to safety in folder: ", output_dir)
+    println("Data brought to safety in folder: \n", output_dir)
     append_to_log(output_dir, "Run started at $(Dates.now())")
     return params_run
 end

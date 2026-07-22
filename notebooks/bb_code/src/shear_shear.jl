@@ -1,5 +1,3 @@
-module shear_shear
-
 using LaTeXStrings
 using Plots
 using Cosmology
@@ -8,7 +6,6 @@ using DataInterpolations
 using NPZ
 
 import Cosmology: AbstractCosmology
-import Main.bb
 import PhysicalConstants.CODATA2018: c_0
 const C_LIGHT = c_0.val * 10^(-3) #speed of light in Km/s
 
@@ -136,5 +133,4 @@ function compute_prefactor_chebcoeffs(W_vals::AbstractVector; output_dir::Abstra
 
     return cheb_coeff
 
-end 
-end # module
+end
