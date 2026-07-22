@@ -3,10 +3,10 @@
 """
 function setup_cosmology_grid(;
     cosmo  = bb.FlatΛCDM(),
-    N      = 2^15 + 1,
-    Nk     = 150,
-    Nkp    = 150,
-    Nkpp   = 150,
+    N      = 2^5 + 1,
+    Nk     = 15,
+    Nkp    = 15,
+    Nkpp   = 15,
     n_cheb = 100
 )
     # background quantities
