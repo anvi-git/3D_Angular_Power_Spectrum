@@ -3,12 +3,12 @@ using Plots
 """
     setup_plot_theme() -> NamedTuple
 """
-function setup_plot_theme(paper = nothing)
+function setup_plot_theme(; paper = false)
     # dimensions and resolution
     size_plot    = (1200, 600)
     size_heatmap = (600, 600)
     size_Cl = (1500, 800)
-    if paper != nothing
+    if paper == true
         dpi          = 1000
     else
         dpi          = 300
