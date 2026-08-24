@@ -4,10 +4,10 @@
 function setup_cosmology_grid(;
     cosmo  = bb.FlatΛCDM(),
     N      = 2^15 + 1,
-    Nk     = 200,
-    Nkp    = 200,
-    Nkpp   = 200,
-    n_cheb = 200
+    Nk     = 150,
+    Nkp    = 150,
+    Nkpp   = 150,
+    n_cheb = 100
 )
     # background quantities
     z_b      = npzread("bb_code/data/background/z.npy")
