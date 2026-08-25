@@ -154,3 +154,392 @@ function plot_theory_Pk(
 
     return (; p, k_pk, pk_lin_vals, pk_nl_vals, InterpPmm, InterpPmm_nl, power_spectrum, power_spectrum_nl)
 end
+
+function plot_Sl_kp_kpp(grids, S_lkk_gg, grid_data, paths, plot_theme; 
+                         i::Int=150, j::Int=150, save_fig::Bool=true, showfig::Bool=false)
+    
+    k_p = grids.k_grid[i]
+    k_pp = grids.kp_grid[j]
+
+    p = plot(grid_data.ℓ, S_lkk_gg[i, j, :],
+        color = :black,
+        label = L"k_p = k_{pp} = %$(round(k_p, digits=5)) \; \mathrm{h/Mpc}"
+    )
+
+    plot!(p,
+        xlabel = L"\ell",
+        ylabel = L"S_\ell",
+        xscale = :log10,
+        minorticks = true
+    )
+
+    plot!(p;
+        label = "Beyond BLAST",
+        size = plot_theme.size_Cl,
+        title = L"S_{\ell}^{gg} (k_p = k_{pp} = %$(round(k_p, digits=5)) \; \mathrm{h/Mpc})",
+        titlefontsize = 20,
+        titleposition = :left,
+        plot_theme.shared_style...
+    )
+
+    if save_fig
+        mkpath(joinpath(paths.plot_subdir, "Sl_plots"))
+        savefig(p, joinpath(paths.plot_subdir, "Sl_plots/ell_vs_Sl_kp_kpp_$(i)_$(j).png"))
+    end
+
+    if showfig
+        display(p)
+    end
+
+    return p
+end
+
+function plot_Sl_fixed_l_kpp(grids, S_lkk_gg, grid_data, paths, plot_theme; 
+                            il::Int=1, ikpp::Int=5, save_fig::Bool=true, showfig::Bool=false)
+    
+    k_pp = grids.kp_grid[ikpp]
+    ell_val = grid_data.ℓ[il]
+
+    p = plot(sort(grids.k_grid), S_lkk_gg[:, ikpp, il], 
+        label = L"k_{pp} = %$(round(k_pp, digits=5)) \; \mathrm{h/Mpc}, \; \ell = %$(ell_val)",
+        linestyle = :solid, 
+        lw = 1.5
+    )
+
+    plot!(p,
+        xlabel = L"k_{p} \; (h/\mathrm{Mpc})",
+        ylabel = L"S_\ell \; (\mathrm{Mpc}/h)^2",
+        minorticks = true,
+        xscale = :log10
+    )
+
+    plot!(p,
+        title = L"S_\ell^{gg} = \int dk k^2 P(k) \int \tilde W(k, k_1) \int \tilde W(k, k_2) (\mathrm{varying} \; k_1 (k_p), \mathrm{at} \; \mathrm{fixed} \; k_2 (k_{pp}))",
+        titlefontsize = 20,
+        label = L"\ell=%$(ell_val), k_{pp}=%$(round(k_pp, digits=3)) \; \mathrm{h/Mpc}",
+        titleposition = :left, 
+        labelfontsize = 20, 
+        legendposition = :outertopright, 
+        size = plot_theme.size_Cl; 
+        plot_theme.shared_style...
+    )
+
+    if save_fig
+        mkpath(joinpath(paths.plot_subdir, "Sl_plots"))
+        fname = "kpp_vs_Sl_idxell_$(il)_kpp_$(round(k_pp, digits=3)).png"
+        savefig(p, joinpath(paths.plot_subdir, "Sl_plots", fname))
+    end
+
+    if showfig
+        display(p)
+    end
+
+    return p
+end
+
+function plot_Sl_fixed_l_varying_k(grids, S_lkk_gg, grid_data, paths, plot_theme; 
+                                   il::Int=1, step::Int=20, normalize::Bool=true, 
+                                   save_fig::Bool=true, showfig::Bool=false)
+
+    ell_val = grid_data.ℓ[il]
+    p = plot()
+
+    # Pre-generate color gradient across the total grid length
+    color_palette = cgrad(:seaborn_icefire_gradient, grid_data.Nkp)
+
+    for ip in 1:step:grid_data.Nkp
+        kp = grids.k_grid[ip]
+        
+        # Extract signal curve for current k_pp index and l index
+        signal = S_lkk_gg[:, ip, il]
+        y_data = normalize ? signal ./ maximum(signal) : signal
+
+        plot!(p, sort(grids.k_grid), y_data, 
+            color = color_palette[ip],
+            label = L"k_p = k_{pp} = %$(round(kp, digits=5)) \; \mathrm{h/Mpc}",
+            linestyle = :solid,
+            lw = 1.5
+        )
+    end
+
+    plot!(p,
+        xlabel = L"k_{p} \; (h/\mathrm{Mpc})",
+        ylabel = normalize ? L"S_\ell / \max(S_\ell)" : L"S_\ell",
+        xscale = :log10,
+        minorticks = true
+    )
+
+    plot!(p,
+        title = L"S_\ell^{gg} \; \mathrm{for} \; \ell = %$(ell_val)",
+        legendposition = :outertopright, 
+        size = plot_theme.size_Cl, 
+        titlefontsize = 20, 
+        titleposition = :left; 
+        plot_theme.shared_style...
+    )
+
+    if save_fig
+        mkpath(joinpath(paths.plot_subdir, "Sl_plots"))
+        suffix = normalize ? "_normalized" : ""
+        fname = "kp_vs_Sl_idxell_$(il)_kpp_fixed$(suffix).png"
+        savefig(p, joinpath(paths.plot_subdir, "Sl_plots", fname))
+    end
+
+    if showfig
+        display(p)
+    end
+
+    return p
+end
+
+function animate_Sl_fixed_l_varying_k(grids, S_lkk_gg, grid_data, paths, plot_theme; 
+                                       il::Int=1, step::Int=20, normalize::Bool=false, 
+                                       fps::Int=1, save_fig::Bool=true, showfig::Bool=false)
+
+    ell_val = grid_data.ℓ[il]
+    
+    plt = plot(
+        xlabel = L"k_{p} \; (h/\mathrm{Mpc})",
+        ylabel = normalize ? L"S_\ell / \max(S_\ell)" : L"S_\ell",
+        xscale = :log10,
+        minorticks = true,
+        title = L"S_\ell^{gg} \; \mathrm{for} \; \ell = %$(ell_val)",
+        legendposition = :outertopright, 
+        size = plot_theme.size_Cl, 
+        titlefontsize = 20, 
+        titleposition = :left; 
+        plot_theme.shared_style...
+    )
+
+    color_palette = cgrad(:seaborn_icefire_gradient, grid_data.Nkp)
+
+    anim = @animate for ip in 1:step:grid_data.Nkp
+        kp = grids.k_grid[ip]
+        signal = S_lkk_gg[:, ip, il]
+        y_data = normalize ? signal ./ maximum(signal) : signal
+
+        plot!(
+            plt,
+            grids.k_grid, 
+            y_data, 
+            color = color_palette[ip],
+            label = L"k_p = k_{pp} = %$(round(kp, digits=5)) \; \mathrm{h/Mpc}",
+            linestyle = :solid, 
+            lw = 1.5
+        )
+    end
+
+    if save_fig
+        mkpath(joinpath(paths.plot_subdir, "Sl_plots"))
+        suffix = normalize ? "_normalized" : ""
+        gif_path = joinpath(paths.plot_subdir, "Sl_plots", "kp_vs_Sl_idxell_$(il)_evolution$(suffix).gif")
+        gif(anim, gif_path, fps = fps)
+    end
+
+    if showfig
+        display(anim)
+    end
+
+    return anim
+end
+
+function plot_Sl_fixed_kpp_varying_l(grids, S_lkk_gg, grid_data, paths, plot_theme; 
+                                     ipp::Int=4, step::Int=20, normalize::Bool=false, 
+                                     save_fig::Bool=true, showfig::Bool=false)
+
+    kpp = grids.kp_grid[ipp]
+    p = plot()
+
+    n_ell = length(grid_data.ℓ)
+    color_palette = cgrad(:seaborn_icefire_gradient, n_ell)
+
+    for il in 1:step:n_ell
+        signal = S_lkk_gg[:, ipp, il]
+        y_data = normalize ? signal ./ maximum(signal) : signal
+
+        plot!(p, grids.kp_grid, y_data,
+            color = color_palette[il],
+            label = L"k_{pp} = %$(round(kpp, digits=5)) \; \mathrm{h/Mpc}, \; \ell = %$(grid_data.ℓ[il])",
+            linestyle = :solid, 
+            lw = 1.5
+        )
+    end
+
+    plot!(p,
+        xlabel = L"k_{p} \; (h/\mathrm{Mpc})",
+        ylabel = normalize ? L"S_\ell / \max(S_\ell)" : L"S_\ell",
+        xscale = :log10,
+        minorticks = true
+    )
+
+    plot!(p,
+        title = L"S_\ell^{gg} = \int dk k^2 P(k) \int \tilde W(k, k_1) \int \tilde W(k, k_2) (\mathrm{at} \; \mathrm{different} \; \ell)",
+        titlefontsize = 20,
+        titleposition = :left,
+        legendposition = :outertopright, 
+        size = plot_theme.size_Cl; 
+        plot_theme.shared_style...
+    )
+
+    if save_fig
+        mkpath(joinpath(paths.plot_subdir, "Sl_plots"))
+        suffix = normalize ? "_normalized" : ""
+        fname = "kp_vs_Sl_idxkpp_$(ipp)_varying_l$(suffix).png"
+        savefig(p, joinpath(paths.plot_subdir, "Sl_plots", fname))
+    end
+
+    if showfig
+        display(p)
+    end
+
+    return p
+end
+
+using Plots
+
+function animate_Sl_fixed_kpp_varying_l(grids, S_lkk_gg, grid_data, paths, plot_theme; 
+                                        ipp::Int=140, step::Int=30, normalize::Bool=false, 
+                                        fps::Int=1, save_fig::Bool=true, showfig::Bool=false)
+
+    kpp = grids.kp_grid[ipp]
+    n_ell = length(grid_data.ℓ)
+    
+    # Initialize the base plot outside the loop
+    plt = plot(
+        xlabel = L"k_{p} \; (h/\mathrm{Mpc})",
+        ylabel = normalize ? L"S_\ell / \max(S_\ell)" : L"S_\ell",
+        xscale = :log10,
+        minorticks = true,
+        title = L"S_\ell^{gg} = \int dk k^2 P(k) \int \tilde W(k, k_1) \int \tilde W(k, k_2) \; (\mathrm{at} \; \mathrm{different} \; \ell)",
+        titlefontsize = 16,
+        titleposition = :left, 
+        legendposition = :outertopright, 
+        size = plot_theme.size_Cl; 
+        plot_theme.shared_style...
+    )
+
+    color_palette = cgrad(:seaborn_icefire_gradient, n_ell) 
+
+    # Generate the animation frame by frame
+    anim = @animate for il in 1:step:n_ell
+        signal = S_lkk_gg[:, ipp, il]
+        y_data = normalize ? signal ./ maximum(signal) : signal
+
+        plot!(
+            plt,
+            grids.kp_grid, 
+            y_data,
+            color = color_palette[il],
+            label = L"k_{pp} = %$(round(kpp, digits=5)) \; \mathrm{h/Mpc}, \; \ell = %$(grid_data.ℓ[il])",
+            linestyle = :solid
+        )
+    end
+
+    if save_fig
+        mkpath(joinpath(paths.plot_subdir, "Sl_plots"))
+        suffix = normalize ? "_normalized" : ""
+        # Cleaned up filename to avoid excessively long float strings
+        fname = "kpp_vs_Sl_idxell_loop_on_ell_kp_$(round(kpp, digits=3))$(suffix).gif"
+        gif_path = joinpath(paths.plot_subdir, "Sl_plots", fname)
+        
+        gif(anim, gif_path, fps = fps)
+    end
+    
+    if showfig
+        display(anim)
+    end
+    
+    return anim
+end
+
+function plot_l_lplus1_Sl(grids, S_lkk_gg, grid_data, paths, plot_theme; 
+                          ip::Int=150, ipp::Int=150, save_fig::Bool=true, showfig::Bool=false)
+    
+    k_p = grids.k_grid[ip]
+    k_pp = grids.kp_grid[ipp]
+
+    # Calculate \ell(\ell+1) S_\ell
+    y_data = S_lkk_gg[ip, ipp, :] .* grid_data.ℓ .* (grid_data.ℓ .+ 1)
+
+    p = plot(
+        grid_data.ℓ,
+        y_data,
+        xlabel = L"\ell",
+        ylabel = L"\ell(\ell+1)S_\ell",
+        label = "Beyond BLAST",
+        legend = false,
+        colorbar = true,
+        colorbar_title = L"j",
+        clims = (1, grid_data.Nkp),
+        title = L"\ell(\ell+1)S_\ell^{gg}",
+        size = plot_theme.size_Cl,
+        titlefontsize = 20,
+        xscale = :log10,
+        titleposition = :left;
+        plot_theme.shared_style...
+    )
+
+    if save_fig
+        mkpath(joinpath(paths.plot_subdir, "Sl_plots"))
+        fname = "l_lplus1_Sl_ip_$(ip)_ipp_$(ipp).png"
+        savefig(p, joinpath(paths.plot_subdir, "Sl_plots", fname))
+    end
+
+    if showfig
+        display(p)
+    end
+
+    return p
+end
+
+function plot_Sl_diagonal_ell_evolution(grids, S_lkk_gg, grid_data, paths, plot_theme; 
+                                       nshow::Int=100, normalize::Bool=true, 
+                                       save_fig::Bool=true, showfig::Bool=false)
+
+    # Extract diagonals across all ell indices: shape (Nkp, N_ell)
+    n_ell = size(S_lkk_gg, 3)
+    diagS = [diag(S_lkk_gg[:, :, i]) for i in 1:n_ell]
+
+    # Select sampled indices across the ell range
+    idx = round.(Int, range(1, n_ell, length=min(nshow, n_ell)))
+
+    p = plot(
+        xlabel = L"k \; (h/\mathrm{Mpc})",
+        ylabel = normalize ? L"S_\ell(k,k) / \max(S_\ell(k,k))" : L"S_\ell(k,k)",
+        title  = L"S_\ell^{gg}(k,k)\ \mathrm{for\ different}\ \ell\ \mathrm{values}",
+        colorbar_title = L"\ell",
+        clims = (grid_data.ℓ[1], grid_data.ℓ[end]),
+        legend = false,
+        colorbar = true,
+        size = plot_theme.size_Cl; 
+        plot_theme.shared_style...
+    )
+
+    # Palette mapped to the number of sampled lines
+    colors = cgrad(:seaborn_icefire_gradient, length(idx))
+
+    for (k, ii) in enumerate(idx)
+        curve = diagS[ii]
+        y_data = normalize ? curve ./ maximum(curve) : curve
+
+        plot!(p, grids.kp_grid, y_data, 
+            line_z = grid_data.ℓ[ii],
+            color = colors[k],
+            lw = 1.5,
+            label = L"\ell = %$(grid_data.ℓ[ii])"
+        )
+    end
+
+    if save_fig
+        mkpath(joinpath(paths.plot_subdir, "Sl_plots"))
+        suffix = normalize ? "_normalized" : ""
+        fname = "Sl_diagonal_ell_evolution$(suffix).png"
+        savefig(p, joinpath(paths.plot_subdir, "Sl_plots", fname))
+    end
+
+    if showfig
+        display(p)
+    end
+
+    return p
+end
