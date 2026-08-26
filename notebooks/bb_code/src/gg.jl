@@ -27,7 +27,7 @@ function compute_Wx(
     cosmo;
     output_dir::AbstractString,
     plot_style::AbstractDict = Dict()
-)
+    )
     # setting the output directory for plots
     bb.append_to_log(output_dir, "=== Galaxy prefactor function started ===")
     bb.append_to_log(output_dir, "Processing galaxy prefactor calculation...")
