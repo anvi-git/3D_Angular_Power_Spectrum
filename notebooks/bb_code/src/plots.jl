@@ -1,3 +1,19 @@
+# plot_k_grids(k_grid::AbstractVector, kp_grid::AbstractVector, kpp_grid::AbstractVector;
+#               output_dir::AbstractString, plot_style::AbstractDict = Dict())
+# This function generates plots of the k grid points, including histograms and heatmaps. 
+# The plots are saved in the specified directory.
+# ### Parameters
+# - `k_grid`: An array containing the k grid points.
+# - `kp_grid`: An array containing the k' grid points.
+# - `kpp_grid`: An array containing the k'' grid points.
+# - `output_dir`: The directory where the plots will be saved.
+# - `plot_style`: A dictionary with plot style options (e.g., line color, title, legend position).
+
+# ### Returns
+# - `hist_k`: Histogram of the k grid points.
+# - `hist_kp`: Histogram of the k' grid points.
+# - `hist_kpp`: Histogram of the k'' grid points.
+
 function plot_k_grids(k_grid::AbstractVector, kp_grid::AbstractVector, kpp_grid::AbstractVector;
                       output_dir::AbstractString, plot_style::AbstractDict = Dict())
 
@@ -40,17 +56,8 @@ function plot_heatmaps(
     paths;
     il::Int = 1
 )
-
-    xticks_vals = 10.0 .^ (
-        floor(Int, log10(minimum(k_grid))) :
-        ceil(Int,  log10(maximum(k_grid)))
-    )
-
-    yticks_vals = 10.0 .^ (
-        floor(Int, log10(minimum(kp_grid))) :
-        ceil(Int,  log10(maximum(kp_grid)))
-    )
-
+    xticks_vals = 10.0 .^ (floor(Int, log10(minimum(k_grid))) :ceil(Int,  log10(maximum(k_grid))))
+    yticks_vals = 10.0 .^ (floor(Int, log10(minimum(kp_grid))) :ceil(Int,  log10(maximum(kp_grid))))
     Wnorm = W_final_gal[il, :, :] / maximum(W_final_gal[il, :, :])
 
     p1 = heatmap(
