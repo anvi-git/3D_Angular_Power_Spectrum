@@ -25,16 +25,23 @@ function plot_k_grids(k_grid::AbstractVector, kp_grid::AbstractVector, kpp_grid:
     bins_kp  = round(Int, sqrt(Nkp))
     bins_kpp = round(Int, sqrt(Nkpp))
 
-    # Assicura che la cartella di output esista
     plots_dir = joinpath(output_dir, "plots")
     k_grid_dir = joinpath(plots_dir, "k_grid")
     isdir(k_grid_dir) || mkpath(k_grid_dir)
+    color = get(plot_style, :color, :slategrey)
+    hist_k_log = histogram(log10.(k_grid), bins = bins_k,
+              xlabel = L"\mathrm{log_{10}}(k \; (h/\mathrm{Mpc}))", ylabel = "Number of points", color = color,
+              title = "Distribution of k grid points", legend = false; plot_style...)
+    savefig(joinpath(k_grid_dir, "k_grid_distribution_log.png"))
 
     hist_k = histogram(k_grid, bins = bins_k,
-              xlabel = L"k \; (h/\mathrm{Mpc})", ylabel = "Number of points", 
+              xlabel = L"k \; (h/\mathrm{Mpc})", ylabel = "Number of points", color = color,
               title = "Distribution of k grid points", legend = false; plot_style...)
     savefig(joinpath(k_grid_dir, "k_grid_distribution.png"))
 
+    p_combined = plot(hist_k_log, hist_k, layout = (2, 1), size = (800, 900), dpi = 150)
+    savefig(p_combined, joinpath(k_grid_dir, "k_grid_distribution_combined.png"))
+    
     hist_kp = histogram(kp_grid, bins = bins_kp,
               xlabel = L"k' \; (h/\mathrm{Mpc})", ylabel = "Number of points",
               title = "Distribution of k' grid points", legend = false; plot_style...)
@@ -45,7 +52,7 @@ function plot_k_grids(k_grid::AbstractVector, kp_grid::AbstractVector, kpp_grid:
               title = "Distribution of k'' grid points", legend = false; plot_style...)
     savefig(joinpath(k_grid_dir, "kpp_grid_distribution.png"))
 
-    return hist_k, hist_kp, hist_kpp
+    return hist_k_log, hist_k, hist_kp, hist_kpp
 end
 
 function plot_heatmaps(

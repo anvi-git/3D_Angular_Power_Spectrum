@@ -113,14 +113,26 @@ function compute_Wx(
     bb.append_to_log(output_dir, "W(z) plot saved.")
 
     # Normalized comparison plot
-    plot(z, bz_array ./ maximum(bz_array), label=L"b(z)", xlabel=L"z", ylabel=L"Normalized b(z)", title=L"Normalized b(z)"; plot_style...)
-    plot!(z, x ./ maximum(x), label=L"\chi(z)", title = L"Normalized \chi", xlabel=L"z", ylabel=L"Normalized \chi", size=(800,600); plot_style...)
-    plot!(z, D_growth_array ./ maximum(D_growth_array), label=L"D(z)", xlabel=L"z", ylabel=L"Normalized D(z)", title=L"Normalized D(z)", legend=:bottomright; plot_style...)
-    plot!(z, n_chi_norm ./ maximum(n_chi_norm), label=L"n(z)", xlabel=L"z", ylabel=L"Normalized n(z)", title=L"Normalized n(z)", size=(800,600); plot_style...)
-    plot!(z, Hubble_array ./ maximum(Hubble_array), label=L"H(z)", xlabel=L"z", ylabel=L"Normalized H(z)", title=L"Normalized H(z)", size=(800,600); plot_style...)
-    plot!(z, W_x ./ maximum(W_x), label=L"\frac{n(z) b(z) D(z) \chi(z)^2 H(z)}{c}", xlabel=L"z", ylabel="Normalized Kernel", title="Normalized Kernel", legend=:bottomright; plot_style...)
-    savefig(joinpath(output_dir, "plots/W/Wg_norm.png"))
-    bb.append_to_log(output_dir, "Normalized kernel plot saved.")
+    plot(z, bz_array ./ maximum(bz_array),
+    label = L"b(z)", linestyle = :dash, linewidth = 1.5, alpha = 0.75,
+    xlabel = L"z", ylabel = "Normalized quantities", title = "Normalized Kernel components";
+    plot_style...)
+    plot!(z, x ./ maximum(x),
+    label = L"\chi(z)", linestyle = :dot, linewidth = 1.5, alpha = 0.75; plot_style...)
+    plot!(z, D_growth_array ./ maximum(D_growth_array),
+    label = L"D(z)", linestyle = :dashdot, linewidth = 1.5, alpha = 0.75; plot_style...)
+    plot!(z, n_chi_norm ./ maximum(n_chi_norm),
+    label = L"n(z)", linestyle = :dash, linewidth = 1.5, alpha = 0.75; plot_style...)
+    plot!(z, Hubble_array ./ maximum(Hubble_array),
+    label = L"H(z)", linestyle = :dot, linewidth = 1.5, alpha = 0.75; plot_style...)
+    plot!(z, W_x ./ maximum(W_x),
+    label = L"\frac{n(z) b(z) D(z) \chi(z)^2 H(z)}{c}",
+    linestyle = :solid, linewidth = 3, color = :black; plot_style...)
+    plot!(dpi = 1500, size = (1500, 600),
+    legend = :outerright, legend_columns = 2; plot_style...)
+
+savefig(joinpath(output_dir, "plots/W/Wg_norm.png"))
+bb.append_to_log(output_dir, "Normalized kernel plot saved.")
 
     bb.append_to_log(output_dir, "Done kernel calculation.")
     bb.append_to_log(output_dir, "Size of the complete prefactor array is $(length(W_x)).")

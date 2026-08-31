@@ -80,7 +80,7 @@ function compute_W(ℓ::Number, xmin::Number, xmax::Number,
     for ic in 1:n_cheb
     @views Tw = T[ic, :] .* w
     #Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel2'
-    Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel1'
+    Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel1'\
     @views @. T_tilde[:, :, ic, 1] = Dim_Integrated * kp_grid'
     #@views T_tilde[:, :, ic, 1] = Dim_Integrated .* kp_grid'
     end
@@ -153,6 +153,7 @@ function analyze_W_cheb(grid_data, x_cheb, W_x, W_cheb, c_cheb, grids, bb, paths
     rel_err_abs = abs.(rel_err)
     rel_err_pct = 100 .* rel_err
     rel_err_pct_abs = 100 .* rel_err_abs
+    max_rel_err_pct = maximum(rel_err_pct_abs)
 
     # Plot 2: relative percentage error of Chebyshev approximation
     p_relerr = plot(1:grid_data.n_cheb, rel_err_pct,
@@ -164,19 +165,21 @@ function analyze_W_cheb(grid_data, x_cheb, W_x, W_cheb, c_cheb, grids, bb, paths
 
     # Subplot combinato p1 + p2
     p1 = plot(sort(x_cheb), W_x_on_cheb,
-        label = L"\sum_{n=0}^{N_{\mathrm{cheb}}-1} c_n T_n(\chi)", ls = :dash, color = :green)
-    plot!(p1, x_cheb, W_cheb, label = L"W(\chi)", lw = 1, ls = :dot, color = :red)
-    plot!(p1, dpi = 300, legendposition = :topleft, xlabel = L"\chi [Mpc/h]", ylabel = L"W(\chi) [\mathrm{Mpc}/h]",
-          size = plot_theme.size_Cl; plot_theme.shared_style...)
+        label = L"\sum_{n=0}^{N_{\mathrm{cheb}}-1} c_n T_n(\chi)", ls = :dash, color = :brown2)
+    plot!(p1, x_cheb, W_cheb, label = L"W(\chi)", lw = 1, ls = :dot, color = :slategrey)
+    plot!(p1, dpi = 1500, legendposition = :topleft, xlabel = L"\chi [Mpc/h]", ylabel = L"W(\chi) [\mathrm{Mpc}/h]",
+            size = plot_theme.size_Cl; plot_theme.shared_style...)
 
     p2 = plot(1:grid_data.n_cheb, rel_err_pct,
-        label = L"\frac{W_{\mathrm{Cheb}} - W_{\mathrm{true}}}{W_{\mathrm{true}}} [\%]",
-        lw = 1.0, marker = :circle, markercolor = :black, markersize = 1, linestyle = :dot,
-        title = "relative error [%]", titlefontsize = 10)
+            label = L"\frac{W_{\mathrm{Cheb}} - W_{\mathrm{true}}}{W_{\mathrm{true}}} [\%]",
+            marker = :circle, markerstrokecolor = :black, markercolor = :black, markersize = 2,
+            ls = :solid, lw = 0.5, color = :black,
+            title = "relative error [%]", titlefontsize = 10, xlabel = " Chebyshev steps")
     hline!(p2, [0.0], ls = :solid, lw = 1, color = :red, label = false)
 
-    p_combined = plot(p1, p2, layout = @layout([a; b]), dpi = 300,
-        xlabel = L"\chi\,[\mathrm{Mpc}/h]", size = plot_theme.size_Cl; plot_theme.shared_style...)
+    p_combined = plot(p1, p2, layout = @layout([a; b]), dpi = 1500,
+            xlabel = [L"\chi\,[\mathrm{Mpc}/h]" "steps"], size = plot_theme.size_Cl; plot_theme.shared_style...)
+    savefig(p_combined, joinpath(w_dir, "chebcoeff_combined_galaxy.png"))
 
     # Plot 3: c_cheb decay
     n_idx = 0:(grid_data.n_cheb - 1)
@@ -185,7 +188,8 @@ function analyze_W_cheb(grid_data, x_cheb, W_x, W_cheb, c_cheb, grids, bb, paths
         xlabel = L"n", ylabel = L"|c_n|",
         label = L"|c_n| \ \mathrm{di} \ W(\chi)",
         title = "Chebyshev coefficients decay",
-        marker = :circle, markersize = 3; plot_theme.shared_style...)
+        marker = :circle, markersize = 3, color = :slategrey; plot_theme.shared_style...)
+    p_decay(dpi = 1500)
     savefig(p_decay, joinpath(w_dir, "chebcoeff_decay_galaxy.png"))
 
     # Plot 4: truncation error analysis
@@ -208,5 +212,5 @@ function analyze_W_cheb(grid_data, x_cheb, W_x, W_cheb, c_cheb, grids, bb, paths
     savefig(p_trunc, joinpath(w_dir, "chebcoeff_truncation_error_galaxy.png"))
 
     return (W_x_on_cheb = W_x_on_cheb, rel_err_pct = rel_err_pct, errs = errs,
-            p_wx = p_wx, p_relerr = p_relerr, p_combined = p_combined, p_decay = p_decay, p_trunc = p_trunc)
+            p_wx = p_wx, p_relerr = p_relerr, p_combined = p_combined, p_decay = p_decay, p_trunc = p_trunc, max_rel_err_pct = max_rel_err_pct)
 end
