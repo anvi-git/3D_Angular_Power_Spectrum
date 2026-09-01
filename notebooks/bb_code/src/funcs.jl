@@ -80,7 +80,7 @@ function compute_W(ℓ::Number, xmin::Number, xmax::Number,
     for ic in 1:n_cheb
     @views Tw = T[ic, :] .* w
     #Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel2'
-    Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel1'\
+    Dim_Integrated = Bessel1 * Diagonal(Tw) * Bessel1'
     @views @. T_tilde[:, :, ic, 1] = Dim_Integrated * kp_grid'
     #@views T_tilde[:, :, ic, 1] = Dim_Integrated .* kp_grid'
     end
@@ -188,8 +188,8 @@ function analyze_W_cheb(grid_data, x_cheb, W_x, W_cheb, c_cheb, grids, bb, paths
         xlabel = L"n", ylabel = L"|c_n|",
         label = L"|c_n| \ \mathrm{di} \ W(\chi)",
         title = "Chebyshev coefficients decay",
-        marker = :circle, markersize = 3, color = :slategrey; plot_theme.shared_style...)
-    p_decay(dpi = 1500)
+        marker = :circle, markercolor = :slategrey, ls = :solid, lw = 0.5; plot_theme.shared_style...)
+    p_decay = plot!(p_decay, dpi = 1500)
     savefig(p_decay, joinpath(w_dir, "chebcoeff_decay_galaxy.png"))
 
     # Plot 4: truncation error analysis
@@ -204,11 +204,12 @@ function analyze_W_cheb(grid_data, x_cheb, W_x, W_cheb, c_cheb, grids, bb, paths
     yticks_vals = 10.0 .^ (floor(log10(minimum(errs))):ceil(log10(maximum(errs))))
 
     p_trunc = plot(truncs, errs,
-        yscale = :log10, marker = :circle,
+        yscale = :log10, marker = :circle, markercolor = :slategrey, ls = :solid, lw = 0.5,
         xlabel = L"N_{trunc}",
         ylabel = L"\mathrm{err}(N_{trunc}) = \frac{\max_i |W_{N_{trunc}} - W(\chi_i)|}{\max_i |W(\chi_i)|}",
         title  = L"\mathrm{err}(N_{trunc}) = \frac{\max_i |W_{N_{trunc}} - W(\chi_i)|}{\max_i |W(\chi_i)|}",
         legend = false, framestyle = :box, yticks = yticks_vals, size = plot_theme.size_Cl; plot_theme.shared_style...)
+    p_trunc = plot!(p_trunc, dpi = 1500)
     savefig(p_trunc, joinpath(w_dir, "chebcoeff_truncation_error_galaxy.png"))
 
     return (W_x_on_cheb = W_x_on_cheb, rel_err_pct = rel_err_pct, errs = errs,

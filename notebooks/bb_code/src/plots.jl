@@ -70,7 +70,7 @@ function plot_heatmaps(
     p1 = heatmap(
         k_grid, kp_grid,
         Wnorm,
-        title = L"W_{final}^{gg}" * "(at fixed " * L"ℓ)",
+        title = L"W_{final}^{gg}" * "(at fixed " * L"ℓ = 2)",
         xscale = :log10,
         yscale = :log10,
         xlabel = L"log_{10}(k) \; [\mathrm{h/Mpc}]",
@@ -87,7 +87,7 @@ function plot_heatmaps(
     p2 = heatmap(
         k_grid, kp_grid,
         Wnorm,
-        title = L"W_{final}^{gg}" * "(at fixed " * L"ℓ)",
+        title = L"W_{final}^{gg}" * "(at fixed " * L"ℓ = 2)",
         xlabel = L"k",
         ylabel = L"k_p",
         size = plot_theme.size_heatmap,
@@ -153,7 +153,8 @@ function plot_theory_Pk(
         titlefontsize = 20,
         xlabel = L"$k \; (h/\mathrm{Mpc})$",
         ylabel = L"$P(k) \; ((\mathrm{Mpc}/h)^3)$",
-        labelfontsize = 15
+        labelfontsize = 15,
+        dpi = 1500
     )
 
     plot!(
@@ -193,6 +194,7 @@ function plot_Sl_kp_kpp(grids, S_lkk_gg, grid_data, paths, plot_theme;
         title = L"S_{\ell}^{gg} (k_p = k_{pp} = %$(round(k_p, digits=5)) \; \mathrm{h/Mpc})",
         titlefontsize = 20,
         titleposition = :left,
+        dpi = 1500,
         plot_theme.shared_style...
     )
 
