@@ -26,32 +26,24 @@ The notebook extends the BLAST workflow to build a quantity of the form `S_l(k1,
 
 ## Pipeline overview
 
-```mermaid
-flowchart TD
-<<<<<<< HEAD
-    A["Start notebook and activate Julia environment"] --> B["using Pkg Pkg.activate(blast_code) Pkg.resolve() Pkg.instantiate()"]
-    A --> C["Include BLAST and custom source files"]
-=======
-    A["Start notebook"] --> B["Activate Julia environment"]
-    B --> C["Include BLAST and custom source files"]
->>>>>>> refs/remotes/origin/main
-    C --> D["Load background arrays z and chi"]
-    D --> E["Build interpolators z(chi) and chi(z)"]
-    E --> F["Set grids in chi, z, ell, k"]
-    F --> G["Build shear prefactor"]
-    F --> H["Build galaxy prefactor"]
-    G --> I["Compute Chebyshev coefficients for shear"]
-    H --> J["Compute Chebyshev coefficients for galaxy"]
-    I --> K["Load or compute W_tilde"]
-    J --> K
-    K --> L["Contract W_tilde with kernel coefficients"]
-    L --> M["Build W_final"]
-    M --> N["Load matter power spectrum P(k,z)"]
-    N --> O["Build k-space weights"]
-    O --> P["Assemble S_l(k1,k2)"]
-    P --> Q["Save arrays and diagnostic plots"]
-<<<<<<< HEAD
+- `bb.jl` is the entry point included by the notebook; its `include` statements load the 11 source modules shown above.
+- `config.jl` reads the three packaged input files used to build the cosmology and redshift grids.
+- The `W_tilde.npy` reuse path is hard-coded as an absolute path in the notebook and is only read when `reuse = true`.
+- The run directory is timestamped, so its exact name is created at execution time. Plot files are produced by the plotting functions and may vary with the executed cells.
+- `notebooks/bb_code/src/blast_tutorials.jl`, `Blast.jl`, and `shear_shear.jl` exist in the source directory but are not included by `bb.jl` for this notebook.
 
-=======
->>>>>>> refs/remotes/origin/main
+
+```mermaid
+flowchart LR
+    notebook["notebooks/main_nb.ipynb"] --> env["notebooks/bb_code/Project.toml"]
+    notebook --> entry["notebooks/bb_code/src/bb.jl"]
+
+    entry --> source["src modules:<br/>cosmo · background · projected_matter · chebcoefs · integrals · funcs · plots · gg · paths · config · plot_config"]
+    config --> data["data/background/z.npy<br/>data/background/chi.npy<br/>data/dNdzs_fullwidth.npz"]
+
+    notebook -. reuse .-> reuse["out/.../W_tilde.npy"]
+    notebook --> generated["out/runs/run_<timestamp>/<br/>output_info.txt · quantities/ · plots/"]
+
+    env --> packages["Julia packages:<br/>NPZ · HDF5 · Plots · QuadGK · FFTW · Cosmology · ..."]
+    notebook -. cites .-> paper["arXiv:2410.03632"]
 
