@@ -95,3 +95,19 @@ flowchart TD
 - The `W_tilde.npy` reuse path is hard-coded as an absolute path in the notebook and is only read when `reuse = true`.
 - The run directory is timestamped, so its exact name is created at execution time. Plot files are produced by the plotting functions and may vary with the executed cells.
 - `notebooks/bb_code/src/blast_tutorials.jl`, `Blast.jl`, and `shear_shear.jl` exist in the source directory but are not included by `bb.jl` for this notebook.
+
+
+```mermaid
+flowchart LR
+    notebook["notebooks/main_nb.ipynb"] --> env["notebooks/bb_code/Project.toml"]
+    notebook --> entry["notebooks/bb_code/src/bb.jl"]
+
+    entry --> source["src modules:<br/>cosmo · background · projected_matter · chebcoefs · integrals · funcs · plots · gg · paths · config · plot_config"]
+    config --> data["data/background/z.npy<br/>data/background/chi.npy<br/>data/dNdzs_fullwidth.npz"]
+
+    notebook -. reuse .-> reuse["out/.../W_tilde.npy"]
+    notebook --> generated["out/runs/run_<timestamp>/<br/>output_info.txt · quantities/ · plots/"]
+
+    env --> packages["Julia packages:<br/>NPZ · HDF5 · Plots · QuadGK · FFTW · Cosmology · ..."]
+    notebook -. cites .-> paper["arXiv:2410.03632"]
+```

@@ -74,7 +74,7 @@ function plot_heatmaps(
         xscale = :log10,
         yscale = :log10,
         xlabel = L"log_{10}(k) \; [\mathrm{h/Mpc}]",
-        ylabel = L"log_{10}(k_p) \; [\mathrm{h/Mpc}]",
+        ylabel = L"log_{10}(k_1) \; [\mathrm{h/Mpc}]",
         size = plot_theme.size_heatmap,
         c = plot_theme.c,
         xticks = xticks_vals,
@@ -89,7 +89,7 @@ function plot_heatmaps(
         Wnorm,
         title = L"W_{final}^{gg}" * "(at fixed " * L"ℓ = 2)",
         xlabel = L"k",
-        ylabel = L"k_p",
+        ylabel = L"k_1",
         size = plot_theme.size_heatmap,
         c = plot_theme.c;
         plot_theme.shared_style...
@@ -111,10 +111,10 @@ function plot_theory_Pk(
     pk_dict = npzread(pk_file)
     Pklin = pk_dict["pk_lin"]
     Pknonlin = pk_dict["pk_nl"]
-    k_pk = pk_dict["k"]
+    k_1k = pk_dict["k"]
     z_pk = pk_dict["z"]
 
-    y_pk = LinRange(log10(first(k_pk)), log10(last(k_pk)), length(k_pk))
+    y_pk = LinRange(log10(first(k_1k)), log10(last(k_1k)), length(k_1k))
     x_pk = LinRange(first(z_pk), last(z_pk), length(z_pk))
 
     InterpPmm = Interpolations.interpolate(
@@ -141,11 +141,11 @@ function plot_theory_Pk(
         10^InterpPmm_nl(grid_data.z_of_χ(χ2), log10(k))
     )
 
-    pk_lin_vals = power_spectrum.(k_pk, χ1, χ2)
-    pk_nl_vals  = power_spectrum_nl.(k_pk, χ1, χ2)
+    pk_lin_vals = power_spectrum.(k_1k, χ1, χ2)
+    pk_nl_vals  = power_spectrum_nl.(k_1k, χ1, χ2)
 
     p = plot(
-        k_pk, pk_lin_vals,
+        k_1k, pk_lin_vals,
         label = "Linear P(k)",
         xscale = :log10,
         yscale = :log10,
@@ -159,7 +159,7 @@ function plot_theory_Pk(
 
     plot!(
         p,
-        k_pk, pk_nl_vals,
+        k_1k, pk_nl_vals,
         label = "Non-linear P(k)",
         xscale = :log10,
         yscale = :log10,
@@ -167,31 +167,31 @@ function plot_theory_Pk(
         plot_theme.shared_style...
     )
 
-    return (; p, k_pk, pk_lin_vals, pk_nl_vals, InterpPmm, InterpPmm_nl, power_spectrum, power_spectrum_nl)
+    return (; p, k_1k, pk_lin_vals, pk_nl_vals, InterpPmm, InterpPmm_nl, power_spectrum, power_spectrum_nl)
 end
 
 function plot_Sl_kp_kpp(grids, S_lkk_gg, grid_data, paths, plot_theme; 
                          i::Int=150, j::Int=150, save_fig::Bool=true, showfig::Bool=false)
     
-    k_p = grids.k_grid[i]
-    k_pp = grids.kp_grid[j]
+    k_1 = grids.k_grid[i]
+    k_2 = grids.kp_grid[j]
 
     p = plot(grid_data.ℓ, S_lkk_gg[i, j, :],
         color = :black,
-        label = L"k_p = k_{pp} = %$(round(k_p, digits=5)) \; \mathrm{h/Mpc}"
+        label = L"k_1 = k_{2} = %$(round(k_1, digits=5)) \; \mathrm{h/Mpc}"
     )
 
     plot!(p,
         xlabel = L"\ell",
-        ylabel = L"S_\ell",
-        xscale = :log10,
+        ylabel = L"S_\ell (\mathrm{Mpc}/h)^2",
+        # xscale = :log10,
         minorticks = true
     )
 
     plot!(p;
         label = "Beyond BLAST",
         size = plot_theme.size_Cl,
-        title = L"S_{\ell}^{gg} (k_p = k_{pp} = %$(round(k_p, digits=5)) \; \mathrm{h/Mpc})",
+        title = L"S_{\ell}^{gg} (k_1 = k_{2} = %$(round(k_1, digits=5)) \; \mathrm{h/Mpc})",
         titlefontsize = 20,
         titleposition = :left,
         dpi = 1500,
@@ -213,26 +213,26 @@ end
 function plot_Sl_fixed_l_kpp(grids, S_lkk_gg, grid_data, paths, plot_theme; 
                             il::Int=1, ikpp::Int=5, save_fig::Bool=true, showfig::Bool=false)
     
-    k_pp = grids.kp_grid[ikpp]
+    k_2 = grids.kp_grid[ikpp]
     ell_val = grid_data.ℓ[il]
 
     p = plot(sort(grids.k_grid), S_lkk_gg[:, ikpp, il], 
-        label = L"k_{pp} = %$(round(k_pp, digits=5)) \; \mathrm{h/Mpc}, \; \ell = %$(ell_val)",
+        label = L"k_{2} = %$(round(k_2, digits=5)) \; \mathrm{h/Mpc}, \; \ell = %$(ell_val)",
         linestyle = :solid, 
         lw = 1.5
     )
 
     plot!(p,
-        xlabel = L"k_{p} \; (h/\mathrm{Mpc})",
+        xlabel = L"k_{1} \; (h/\mathrm{Mpc})",
         ylabel = L"S_\ell \; (\mathrm{Mpc}/h)^2",
         minorticks = true,
         xscale = :log10
     )
 
     plot!(p,
-        title = L"S_\ell^{gg} = \int dk k^2 P(k) \int \tilde W(k, k_1) \int \tilde W(k, k_2) (\mathrm{varying} \; k_1 (k_p), \mathrm{at} \; \mathrm{fixed} \; k_2 (k_{pp}))",
+        title = L"S_\ell^{gg} = \int dk k^2 P(k) \int \tilde W(k, k_1) \int \tilde W(k, k_2) (\mathrm{varying} \; k_1 (k_1), \mathrm{at} \; \mathrm{fixed} \; k_2 (k_{2}))",
         titlefontsize = 20,
-        label = L"\ell=%$(ell_val), k_{pp}=%$(round(k_pp, digits=3)) \; \mathrm{h/Mpc}",
+        label = L"\ell=%$(ell_val), k_{2}=%$(round(k_2, digits=3)) \; \mathrm{h/Mpc}",
         titleposition = :left, 
         labelfontsize = 20, 
         legendposition = :outertopright, 
@@ -242,7 +242,7 @@ function plot_Sl_fixed_l_kpp(grids, S_lkk_gg, grid_data, paths, plot_theme;
 
     if save_fig
         mkpath(joinpath(paths.plot_subdir, "Sl_plots"))
-        fname = "kpp_vs_Sl_idxell_$(il)_kpp_$(round(k_pp, digits=3)).png"
+        fname = "kpp_vs_Sl_idxell_$(il)_kpp_$(round(k_2, digits=3)).png"
         savefig(p, joinpath(paths.plot_subdir, "Sl_plots", fname))
     end
 
@@ -261,27 +261,27 @@ function plot_Sl_fixed_l_varying_k(grids, S_lkk_gg, grid_data, paths, plot_theme
     p = plot()
 
     # Pre-generate color gradient across the total grid length
-    color_palette = cgrad(:seaborn_icefire_gradient, grid_data.Nkp)
+    color_palette = palette(:roma, grid_data.Nkp)
 
     for ip in 1:step:grid_data.Nkp
         kp = grids.k_grid[ip]
         
-        # Extract signal curve for current k_pp index and l index
+        # Extract signal curve for current k_2 index and l index
         signal = S_lkk_gg[:, ip, il]
         y_data = normalize ? signal ./ maximum(signal) : signal
 
         plot!(p, sort(grids.k_grid), y_data, 
             color = color_palette[ip],
-            label = L"k_p = k_{pp} = %$(round(kp, digits=5)) \; \mathrm{h/Mpc}",
+            label = L"k_1 = k_{2} = %$(round(kp, digits=5)) \; \mathrm{h/Mpc}",
             linestyle = :solid,
             lw = 1.5
         )
     end
 
     plot!(p,
-        xlabel = L"k_{p} \; (h/\mathrm{Mpc})",
-        ylabel = normalize ? L"S_\ell / \max(S_\ell)" : L"S_\ell",
-        xscale = :log10,
+        xlabel = L"k_{1} \; (h/\mathrm{Mpc})",
+        ylabel = normalize ? L"S_\ell / \max(S_\ell)" :  L"S_\ell (\mathrm{Mpc}/h)^2",
+        #xscale = :log10,
         minorticks = true
     )
 
@@ -293,6 +293,16 @@ function plot_Sl_fixed_l_varying_k(grids, S_lkk_gg, grid_data, paths, plot_theme
         titleposition = :left; 
         plot_theme.shared_style...
     )
+    if step < 10
+        plot!(p, legend = false)
+        scatter!(p, [NaN], [NaN], 
+        zcolor = [minimum(grids.k_grid)], 
+        clims = (minimum(grids.k_grid), maximum(grids.k_grid)),
+        c = :viridis,
+        colorbar_title = L"k_1 \; (\mathrm{h/Mpc})",
+        label = ""
+        )
+    end
 
     if save_fig
         mkpath(joinpath(paths.plot_subdir, "Sl_plots"))
@@ -315,8 +325,8 @@ function animate_Sl_fixed_l_varying_k(grids, S_lkk_gg, grid_data, paths, plot_th
     ell_val = grid_data.ℓ[il]
     
     plt = plot(
-        xlabel = L"k_{p} \; (h/\mathrm{Mpc})",
-        ylabel = normalize ? L"S_\ell / \max(S_\ell)" : L"S_\ell",
+        xlabel = L"k_{1} \; (h/\mathrm{Mpc})",
+        ylabel = normalize ? L"S_\ell / \max(S_\ell)" : L"S_\ell (\mathrm{Mpc}/h)^2",
         xscale = :log10,
         minorticks = true,
         title = L"S_\ell^{gg} \; \mathrm{for} \; \ell = %$(ell_val)",
@@ -339,7 +349,7 @@ function animate_Sl_fixed_l_varying_k(grids, S_lkk_gg, grid_data, paths, plot_th
             grids.k_grid, 
             y_data, 
             color = color_palette[ip],
-            label = L"k_p = k_{pp} = %$(round(kp, digits=5)) \; \mathrm{h/Mpc}",
+            label = L"k_1 = k_{2} = %$(round(kp, digits=5)) \; \mathrm{h/Mpc}",
             linestyle = :solid, 
             lw = 1.5
         )
@@ -375,15 +385,15 @@ function plot_Sl_fixed_kpp_varying_l(grids, S_lkk_gg, grid_data, paths, plot_the
 
         plot!(p, grids.kp_grid, y_data,
             color = color_palette[il],
-            label = L"k_{pp} = %$(round(kpp, digits=5)) \; \mathrm{h/Mpc}, \; \ell = %$(grid_data.ℓ[il])",
+            label = L"k_{2} = %$(round(kpp, digits=5)) \; \mathrm{h/Mpc}, \; \ell = %$(grid_data.ℓ[il])",
             linestyle = :solid, 
             lw = 1.5
         )
     end
 
     plot!(p,
-        xlabel = L"k_{p} \; (h/\mathrm{Mpc})",
-        ylabel = normalize ? L"S_\ell / \max(S_\ell)" : L"S_\ell",
+        xlabel = L"k_{1} \; (h/\mathrm{Mpc})",
+        ylabel = normalize ? L"S_\ell / \max(S_\ell)" : L"S_\ell (\mathrm{Mpc}/h)^2",
         xscale = :log10,
         minorticks = true
     )
@@ -422,8 +432,8 @@ function animate_Sl_fixed_kpp_varying_l(grids, S_lkk_gg, grid_data, paths, plot_
     
     # Initialize the base plot outside the loop
     plt = plot(
-        xlabel = L"k_{p} \; (h/\mathrm{Mpc})",
-        ylabel = normalize ? L"S_\ell / \max(S_\ell)" : L"S_\ell",
+        xlabel = L"k_{1} \; (h/\mathrm{Mpc})",
+        ylabel = normalize ? L"S_\ell / \max(S_\ell)" : L"S_\ell (\mathrm{Mpc}/h)^2",
         xscale = :log10,
         minorticks = true,
         title = L"S_\ell^{gg} = \int dk k^2 P(k) \int \tilde W(k, k_1) \int \tilde W(k, k_2) \; (\mathrm{at} \; \mathrm{different} \; \ell)",
@@ -446,7 +456,7 @@ function animate_Sl_fixed_kpp_varying_l(grids, S_lkk_gg, grid_data, paths, plot_
             grids.kp_grid, 
             y_data,
             color = color_palette[il],
-            label = L"k_{pp} = %$(round(kpp, digits=5)) \; \mathrm{h/Mpc}, \; \ell = %$(grid_data.ℓ[il])",
+            label = L"k_{2} = %$(round(kpp, digits=5)) \; \mathrm{h/Mpc}, \; \ell = %$(grid_data.ℓ[il])",
             linestyle = :solid
         )
     end
@@ -471,8 +481,8 @@ end
 function plot_l_lplus1_Sl(grids, S_lkk_gg, grid_data, paths, plot_theme; 
                           ip::Int=150, ipp::Int=150, save_fig::Bool=true, showfig::Bool=false)
     
-    k_p = grids.k_grid[ip]
-    k_pp = grids.kp_grid[ipp]
+    k_1 = grids.k_grid[ip]
+    k_2 = grids.kp_grid[ipp]
 
     # Calculate \ell(\ell+1) S_\ell
     y_data = S_lkk_gg[ip, ipp, :] .* grid_data.ℓ .* (grid_data.ℓ .+ 1)
@@ -481,7 +491,7 @@ function plot_l_lplus1_Sl(grids, S_lkk_gg, grid_data, paths, plot_theme;
         grid_data.ℓ,
         y_data,
         xlabel = L"\ell",
-        ylabel = L"\ell(\ell+1)S_\ell",
+        ylabel = L"\ell(\ell+1)S_\ell (\mathrm{Mpc}/h)^2",
         label = "Beyond BLAST",
         legend = false,
         colorbar = true,
@@ -521,7 +531,7 @@ function plot_Sl_diagonal_ell_evolution(grids, S_lkk_gg, grid_data, paths, plot_
 
     p = plot(
         xlabel = L"k \; (h/\mathrm{Mpc})",
-        ylabel = normalize ? L"S_\ell(k,k) / \max(S_\ell(k,k))" : L"S_\ell(k,k)",
+        ylabel = normalize ? L"S_\ell(k,k) / \max(S_\ell(k,k))" : L"S_\ell(k,k) (\mathrm{Mpc}/h)^2",
         title  = L"S_\ell^{gg}(k,k)\ \mathrm{for\ different}\ \ell\ \mathrm{values}",
         colorbar_title = L"\ell",
         clims = (grid_data.ℓ[1], grid_data.ℓ[end]),
