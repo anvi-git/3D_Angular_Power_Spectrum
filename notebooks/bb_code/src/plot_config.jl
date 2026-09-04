@@ -21,10 +21,10 @@ function setup_plot_theme(; paper = false)
     topmargin    = 10Plots.mm
     
     # Font delle etichette
-    titlefontsize  = 15
-    yguidefontsize = 15 
-    xguidefontsize = 15
-    legendfontsize = 10
+    titlefontsize  = 20
+    yguidefontsize = 20 
+    xguidefontsize = 20
+    legendfontsize = 15
     
     # Colori e palette
     c      = :curl

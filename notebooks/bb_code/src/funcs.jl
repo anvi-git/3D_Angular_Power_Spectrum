@@ -141,7 +141,7 @@ function analyze_W_cheb(grid_data, x_cheb, W_x, W_cheb, c_cheb, grids, bb, paths
 
     # Plot 1: W(x) vs W_cheb
     p_wx = plot(grid_data.x, W_x, label = L"W(\chi)", lw = 1, ls = :dot; markercolor = :green, plot_theme.shared_style...)
-    plot!(p_wx, x_cheb, W_cheb, label = L"W(\chi) \; \mathrm{on} \; \mathrm{Chebyshev} \; \mathrm{nodes}",
+    plot!(p_wx, x_cheb, W_cheb, label = L"W(\chi) \; \mathrm{on} \; \mathrm{Chebyshev} \; \mathrm{nodes}", titlefontsize = 15,
           lw = 1, ls = :dot; markercolor = :red, plot_theme.shared_style...)
     savefig(p_wx, joinpath(w_dir, "W_x_and_W_cheb.png"))
 
@@ -177,7 +177,7 @@ function analyze_W_cheb(grid_data, x_cheb, W_x, W_cheb, c_cheb, grids, bb, paths
             title = "relative error [%]", titlefontsize = 10, xlabel = " Chebyshev steps")
     hline!(p2, [0.0], ls = :solid, lw = 1, color = :red, label = false)
 
-    p_combined = plot(p1, p2, layout = @layout([a; b]), dpi = 1500,
+    p_combined = plot(p1, p2, layout = @layout([a; b]), dpi = 1500, legendfontsize = 15, legendposition = :outertopright,
             xlabel = [L"\chi\,[\mathrm{Mpc}/h]" "steps"], size = plot_theme.size_Cl; plot_theme.shared_style...)
     savefig(p_combined, joinpath(w_dir, "chebcoeff_combined_galaxy.png"))
 
@@ -187,7 +187,7 @@ function analyze_W_cheb(grid_data, x_cheb, W_x, W_cheb, c_cheb, grids, bb, paths
         yscale = :log10,
         xlabel = L"n", ylabel = L"|c_n|",
         label = L"|c_n| \ \mathrm{di} \ W(\chi)",
-        title = "Chebyshev coefficients decay",
+        title = "Chebyshev coefficients decay", titlefontsize = 15, 
         marker = :circle, markercolor = :slategrey, ls = :solid, lw = 0.5; plot_theme.shared_style...)
     p_decay = plot!(p_decay, dpi = 1500)
     savefig(p_decay, joinpath(w_dir, "chebcoeff_decay_galaxy.png"))
@@ -208,7 +208,7 @@ function analyze_W_cheb(grid_data, x_cheb, W_x, W_cheb, c_cheb, grids, bb, paths
         xlabel = L"N_{trunc}",
         ylabel = L"\mathrm{err}(N_{trunc}) = \frac{\max_i |W_{N_{trunc}} - W(\chi_i)|}{\max_i |W(\chi_i)|}",
         title  = L"\mathrm{err}(N_{trunc}) = \frac{\max_i |W_{N_{trunc}} - W(\chi_i)|}{\max_i |W(\chi_i)|}",
-        legend = false, framestyle = :box, yticks = yticks_vals, size = plot_theme.size_Cl; plot_theme.shared_style...)
+        legend = false, titlefontsize = 15, framestyle = :box, yticks = yticks_vals, size = plot_theme.size_Cl; plot_theme.shared_style...)
     p_trunc = plot!(p_trunc, dpi = 1500)
     savefig(p_trunc, joinpath(w_dir, "chebcoeff_truncation_error_galaxy.png"))
 

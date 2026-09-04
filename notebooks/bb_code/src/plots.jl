@@ -154,6 +154,8 @@ function plot_theory_Pk(
         xlabel = L"$k \; (h/\mathrm{Mpc})$",
         ylabel = L"$P(k) \; ((\mathrm{Mpc}/h)^3)$",
         labelfontsize = 15,
+        legendfontsize = 15,
+        legendposition = :outertopright,
         dpi = 1500
     )
 
@@ -184,7 +186,7 @@ function plot_Sl_kp_kpp(grids, S_lkk_gg, grid_data, paths, plot_theme;
     plot!(p,
         xlabel = L"\ell",
         ylabel = L"S_\ell (\mathrm{Mpc}/h)^2",
-        # xscale = :log10,
+        xscale = :log10,
         minorticks = true
     )
 
@@ -194,6 +196,8 @@ function plot_Sl_kp_kpp(grids, S_lkk_gg, grid_data, paths, plot_theme;
         title = L"S_{\ell}^{gg} (k_1 = k_{2} = %$(round(k_1, digits=5)) \; \mathrm{h/Mpc})",
         titlefontsize = 20,
         titleposition = :left,
+        legendposition = :outertopright,
+        legendfontsize = 15,
         dpi = 1500,
         plot_theme.shared_style...
     )
