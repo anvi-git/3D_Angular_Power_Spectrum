@@ -239,6 +239,7 @@ function plot_Sl_fixed_l_kpp(grids, S_lkk_gg, grid_data, paths, plot_theme;
         label = L"\ell=%$(ell_val), k_{2}=%$(round(k_2, digits=3)) \; \mathrm{h/Mpc}",
         titleposition = :left, 
         labelfontsize = 20, 
+        legendfontsize = 15,
         legendposition = :outertopright, 
         size = plot_theme.size_Cl; 
         plot_theme.shared_style...
@@ -291,10 +292,13 @@ function plot_Sl_fixed_l_varying_k(grids, S_lkk_gg, grid_data, paths, plot_theme
 
     plot!(p,
         title = L"S_\ell^{gg} \; \mathrm{for} \; \ell = %$(ell_val)",
-        legendposition = :outertopright, 
         size = plot_theme.size_Cl, 
         titlefontsize = 20, 
         titleposition = :left; 
+        legendfontsize = 15,
+        xfontsize = 15,
+        yfontsize = 15,
+        legendposition = :outertopright,        
         plot_theme.shared_style...
     )
     if step < 10
@@ -406,7 +410,8 @@ function plot_Sl_fixed_kpp_varying_l(grids, S_lkk_gg, grid_data, paths, plot_the
         title = L"S_\ell^{gg} = \int dk k^2 P(k) \int \tilde W(k, k_1) \int \tilde W(k, k_2) (\mathrm{at} \; \mathrm{different} \; \ell)",
         titlefontsize = 20,
         titleposition = :left,
-        legendposition = :outertopright, 
+        legendfontsize = 15,
+        legendposition = :outertopright,         
         size = plot_theme.size_Cl; 
         plot_theme.shared_style...
     )

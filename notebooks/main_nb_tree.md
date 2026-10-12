@@ -98,16 +98,64 @@ flowchart TD
 
 
 ```mermaid
+flowchart TD
+    A["Input data: \n Redshift \n Comoving distance \n Galaxy number density"] -->|enter| B["Jupyter Notebooks"] 
+    C[" 'Blast Paper' \n [Chiarenza et al. 2024]: \n arXiv:2410.03632"] .-> B
+    D[Source Code] -->|loads| E["Blast modules"]
+    D[Source Code] -->|loads| F["My modules"]
+    D[Source Code] -->|loads| G["Julia packages"]
+    E -->|enter| B
+    F -->|enter| B 
+    G -->|enter| B 
+    B -->|runs| H["Single Run"]
+    H --> J["Results"]
+    J --> K["Plots \n Histograms \n Heatmaps"]
+    J --> I["Geometry dependent factor (reusable) W_{tilde}"]
+    I .-> B
+```
+
+```mermaid
 flowchart LR
-    notebook["notebooks/main_nb.ipynb"] --> env["notebooks/bb_code/Project.toml"]
-    notebook --> entry["notebooks/bb_code/src/bb.jl"]
+    A["Input data: <br/>Redshift<br/>Comoving distance<br/>Galaxy number density"]
 
-    entry --> source["src modules:<br/>cosmo · background · projected_matter · chebcoefs · integrals · funcs · plots · gg · paths · config · plot_config"]
-    config --> data["data/background/z.npy<br/>data/background/chi.npy<br/>data/dNdzs_fullwidth.npz"]
+    R["Blast paper: <br/>Chiarenza et al. 2024<br/>arXiv:2410.03632"]
 
-    notebook -. reuse .-> reuse["out/.../W_tilde.npy"]
-    notebook --> generated["out/runs/run_<timestamp>/<br/>output_info.txt · quantities/ · plots/"]
+    subgraph S["Software stack"]
+        B["Blast modules"]
+        C["Custom modules"]
+        D["Julia packages"]
+    end
 
-    env --> packages["Julia packages:<br/>NPZ · HDF5 · Plots · QuadGK · FFTW · Cosmology · ..."]
-    notebook -. cites .-> paper["arXiv:2410.03632"]
+    N["Jupyter notebooks"]
+    E["Single run"]
+    F["Results"]
+
+    G["Visualisations<br/>Histograms<br/>Heatmaps"]
+
+    W["Reusable geometry factor<br/>W"]
+
+    A --> N
+    R -.-> N
+
+    B --> N
+    C --> N
+    D --> N
+
+    N --> E --> F
+    F --> G
+    F --> W
+
+    W -.->|reused in| N
+
+    classDef data fill:#E8F1FB,stroke:#3973AC,color:#102A43
+    classDef software fill:#EAF7EE,stroke:#3A8F5B,color:#173B24
+    classDef process fill:#FFF4D6,stroke:#C58A00,color:#4A3500
+    classDef output fill:#F6E8F5,stroke:#A0529B,color:#421C40
+    classDef reusable fill:#FFE4C7,stroke:#D66A00,stroke-width:2px,color:#4A2500
+
+    class A,R data
+    class B,C,D software
+    class N,E,F process
+    class G output
+    class W reusable
 ```
